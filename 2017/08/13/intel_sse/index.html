@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="特别鸣谢： 参考文章：http://blog.csdn.net/zoucharming/article/details/49766155http://www.cppblog.com/djxzh/archive/2011/10/27/159192.aspxhttps://zhuanlan.zhihu.com/p/2003">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Intel SSE指令集">
+<meta property="og:url" content="http://yoursite.com/2017/08/13/intel_sse/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="特别鸣谢： 参考文章：http://blog.csdn.net/zoucharming/article/details/49766155http://www.cppblog.com/djxzh/archive/2011/10/27/159192.aspxhttps://zhuanlan.zhihu.com/p/20037058https://msdn.microsoft.com/it-it/lib">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-11-25T13:00:22.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Intel SSE指令集">
+<meta name="twitter:description" content="特别鸣谢： 参考文章：http://blog.csdn.net/zoucharming/article/details/49766155http://www.cppblog.com/djxzh/archive/2011/10/27/159192.aspxhttps://zhuanlan.zhihu.com/p/20037058https://msdn.microsoft.com/it-it/lib">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/08/13/intel_sse/"/>
+
+
+
+
+
+  <title>Intel SSE指令集 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/08/13/intel_sse/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Intel SSE指令集</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-13T00:00:00+08:00">
+                2017-08-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="特别鸣谢："><a href="#特别鸣谢：" class="headerlink" title="特别鸣谢："></a>特别鸣谢：</h2><blockquote>
+<p>参考文章：<br><a href="http://blog.csdn.net/zoucharming/article/details/49766155" target="_blank" rel="noopener">http://blog.csdn.net/zoucharming/article/details/49766155</a><br><a href="http://www.cppblog.com/djxzh/archive/2011/10/27/159192.aspx" target="_blank" rel="noopener">http://www.cppblog.com/djxzh/archive/2011/10/27/159192.aspx</a><br><a href="https://zhuanlan.zhihu.com/p/20037058" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/20037058</a><br><a href="https://msdn.microsoft.com/it-it/library/szdcdfc2(v=vs.100" target="_blank" rel="noopener">https://msdn.microsoft.com/it-it/library/szdcdfc2(v=vs.100).aspx</a>.aspx)<br><a href="http://www.cnblogs.com/zyl910/archive/2012/10/22/simdsumfloat.html" target="_blank" rel="noopener">http://www.cnblogs.com/zyl910/archive/2012/10/22/simdsumfloat.html</a><br><a href="http://www.cnblogs.com/tibetanmastiff/p/4394608.html" target="_blank" rel="noopener">http://www.cnblogs.com/tibetanmastiff/p/4394608.html</a> </p>
+</blockquote>
+<a id="more"></a>
+<hr>
+<h2 id="开发环境："><a href="#开发环境：" class="headerlink" title="开发环境："></a>开发环境：</h2><blockquote>
+<p>CPU:  Inter(R) Core(TM) i3-2330M<br>操作系统： ubuntu 14.04 x86_64 GNU/Linux<br>编译器： gcc 4.8.4<br>glibc版本： libc-2.19  </p>
+</blockquote>
+<p>###sse介绍：</p>
+<p>SSE的全称是 Sreaming SIMD Extensions， 它是一组Intel CPU指令，用于像信号处理、科学计算或者3D图形计算一样的应用。其优势包括：更高分辨率的图像浏览和处理、高质量音频、MPEG2视频、同时MPEG2加解密；语音识别占用更少CPU资源；更高精度和更快响应速度。使用SSE指令集，主要是通过8个128-bit的寄存器：xmm0到xmm7 来完成的。<strong>在Linux下可以使用cat /proc/cpuinfo来查看CPU支持哪些指令集。</strong>  SSE的指令集是X86架构CPU特有的，对于ARM架构、MIPS架构等CPU是不支持的，所以使用了SSE指令集的程序，是不具备可移植标准的。</p>
+<h4 id="ARM架构和X86架构有什么区别："><a href="#ARM架构和X86架构有什么区别：" class="headerlink" title="ARM架构和X86架构有什么区别："></a>ARM架构和X86架构有什么区别：</h4><p>最大的区别就是ARM架构使用的RSIC(精简指令集)，X86使用的是CSIC(复杂指令集)，ARM架构的CPU一般是用于低功耗领域，在这个领域就是NO.1，如手机、平板、工控领域，嵌入式行业。X86架构的CPU，功耗比较高，但是计算性能强劲。一般用于个人PC、服务器、需要复杂的计算领域，如向量计算，矩阵运算。市面上几乎所有的手机使用的CPU，都是ARM架构。咦….，等等。IPhone不是使用的是苹果的A系列的CPU吗？尼玛，你在逗我吗？我那么高大上的手机，怎么能跟Android那种垃圾手机，使用的是一样架构的CPU呢？恩~，别慌，确实是这样子的。虽然苹果、高通、MTK、三星都有自己的CPU，但是都是使用的是ARM架构的。简单的说，就是这些厂商通过使用ARM指令集体系结构,来设计自己的CPU、外围的IC(如：音频、WIFI、蓝牙)和对指令集进行优化，最后形成自己的CPU。ARM架构一般有ARMv8架构、ARMv7-A架构、ARMv6架构、Cortex-A系列架构、Cortex-M系列架构，不同架构的CPU有不同的用途。所以不管是高大上的苹果手机还是烂大街的Android手机，都是使用的是ARM架构的CPU。<br><strong>ARM已经被软银收购了，所以抵制日货，这比较麻烦。</strong>  </p>
+<h2 id="使用SSE指令集进行程序优化"><a href="#使用SSE指令集进行程序优化" class="headerlink" title="使用SSE指令集进行程序优化"></a>使用SSE指令集进行程序优化</h2><blockquote>
+<p><em>Talk is cheap， Show me the code</em></p>
+</blockquote>
+<h4 id="普通版"><a href="#普通版" class="headerlink" title="普通版"></a>普通版</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">normal_add</span><span class="params">(<span class="keyword">int</span> *a, <span class="keyword">size_t</span> n)</span> </span>&#123;</span><br><span class="line">    assert(a);</span><br><span class="line">    <span class="keyword">int</span> sum = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">        sum += a[i];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> sum;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个函数有点简单，简单到以至于无需要过多华丽的语言来修饰。它就是一个求和的函数。下面我们来看一下测试程序：  </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Timer</span> &#123;</span></span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">        Timer(<span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; n) : name(n), start(<span class="built_in">std</span>::clock()) &#123;&#125;</span><br><span class="line"></span><br><span class="line">        ~Timer() &#123;</span><br><span class="line">            <span class="keyword">double</span> elapsed = (<span class="keyword">double</span>(<span class="built_in">std</span>::clock() - start)) / <span class="keyword">double</span>(CLOCKS_PER_SEC);</span><br><span class="line"></span><br><span class="line">            <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; name &lt;&lt; <span class="string">": "</span> &lt;&lt; <span class="keyword">int</span>(elapsed * <span class="number">1000</span>) &lt;&lt; <span class="string">"ms"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">string</span> name;</span><br><span class="line">        <span class="built_in">std</span>::<span class="keyword">clock_t</span> start;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> Timer(n) Timer timer(n)</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(argc != <span class="number">2</span>) &#123;</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"error argument"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">size_t</span> n = atoi(argv[<span class="number">1</span>]);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> *a = <span class="literal">NULL</span>;</span><br><span class="line">    posix_memalign((<span class="keyword">void</span>**)&amp;a, <span class="number">16</span>, <span class="keyword">sizeof</span>(<span class="keyword">int</span>)*n);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">        a[i] = <span class="number">5</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#123;</span><br><span class="line">        Timer(<span class="string">"normal_add"</span>);</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"return: "</span> &lt;&lt; normal_add(a, n) &lt;&lt; <span class="string">",  "</span>; </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">free</span>(a);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个测试程序定义一个Timer类，用于计算normal_add函数的时间，单位为毫秒。通过命令行传入的参数，申请内存。posix_memalign函数表示在堆中申请16字节对齐的内存。至于为什么要16字节对齐，我们下面会用到。然后把数组中的每个值设置为5。调用normal_add函数进行计算。下面我们进行测试：</p>
+<pre><code>编译：g++ normal_add.cc
+运行：./a.out 10000000
+结果：return: 50000000,  normal_add: 41ms
+</code></pre><p>可以看到，5加上10000000的结果为50000000，normal_add函数耗时为41ms。是的，没问题，非常完美，你应该为自己的设计感觉到骄傲。下面我们对这个程序进行优化。  </p>
+<h4 id="循环版"><a href="#循环版" class="headerlink" title="循环版"></a>循环版</h4><blockquote>
+<p>在程序优化中有一种经常使用的方法：循环展开。循环展开可以降低循环开销，提高指令级并行性能,此处使用四路展开  </p>
+<hr>
+<p>下面我们把上面的程序在循环内分4路进行展开，代码如下：</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">normal_add_loop4</span><span class="params">(<span class="keyword">int</span> *a, <span class="keyword">size_t</span> n)</span> </span>&#123;</span><br><span class="line">    assert(a);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> sum = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">size_t</span> block = n / <span class="number">4</span>;    <span class="comment">// 等价于n &gt;&gt; 2</span></span><br><span class="line">    <span class="keyword">size_t</span> reserve = n % <span class="number">4</span>;  <span class="comment">// 等价于 n &amp; 0x3</span></span><br><span class="line">    <span class="keyword">int</span> *p = a;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; block; ++i) &#123;</span><br><span class="line">        sum += *p;        </span><br><span class="line">        sum += *(p+<span class="number">1</span>);        </span><br><span class="line">        sum += *(p+<span class="number">2</span>);        </span><br><span class="line">        sum += *(p+<span class="number">3</span>);        </span><br><span class="line">        p += <span class="number">4</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 剩余的不足4字节</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; reserve; ++i) &#123;</span><br><span class="line">        sum += p[i];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> sum;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>修改上面的测试程序为：  </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    Timer(<span class="string">"normal_add_loop4"</span>);</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"return: "</span> &lt;&lt; normal_add(a, n) &lt;&lt; <span class="string">",  "</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>进行测试：  </p>
+<pre><code>编译：g++ normal_add_loop4.cc
+运行：./a.out 10000000
+结果: return: 50000000,  normal_add_loop4: 33ms
+</code></pre><p>结果为50000000，normal_add_loop4函数耗时为33ms。比上面的normal_add快了8ms。下面我们使用SSE指令集对程序进行优化。</p>
+<h4 id="SSE版"><a href="#SSE版" class="headerlink" title="SSE版"></a>SSE版</h4><blockquote>
+<p>使用SSE指令，首先要了解这一类用于进行初始化加载数据以及将暂存器的数据保存到内存相关的指令，大多数SSE指令是使用的xmm0到xmm8的暂存器，那么使用之前，就需要将数据从内存加载到这些暂存器。  </p>
+<hr>
+<ol>
+<li>load(set)系列，用于加载数据，从内存到暂存器。<br>__m128i _mm_load_si128(__m128i <em>p);<br>__m128i _mm_loadu_si128(__m128i </em>p);</li>
+<li>store系列，用于将计算结果等SSE暂存器的数据保存到内存中。<br>void _mm_store_si128 (__m128i <em>p, __m128i a);<br>void _mm_storeu_si128 (__m128i </em>p, __m128i a);  </li>
+</ol>
+</blockquote>
+<p>_mm_load_si128函数表示从内存中加载一个<strong>128bits</strong>值到暂存器，也就是<strong>16字节</strong>，<strong>注意：</strong>p必须是一个16字节对齐的一个变量的地址。返回可以存放在代表寄存器的变量中的值。<br>_mm_loadu_si128函数和_mm_load_si128一样的，但是不要求地址p是16字节对齐。  </p>
+<p>store系列的_mm_store_si128和_mm_storeu_si128函数，与上面的load系列的函数是对应的。    表示将__m128i 变量a的值存储到p所指定的地址中去。</p>
+<h5 id="字节对齐是什么东西？"><a href="#字节对齐是什么东西？" class="headerlink" title="字节对齐是什么东西？"></a>字节对齐是什么东西？</h5><blockquote>
+<p>首先字节对齐不是东西，字节对齐是一个古老而又神秘的传说，它起源于遥远的上古时代，遥远有多远，额~，总之就是很久以前，在那个你或者我都还没出生的年代。如果你不知道什么是字节对齐，你就不能提高CPU高速缓存的命中率，也就不能对程序优化，更谈不上用什么指令集。字节对齐，比你想象中还要常见，比如说：  </p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">St</span> &#123;</span></span><br><span class="line">    <span class="keyword">char</span> c;</span><br><span class="line">    <span class="keyword">int</span> a;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">St</span> <span class="title">s</span>;</span></span><br></pre></td></tr></table></figure>
+<p>sizeof(s)的值等于多少呢？  在自己的计算机上看一下吧，如果它和你想象中的不一样，那么。。。额~，也没什么。下面我们用sse指令集对上面的程序进行优化，代码如下：  </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sse_add</span><span class="params">(<span class="keyword">int</span> *a, <span class="keyword">size_t</span> n)</span> </span>&#123; </span><br><span class="line">    assert(a);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> sum = <span class="number">0</span>;</span><br><span class="line">    __m128i sse_sum = _mm_setzero_si128();</span><br><span class="line">    __m128i sse_load;</span><br><span class="line">    __m128i *p = (__m128i*)a;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">size_t</span> block = n / <span class="number">4</span>;     <span class="comment">// SSE寄存器能一次处理4个32位的整数</span></span><br><span class="line">    <span class="keyword">size_t</span> reserve = n % <span class="number">4</span>;  <span class="comment">// 剩余的不足16字节</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; block; ++i) &#123;</span><br><span class="line">        sse_load = _mm_load_si128(p);</span><br><span class="line">        sse_sum  = _mm_add_epi32(sse_sum, sse_load); <span class="comment">// 带符号32位紧缩加法</span></span><br><span class="line">        ++p;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 剩余的不足16字节</span></span><br><span class="line">    <span class="keyword">int</span> *q = (<span class="keyword">int</span> *)p;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; reserve; ++i) &#123;</span><br><span class="line">        sum += q[i];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将累加值合并</span></span><br><span class="line">    sse_sum = _mm_hadd_epi32(sse_sum, sse_sum);  <span class="comment">// 带符号32位水平加法</span></span><br><span class="line">    sse_sum = _mm_hadd_epi32(sse_sum, sse_sum);</span><br><span class="line"></span><br><span class="line">    sum += _mm_cvtsi128_si32(sse_sum);  <span class="comment">// 返回低32位</span></span><br><span class="line">    <span class="keyword">return</span> sum;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>注意:</strong> 上面的代码只针对是<strong>int为4个字节</strong>，如果你的机器上int为8个字节，则不可用。用sizeof(int)看一下你机器中的输出的值吧。我们使用是_mm_load_si128函数, 所以传入的地址a必须是16字节对齐的，所以上面的测试程序用了posix_memalign申请了16字节对齐的内存(还记得吗？)。  </p>
+<p>修改上面的测试程序为：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    Timer(<span class="string">"sse_add"</span>);</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"return: "</span> &lt;&lt; sse_add(a, n) &lt;&lt; <span class="string">",  "</span>; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>进行测试，编译时记得加头文件<strong>nmmintrin.h</strong>，编译选项<strong>-msse4</strong>：  </p>
+<pre><code>编译: g++ -msse4 sse_add.cc
+运行: ./a.out 10000000
+结果: return: 50000000,  sse_add: 17ms
+</code></pre><p>没问题，结果正确，sse_add用了17ms，比上面的normal_add_loop4函数快了16ms。下面我们使用循环4路展开对上面的sse_add进行优化，代码为：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sse_add_loop4</span><span class="params">(<span class="keyword">int</span> *a, <span class="keyword">int</span> n)</span> </span>&#123; </span><br><span class="line">    assert(a);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> sum = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">size_t</span> block = n / <span class="number">16</span>;    <span class="comment">// SSE寄存器能一次处理4个32位的整数</span></span><br><span class="line">    <span class="keyword">size_t</span> reserve = n % <span class="number">16</span>; <span class="comment">// 剩余的字节</span></span><br><span class="line"></span><br><span class="line">    __m128i sse_sum0 = _mm_setzero_si128();</span><br><span class="line">    __m128i sse_sum1 = _mm_setzero_si128();</span><br><span class="line">    __m128i sse_sum2 = _mm_setzero_si128();</span><br><span class="line">    __m128i sse_sum3 = _mm_setzero_si128();</span><br><span class="line">    __m128i sse_load0;</span><br><span class="line">    __m128i sse_load1;</span><br><span class="line">       __m128i sse_load2;</span><br><span class="line">    __m128i sse_load3;</span><br><span class="line">    __m128i *p = (__m128i*)a;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; block; ++i) &#123;</span><br><span class="line">        sse_load0 = _mm_load_si128(p);</span><br><span class="line">        sse_load1 = _mm_load_si128(p+<span class="number">1</span>);</span><br><span class="line">        sse_load2 = _mm_load_si128(p+<span class="number">2</span>);</span><br><span class="line">        sse_load3 = _mm_load_si128(p+<span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">        sse_sum0 = _mm_add_epi32(sse_sum0, sse_load0);</span><br><span class="line">        sse_sum1 = _mm_add_epi32(sse_sum1, sse_load1);</span><br><span class="line">        sse_sum2 = _mm_add_epi32(sse_sum2, sse_load2);</span><br><span class="line">        sse_sum3 = _mm_add_epi32(sse_sum3, sse_load3);</span><br><span class="line"></span><br><span class="line">        p += <span class="number">4</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 剩余的不足16字节</span></span><br><span class="line">    <span class="keyword">int</span> *q = (<span class="keyword">int</span> *)p;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; reserve; ++i) &#123;</span><br><span class="line">        sum += q[i];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将累加值两两合并</span></span><br><span class="line">    sse_sum0 = _mm_add_epi32(sse_sum0, sse_sum1);</span><br><span class="line">    sse_sum2 = _mm_hadd_epi32(sse_sum2, sse_sum3);</span><br><span class="line">    sse_sum0 = _mm_add_epi32(sse_sum0, sse_sum2);</span><br><span class="line"></span><br><span class="line">    sse_sum0 = _mm_hadd_epi32(sse_sum0, sse_sum0);</span><br><span class="line">    sse_sum0 = _mm_hadd_epi32(sse_sum0, sse_sum0);</span><br><span class="line"></span><br><span class="line">    sum += _mm_cvtsi128_si32(sse_sum0); <span class="comment">// 取低32位</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> sum;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>修改上面的测试程序为：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    Timer(<span class="string">"sse_add_loop4"</span>);</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"return: "</span> &lt;&lt; sse_add(a, n) &lt;&lt; <span class="string">",  "</span>; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>进行测试，编译时记得加头文件<strong>nmmintrin.h</strong>，编译选项<strong>-msse4</strong>：  </p>
+<pre><code>编译: g++ -msse4 sse_add_loop4.cc
+运行: ./a.out 10000000
+结果: return: 50000000,  sse_add_loop4: 10ms
+</code></pre><p>结果正确，用于10ms，比上面的sse_add快了7ms。  </p>
+<h5 id="由此可以看出，sse指令集确实可以提高程序的性能。但是上面的函数有点无聊，有点不切实际，5-10000000不就是等于50000000，搞那么复杂干嘛。是的，的确挺无聊的，无聊的函数、无聊的人，无聊的人写的无聊的代码，-恩。。。别浪，春风十里不如你。下面我们接着往下看："><a href="#由此可以看出，sse指令集确实可以提高程序的性能。但是上面的函数有点无聊，有点不切实际，5-10000000不就是等于50000000，搞那么复杂干嘛。是的，的确挺无聊的，无聊的函数、无聊的人，无聊的人写的无聊的代码，-恩。。。别浪，春风十里不如你。下面我们接着往下看：" class="headerlink" title="由此可以看出，sse指令集确实可以提高程序的性能。但是上面的函数有点无聊，有点不切实际，5*10000000不就是等于50000000，搞那么复杂干嘛。是的，的确挺无聊的，无聊的函数、无聊的人，无聊的人写的无聊的代码，~恩。。。别浪，春风十里不如你。下面我们接着往下看："></a>由此可以看出，sse指令集确实可以提高程序的性能。但是上面的函数有点无聊，有点不切实际，5*10000000不就是等于50000000，搞那么复杂干嘛。是的，的确挺无聊的，无聊的函数、无聊的人，无聊的人写的无聊的代码，~恩。。。别浪，春风十里不如你。下面我们接着往下看：</h5><h3 id="字符串模式匹配"><a href="#字符串模式匹配" class="headerlink" title="字符串模式匹配"></a>字符串模式匹配</h3><blockquote>
+<p>字符串的模式匹配，也就是在主串s中，找到一个相等的目标串t。<br>如: s = “cddcdc”, t = “cdc”, 则可以匹配。 t = “cdcc” 时，则不能匹配。    </p>
+</blockquote>
+<p>于是乎，我们可以采取暴力搜索进行匹配，代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">normal_strstr</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *src, <span class="keyword">const</span> <span class="keyword">char</span> *dest)</span> </span>&#123;</span><br><span class="line">    assert(src &amp;&amp; dest);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> src_len = <span class="built_in">strlen</span>(src);</span><br><span class="line">    <span class="keyword">int</span> dest_len = <span class="built_in">strlen</span>(dest);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">int</span> j;</span><br><span class="line">    <span class="keyword">int</span> k;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; src_len; ++i) &#123;</span><br><span class="line">        k = i;</span><br><span class="line">        <span class="keyword">for</span>(j = <span class="number">0</span>; j &lt; dest_len; ++j) &#123;</span><br><span class="line">            <span class="keyword">if</span>(src[k] == dest[j]) &#123;</span><br><span class="line">                ++k;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(j == dest_len) &#123;</span><br><span class="line">            <span class="keyword">return</span> k - dest_len;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>暴力搜索是最费时间的，时间复杂度为O(n*n), 我们写个测试程序进行测试，代码如下：  </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> BUF_SIZE (10 * 1024 * 1024)</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">char</span> *buf = (<span class="keyword">char</span> *)<span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">char</span>) * BUF_SIZE);</span><br><span class="line">    <span class="keyword">if</span>(!buf) &#123;</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"failed malloc"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memset</span>(buf, <span class="string">'m'</span>, BUF_SIZE);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *dest = <span class="string">"message="</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(buf + BUF_SIZE - <span class="number">1</span> - <span class="built_in">strlen</span>(dest), dest, <span class="built_in">strlen</span>(dest));</span><br><span class="line"></span><br><span class="line">    buf[BUF_SIZE - <span class="number">1</span>] = <span class="string">'\0'</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *src = buf;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> pos;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">500</span>; ++i) &#123;</span><br><span class="line">        pos = normal_strstr(src, dest);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"pos: "</span> &lt;&lt; pos &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">free</span>(buf);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个测试函数的，主要是申请一块10M的buf，把要匹配的字符message=放入buf的最后，然后调用normal_strstr 500次。下面我们用gprof进行测试。下面进行测试：  </p>
+<pre><code>编译： g++ normal_strstr.cc -pg -lc
+运行: ./a.out
+查看gprof的测试结果：    gprof ./a.out gmon.out -p
+输出：  
+      %   cumulative   self              self     total           
+       time   seconds   seconds    calls  ms/call  ms/call  name    
+    100.74     56.93    56.93      500   113.86   113.86  normal_strstr(char const*, char const*)  
+</code></pre><p>可以看到normal_strstr执行了500次，每次耗费的时间为113.86ms，总的时间为56.93s。</p>
+<blockquote>
+<p>在计算机科学领域， 有一门课程，叫做数据结构和算法，里面有讲到对字符串模式匹配进行优化的算法，叫做KMP算法。</p>
+</blockquote>
+<h3 id="KMP算法"><a href="#KMP算法" class="headerlink" title="KMP算法"></a>KMP算法</h3><p>至于kmp算法的原理，我也忘了差不多。这东西，看了也不一定懂、懂了也不一定会、会了也不一定会用、用了你才知道你不懂。下面是KMP算法的代码：  </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">get_next</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* dest, <span class="keyword">int</span> next[])</span> </span>&#123;</span><br><span class="line">    <span class="comment">/* 计算回溯值 */</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> j = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> k = <span class="number">-1</span>;</span><br><span class="line">    next[<span class="number">0</span>] = <span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">int</span> dest_len = <span class="built_in">strlen</span>(dest);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(j &lt; dest_len) &#123;</span><br><span class="line">        <span class="keyword">if</span>(k == <span class="number">-1</span> || dest[j] == dest[k]) &#123;</span><br><span class="line">            ++j;</span><br><span class="line">            ++k;</span><br><span class="line">            <span class="keyword">if</span>(dest[j] != dest[k]) &#123;</span><br><span class="line">                next[j] = k;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                next[j] = next[k];</span><br><span class="line">            &#125;</span><br><span class="line">            next[j] = k;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            k = next[k];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">kmp</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *src, <span class="keyword">const</span> <span class="keyword">char</span>* dest)</span> </span>&#123;  </span><br><span class="line">    assert(src &amp;&amp; dest);</span><br><span class="line">  </span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> j = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span> src_len = <span class="built_in">strlen</span>(src);</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span> dest_len = <span class="built_in">strlen</span>(dest);</span><br><span class="line">    <span class="keyword">int</span> next[dest_len];</span><br><span class="line"></span><br><span class="line">    get_next(dest, next);</span><br><span class="line"></span><br><span class="line">    i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span>(i &lt; src_len &amp;&amp; j &lt; dest_len) &#123;</span><br><span class="line">        <span class="keyword">if</span>(j == <span class="number">-1</span> || src[i] == dest[j]) &#123;</span><br><span class="line">            i++;</span><br><span class="line">            j++;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            j = next[j];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> j &gt;= dest_len ? i - dest_len : <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们把上面的测试程序改为：  </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">500</span>; ++i) &#123;</span><br><span class="line">    pos = kmp(src, dest);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>进行测试：  </p>
+<pre><code>编译： g++ kmp_strstr.cc -pg -lc  
+运行: ./a.out
+查看gprof的测试结果：    gprof ./a.out gmon.out -p    
+输出：
+%   cumulative   self              self     total           
+  time   seconds   seconds    calls  ms/call  ms/call  name    
+100.52     62.07    62.07      500   124.14   124.14  kmp(char const*, char const*)
+</code></pre><p>可以看到kmp算法执行了500次，每次耗费的时间为124.14ms，总的时间为62.07s，擦。。。比我们那个normal_strstr函数还耗时间，不是说kmp算法是优化字符串匹配的吗？童话里都是骗人的。是的，别慌。KMP算法的确可以优化字符串匹配，但是我们上面的函数只是实现了算法，并没有做优化，比如每次计算都要调用get_next计算回溯值，函数调用是需要时间的，还有就是子串的相似度比较低，函数也没进行优化，这都会影响性能，可见能写出一个好的算法多么艰辛，更别说从头到尾设计一个算法。在这里致敬大师。下面我们使用SSE指令集对字符串匹配进行优化.    </p>
+<h3 id="使用SSE优化字符串匹配"><a href="#使用SSE优化字符串匹配" class="headerlink" title="使用SSE优化字符串匹配"></a>使用SSE优化字符串匹配</h3><blockquote>
+<p>在 Intel 的 SSE4.2 指令集中，有一个 pcmpistrm 指令，它可以一次对一组16个字符与另一组字符作比较，也就是说一个指令可以作最多16×16=256次比较。</p>
+<hr>
+<p>要使用SSE对字符串匹配进行优化，需要用到下面几个函数：<br>参考：<a href="https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpistri&amp;expand=914" target="_blank" rel="noopener">https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpistri&amp;expand=914</a><br>int _mm_cmpistri (<strong>m128i a, </strong>m128i b, const int imm8)<br>Compare packed strings with implicit lengths in a and b using the control in imm8, and store the generated index in dst.   </p>
+<p> int _mm_cmpistrz (<strong>m128i a, </strong>m128i b, const int imm8)<br> Compare packed strings with implicit lengths in a and b using the control in imm8, and returns 1 if any character in b was null, and 0 otherwise.   </p>
+<p>int _mm_cmpistrs (<strong>m128i a, </strong>m128i b, const int imm8)<br>Compare packed strings with implicit lengths in a and b using the control in imm8, and returns 1 if any character in a was null, and 0 otherwise.   </p>
+</blockquote>
+<p>使用SSE优化字符串匹配代码如下：  </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">/* unit test:</span></span><br><span class="line"><span class="comment">   * src = "00000000001234561234123456789abcdefghi", dest = "1234567"; ret = 20</span></span><br><span class="line"><span class="comment">   * src = "00000000001234561234123456789abcdefghi", dest = "123456789abcdefg";  ret = 20</span></span><br><span class="line"><span class="comment">   * src = "00000000001234561234123456789abcdefghi", dest = "1234"; ret = 10</span></span><br><span class="line"><span class="comment">   * src = "00000000001234561234123456789abcdefghi", dest = "00000000"; ret = 0</span></span><br><span class="line"><span class="comment">   * src = "00000000001234561234123456789abcdefghi", dest = "0000000000123456"; ret = 0</span></span><br><span class="line"><span class="comment">   * src = "00000000001234561234123456789abcdefghi", dest = "000000000012345612"; ret = 0</span></span><br><span class="line"><span class="comment">   * src = "00000000001234561234123456789abcdefghi", dest = "1000000000012345612"; ret = -1</span></span><br><span class="line"><span class="comment">   * src = "00000000001234561234123456789abcdefghi", dest = "fghi"; ret = 34</span></span><br><span class="line"><span class="comment">   * src = "00000000001234561234123456789abcdefghi", dest = "fghia"; ret = -1</span></span><br><span class="line"><span class="comment">   * src = "00000000001234561234123456789abcdefghi", dest = "3456789abcdefghi"; ret = 22</span></span><br><span class="line"><span class="comment">   * src = "00000000001234561234123456789abcdefghi", dest = "23456789abcdefghi"; ret = 21</span></span><br><span class="line"><span class="comment">   * src = "00000000001234561234123456789abcdefghi", dest = "3456789abcdefghiq"; ret = -1</span></span><br><span class="line"><span class="comment">   * src = "aaaabbbbaaaabbbbaaaabbbbacc", dest = "aaaabbbbaaaabbbbacc"; ret = 8</span></span><br><span class="line"><span class="comment">   * src = "aaaabbbbaaaabbbbaaaabbbbacc", dest = "aaaabbbbaaaabbbbccc"; ret = -1</span></span><br><span class="line"><span class="comment">   * src = "012345678", dest = "234"; ret = 2</span></span><br><span class="line"><span class="comment">   * src = "012345678", dest = "2346"; ret = -1  </span></span><br><span class="line"><span class="comment">   * /  </span></span><br><span class="line"><span class="comment">    </span></span><br><span class="line"><span class="comment"> int sse_strstr(const char *src, const char *dest) &#123;   </span></span><br><span class="line"><span class="comment">    assert(src &amp;&amp; dest);</span></span><br><span class="line"><span class="comment">   </span></span><br><span class="line"><span class="comment">    if(strlen(src) &lt; strlen(dest)) &#123;</span></span><br><span class="line"><span class="comment">        return -1;</span></span><br><span class="line"><span class="comment">    &#125;</span></span><br><span class="line"><span class="comment">    </span></span><br><span class="line"><span class="comment">    const char *s = src;</span></span><br><span class="line"><span class="comment">    const char *d = dest;</span></span><br><span class="line"><span class="comment">    int cmp;</span></span><br><span class="line"><span class="comment">    int cmp_z;</span></span><br><span class="line"><span class="comment">    int cmp_c;</span></span><br><span class="line"><span class="comment">    int cmp_s;</span></span><br><span class="line"><span class="comment">    </span></span><br><span class="line"><span class="comment">    const char *s_16;</span></span><br><span class="line"><span class="comment">    const char *d_16;</span></span><br><span class="line"><span class="comment">    </span></span><br><span class="line"><span class="comment">    __m128i frag1;</span></span><br><span class="line"><span class="comment">    __m128i frag2;</span></span><br><span class="line"><span class="comment">    frag1 = _mm_loadu_si128((__m128i *)s);</span></span><br><span class="line"><span class="comment">    frag2 = _mm_loadu_si128((__m128i *)d);</span></span><br><span class="line"><span class="comment">    cmp_s = _mm_cmpistrs(frag2, frag1, 0xc);</span></span><br><span class="line"><span class="comment">    </span></span><br><span class="line"><span class="comment">    </span></span><br><span class="line"><span class="comment">    if(cmp_s) &#123;</span></span><br><span class="line"><span class="comment">        /* strlen(dest) &lt; 16 */</span></span><br><span class="line">        <span class="keyword">do</span> &#123;</span><br><span class="line">            frag1 = _mm_loadu_si128((__m128i *)s); </span><br><span class="line">            cmp   = _mm_cmpistri(frag2, frag1, <span class="number">0x0c</span>);</span><br><span class="line">            cmp_c = _mm_cmpistrc(frag2, frag1, <span class="number">0x0c</span>);</span><br><span class="line">            cmp_z = _mm_cmpistrz(frag2, frag1, <span class="number">0xc</span>);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span>((!cmp) &amp; cmp_c) <span class="keyword">break</span>;</span><br><span class="line">            s += cmp;</span><br><span class="line">        &#125; <span class="keyword">while</span>(!cmp_z);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(!cmp_c) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> s - src;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">/* strlen(dest) &gt;= 16 */</span></span><br><span class="line">        <span class="keyword">do</span> &#123;</span><br><span class="line">            frag1 = _mm_loadu_si128((__m128i *)s);</span><br><span class="line">            frag2 = _mm_loadu_si128((__m128i *)d);</span><br><span class="line">            cmp   = _mm_cmpistri(frag2, frag1, <span class="number">0xc</span>);</span><br><span class="line">            cmp_z = _mm_cmpistrz(frag2, frag1, <span class="number">0xc</span>);</span><br><span class="line">            cmp_s = _mm_cmpistrs(frag2, frag1, <span class="number">0xc</span>);       </span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span>(cmp) &#123;</span><br><span class="line">                <span class="comment">/* suffix or not match(cmp=16)*/</span></span><br><span class="line">                s += cmp;  </span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">/* match */</span></span><br><span class="line">                <span class="keyword">do</span> &#123;</span><br><span class="line">                    s_16  = s + <span class="number">16</span>;</span><br><span class="line">                    d_16  = d + <span class="number">16</span>;</span><br><span class="line">                    frag1 = _mm_loadu_si128((__m128i *)s_16);</span><br><span class="line">                    frag2 = _mm_loadu_si128((__m128i *)d_16);</span><br><span class="line">                    cmp   = _mm_cmpistri(frag2, frag1, <span class="number">0xc</span>);</span><br><span class="line">                    cmp_z = _mm_cmpistrz(frag2, frag1, <span class="number">0xc</span>);</span><br><span class="line">                    cmp_s = _mm_cmpistrs(frag2, frag1, <span class="number">0xc</span>);</span><br><span class="line">            </span><br><span class="line">                    <span class="keyword">if</span>(cmp) <span class="keyword">break</span>;</span><br><span class="line">            </span><br><span class="line">                &#125; <span class="keyword">while</span>(!cmp_s &amp;&amp; !cmp_z);</span><br><span class="line">                <span class="keyword">if</span>(!cmp) &#123;</span><br><span class="line">                    <span class="keyword">return</span> s - src;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    s += <span class="number">1</span>;</span><br><span class="line">                    cmp_z = <span class="number">0</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;            </span><br><span class="line">        &#125; <span class="keyword">while</span>(!cmp_z);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的代码大意是：通过_mm_cmpistrs函数判断，目标串的长度是否大于16字节，如果是小于16字节，那么目标串可以一次性加载sse的暂存器中，当大于16字节时，目标串不能一次性加载到sse的暂存器。通过_mm_cmpistri函数判断，目标串在主串中匹配的位置，如果返回0，则表示目标串和主串的16字节完全匹配，继续匹配，剩余的字节。如果返回非0则表示，目标串在子串没有完全匹配。返回16为，目标串和主串完全不匹配。其他值为，主串的后缀与目标串匹配的个数，如cmp=5，表示主串的后面5个字符与目标串的前面5个字符相匹配。 </p>
+<p>修改测试程序为：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">500</span>; ++i) &#123;</span><br><span class="line">    pos = sse_strstr(src, dest);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>进行测试：  </p>
+<pre><code>编译： g++ -msse4 sse_strstr.cc -pg -lc  
+运行: ./a.out
+查看gprof的测试结果：    gprof ./a.out gmon.out -p    
+输出：  
+  %   cumulative   self              self     total           
+   time   seconds   seconds    calls  ms/call  ms/call  name    
+ 100.44      7.67     7.67      500    15.35    15.35  sse_strstr(char const*, char const*)  
+</code></pre><p>可以看到sse_strstr执行了500次，每次耗费的时间为15.35ms，总的时间为7.67s,远远比我们上面写的kmp算法(62.07s), normal_strstr（56.93s)快得多，几乎可以说是完胜了。这个函数还不是最优的，还可以进行优化，上面我们说了，SSE的寄存器是128位，16字节对齐，上面的程序并没有考虑16字节，算法也不是使用的是KMP算法。如果每次加载的数据是16对齐，而且使用KMP算法的话，程序的性能是最快的。下面我们测试一下，标准库的字符串匹配。  </p>
+<h3 id="strstr函数"><a href="#strstr函数" class="headerlink" title="strstr函数"></a>strstr函数</h3><p>strstr函数是glibc自带的字符串匹配的函数，下面我们对它进行性能测试。如果把上面的测试程序改成这样：   </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">500</span>; ++i) &#123;</span><br><span class="line">    p = <span class="built_in">strstr</span>(src, dest);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在10M的内存中，调用500次的strstr函数，如果你去查看gprof文件或反编译去看汇编代码的话，实际上，上面的调用只会调用一次的strstr函数，也就是说编译器会帮你优化。虽然你调用了500次，但是编译器很聪明，只会帮你调用一次strstr函数。额~~~，那怎么整？ 居然只能调用1次，那就让它调用1次吧。我们把上面的BUF改大一点就是了，改为<strong>100M</strong>进行测试。代码如下：  </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> BUF_SIZE (100 * 1024 * 1024)</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">char</span> *buf = (<span class="keyword">char</span> *)<span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">char</span>) * BUF_SIZE);</span><br><span class="line">    <span class="keyword">if</span>(!buf) &#123;</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"failed malloc"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memset</span>(buf, <span class="string">'m'</span>, BUF_SIZE);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *dest = <span class="string">"message="</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(buf + BUF_SIZE - <span class="number">1</span> - <span class="built_in">strlen</span>(dest), dest, <span class="built_in">strlen</span>(dest));</span><br><span class="line"></span><br><span class="line">    buf[BUF_SIZE - <span class="number">1</span>] = <span class="string">'\0'</span>;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *src = buf;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span>* p = <span class="built_in">strstr</span>(src, dest);</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"pos: "</span> &lt;&lt; p - src &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">free</span>(buf);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>进行测试：  </p>
+<pre><code>编译： g++ test_strstr.cc
+运行:  time ./a.out 
+结果： 
+    real    0m0.092s
+    user    0m0.028s
+    sys        0m0.036s 
+</code></pre><p>上面我们用了time测试运行完成的时间，可以看到，整个程序总共花费了92ms, 用户空间使用了28ms, 内核空间使用36ms。  </p>
+<p>我们把上面的strstr函数，替换为我们上面写的sse_strstr函数，进行测试：  </p>
+<pre><code>编译： g++ -msse4 test_sse_strstr.cc
+运行： time ./a.out
+结果：  
+    real    0m0.231s
+    user    0m0.176s
+    sys        0m0.032s    
+</code></pre><p>可以看到，我们使用sse_strstr函数，整个程序总共花费了231ms, 用户空间使用了176ms, 内核空间使用32ms。被glic库的strstr秒杀。  </p>
+<p>我们再测试一下，C++中的std::search函数，进行测试： </p>
+<pre><code>编译： g++ test_std_search.cc
+运行： time ./a.out
+结果：  
+    real    0m0.414s
+    user    0m0.368s
+    sys        0m0.028s        
+</code></pre><p>可以看到，我们使用std::search函数，整个程序总共花费了414ms, 用户空间使用了368ms, 内核空间使用28ms, 比我们的sse_strstr函数还慢，被glic库的strstr再次秒杀。  </p>
+<p>我们在来看一下string类中的find的函数，注意上面我们申请内存是字符串，要转换为string类，需要使用string(src, BUF_SIZE)操作，但是这个操作也是需要耗费时间的。所以我们使用最上面的Timer类来粗劣的统计一下，string类在<strong>100M</strong>的内存进行查找需要耗费的时间。  </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    TIMER(<span class="string">"string find"</span>)</span><br><span class="line">    s_src.find(s_dest);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>进行测试：</p>
+<pre><code>编译： g++ test_string_find.cc
+运行： ./a.out
+结果为： string find: 889ms  
+</code></pre><p>可以看到在<strong>100M</strong>进行查找目标串， string类find的函数大概需要    889ms，跟上面的几个函数没有任何的可比性。  </p>
+<h4 id="strstr函数为什么那么快"><a href="#strstr函数为什么那么快" class="headerlink" title="strstr函数为什么那么快?"></a>strstr函数为什么那么快?</h4><p>strstr函数是glibc库的函数，glibc在X86的环境下已经默认是已经支持SSE优化的，不同版本的发型商，可能会有所不同，使用的glibc版本库不一样，也可能不同，我这台机器使用的是libc-2.19，如果你去看glic-2.19源码的strstr函数，可以看到它是有支持SSE4.2优化的，而且使用的就是我们上面所说的16字节对齐的KMP算法，进行优化的。所以它会那么快，故，能写标准库的都不是一般人，在这里再次致敬大师，因为你们的努力，让这个世界变得更加美好。如果你的机器的glibc库是已经支持SSE优化的，那么字符串匹配是最快的，远远比C++的string类，和std::search函数快，当然还有其他函数也是支持SSE的，如strchr。  </p>
+<hr>
+<h3 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h3><p>使用sse进行程序优化，能带来性能的提升，但是也会使代码的可移植性、维护性变差。因本人技术水平有限，上面的分析（仅代表个人意见）可能有存在错误的地方，欢迎指正。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/09/03/python_crawler/" rel="prev" title="python爬虫抓取app列表的图标">
+                python爬虫抓取app列表的图标 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#特别鸣谢："><span class="nav-number">1.</span> <span class="nav-text">特别鸣谢：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#开发环境："><span class="nav-number">2.</span> <span class="nav-text">开发环境：</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ARM架构和X86架构有什么区别："><span class="nav-number">2.0.1.</span> <span class="nav-text">ARM架构和X86架构有什么区别：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用SSE指令集进行程序优化"><span class="nav-number">3.</span> <span class="nav-text">使用SSE指令集进行程序优化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#普通版"><span class="nav-number">3.0.1.</span> <span class="nav-text">普通版</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#循环版"><span class="nav-number">3.0.2.</span> <span class="nav-text">循环版</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SSE版"><span class="nav-number">3.0.3.</span> <span class="nav-text">SSE版</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#字节对齐是什么东西？"><span class="nav-number">3.0.3.1.</span> <span class="nav-text">字节对齐是什么东西？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#由此可以看出，sse指令集确实可以提高程序的性能。但是上面的函数有点无聊，有点不切实际，5-10000000不就是等于50000000，搞那么复杂干嘛。是的，的确挺无聊的，无聊的函数、无聊的人，无聊的人写的无聊的代码，-恩。。。别浪，春风十里不如你。下面我们接着往下看："><span class="nav-number">3.0.3.2.</span> <span class="nav-text">由此可以看出，sse指令集确实可以提高程序的性能。但是上面的函数有点无聊，有点不切实际，5*10000000不就是等于50000000，搞那么复杂干嘛。是的，的确挺无聊的，无聊的函数、无聊的人，无聊的人写的无聊的代码，~恩。。。别浪，春风十里不如你。下面我们接着往下看：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#字符串模式匹配"><span class="nav-number">3.1.</span> <span class="nav-text">字符串模式匹配</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#KMP算法"><span class="nav-number">3.2.</span> <span class="nav-text">KMP算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用SSE优化字符串匹配"><span class="nav-number">3.3.</span> <span class="nav-text">使用SSE优化字符串匹配</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#strstr函数"><span class="nav-number">3.4.</span> <span class="nav-text">strstr函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#strstr函数为什么那么快"><span class="nav-number">3.4.1.</span> <span class="nav-text">strstr函数为什么那么快?</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结："><span class="nav-number">3.5.</span> <span class="nav-text">总结：</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
