@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="在Android系统中，使用PackageManager类获取手机安装的应用信息，如：应用程序的图标、名称、包名等。将这些应用的程序的信息显示到界面的ListView上，形成一个应用列表。如图：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android获取安装的应用程序的信息">
+<meta property="og:url" content="http://yoursite.com/2017/12/03/android_app_info/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="在Android系统中，使用PackageManager类获取手机安装的应用信息，如：应用程序的图标、名称、包名等。将这些应用的程序的信息显示到界面的ListView上，形成一个应用列表。如图：">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/app_info.png">
+<meta property="og:updated_time" content="2017-12-03T11:47:37.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android获取安装的应用程序的信息">
+<meta name="twitter:description" content="在Android系统中，使用PackageManager类获取手机安装的应用信息，如：应用程序的图标、名称、包名等。将这些应用的程序的信息显示到界面的ListView上，形成一个应用列表。如图：">
+<meta name="twitter:image" content="http://yoursite.com/images/app_info.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/12/03/android_app_info/"/>
+
+
+
+
+
+  <title>Android获取安装的应用程序的信息 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/03/android_app_info/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android获取安装的应用程序的信息</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-03T00:00:00+08:00">
+                2017-12-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<p>在Android系统中，使用<code>PackageManager</code>类获取手机安装的应用信息，如：应用程序的图标、名称、包名等。将这些应用的程序的信息显示到界面的<code>ListView</code>上，形成一个应用列表。如图：</p>
+<a id="more"></a>
+<p><img src="/images/app_info.png" alt="app_info.png"></p>
+<h3 id="AppInfo类"><a href="#AppInfo类" class="headerlink" title="AppInfo类"></a>AppInfo类</h3><p><code>AppInfo</code>类用于封装获取到的每一个应用程序的信息。<code>appName</code>表示应用程序的名称，<code>packageName</code>表示应用程序的包名，<code>appIcon</code>表示应用程序的图标。代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">package</span> com.example.application_info;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> android.graphics.drawable.Drawable;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AppInfo</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> String appName;     <span class="comment">//应用名称</span></span><br><span class="line">	<span class="keyword">private</span> String packageName; <span class="comment">// 包名</span></span><br><span class="line">	<span class="keyword">private</span> Drawable appIcon;   <span class="comment">// 图标</span></span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">AppInfo</span><span class="params">(String appName, String packageName, Drawable appIcon)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.appName = appName;</span><br><span class="line">		<span class="keyword">this</span>.packageName = packageName;</span><br><span class="line">		<span class="keyword">this</span>.appIcon = appIcon;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> String <span class="title">getAppName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> appName;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> String <span class="title">getPackageName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> packageName;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> Drawable <span class="title">getAppIcon</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> appIcon;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="ListView的子项的自定义布局"><a href="#ListView的子项的自定义布局" class="headerlink" title="ListView的子项的自定义布局"></a>ListView的子项的自定义布局</h3><p>在layout目录下新建app_info_item.xml。代码如下：</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;LinearLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot; &gt;
+
+    &lt;ImageView 
+        android:id=&quot;@+id/app_icon&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot; /&gt;
+
+    &lt;RelativeLayout 
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;match_parent&quot; &gt;
+        &lt;TextView 
+            android:id=&quot;@+id/app_name_label&quot;
+            android:layout_width=&quot;wrap_content&quot;
+            android:layout_height=&quot;wrap_content&quot;
+            android:text=&quot;名称: &quot;
+            android:layout_marginLeft=&quot;10dip&quot;/&gt;
+        &lt;TextView 
+            android:id=&quot;@+id/app_name&quot;
+            android:layout_width=&quot;wrap_content&quot;
+            android:layout_height=&quot;wrap_content&quot;
+            android:layout_toRightOf=&quot;@id/app_name_label&quot; /&gt;
+        &lt;TextView 
+            android:id=&quot;@+id/app_package_name_label&quot;
+            android:layout_width=&quot;wrap_content&quot;
+            android:layout_height=&quot;wrap_content&quot;
+            android:layout_below=&quot;@id/app_name_label&quot;
+            android:text=&quot;包名: &quot;
+            android:layout_marginLeft=&quot;10dip&quot;/&gt;
+        &lt;TextView 
+            android:id=&quot;@+id/app_package_name&quot;
+            android:layout_width=&quot;wrap_content&quot;
+            android:layout_height=&quot;wrap_content&quot;
+            android:layout_below=&quot;@id/app_name&quot;
+            android:layout_toRightOf=&quot;@id/app_package_name_label&quot; /&gt;  
+
+    &lt;/RelativeLayout&gt;
+&lt;/LinearLayout&gt;
+</code></pre><p>在这个布局中，定义了一个用于显示应用图标的ImageView(id为app_icon)，以及对应的应用名称(id为app_name)和包名的TextView（id为app_package_name）。</p>
+<h3 id="AppInfoAdapter类"><a href="#AppInfoAdapter类" class="headerlink" title="AppInfoAdapter类"></a>AppInfoAdapter类</h3><p>创建一个自定义个的<code>AppInfoAdapter</code>类，并将泛型指定为<code>AppInfo</code>类。代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">package</span> com.example.application_info;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.application_info.AppInfo;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> android.content.Context;</span><br><span class="line"><span class="keyword">import</span> android.view.LayoutInflater;</span><br><span class="line"><span class="keyword">import</span> android.view.View;</span><br><span class="line"><span class="keyword">import</span> android.view.ViewGroup;</span><br><span class="line"><span class="keyword">import</span> android.widget.ArrayAdapter;</span><br><span class="line"><span class="keyword">import</span> android.widget.ImageView;</span><br><span class="line"><span class="keyword">import</span> android.widget.TextView;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AppInfoAdapter</span> <span class="keyword">extends</span> <span class="title">ArrayAdapter</span>&lt;<span class="title">AppInfo</span>&gt; </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">int</span> resourceId;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">AppInfoAdapter</span><span class="params">(Context context, <span class="keyword">int</span> resource,</span></span></span><br><span class="line"><span class="function"><span class="params">		List&lt;AppInfo&gt; objects)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">super</span>(context, resource, objects);</span><br><span class="line">		resourceId = resource;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> View <span class="title">getView</span><span class="params">(<span class="keyword">int</span> position, View convertView, ViewGroup parent)</span> </span>&#123;</span><br><span class="line">		AppInfo appInfo = getItem(position);</span><br><span class="line">		View view;</span><br><span class="line">		ViewHolder viewHolder;</span><br><span class="line">		<span class="keyword">if</span>(convertView == <span class="keyword">null</span>) &#123;</span><br><span class="line">			view = LayoutInflater.from(getContext()).inflate(resourceId, <span class="keyword">null</span>);</span><br><span class="line">			viewHolder = <span class="keyword">new</span> ViewHolder();</span><br><span class="line">			viewHolder.imageView = (ImageView)view.findViewById(R.id.app_icon);</span><br><span class="line">			viewHolder.appNameTextView = (TextView)view.findViewById(R.id.app_name);</span><br><span class="line">			viewHolder.appPackageTextView = (TextView)view.findViewById(R.id.app_package_name);</span><br><span class="line">		</span><br><span class="line">			view.setTag(viewHolder); <span class="comment">// 将ViewHolder存储在View中	</span></span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			view = convertView;</span><br><span class="line">			viewHolder = (ViewHolder) view.getTag(); <span class="comment">// 重新获取ViewHolder</span></span><br><span class="line">		&#125;</span><br><span class="line">	</span><br><span class="line">		viewHolder.imageView.setImageDrawable(appInfo.getAppIcon());</span><br><span class="line">		viewHolder.appNameTextView.setText(appInfo.getAppName());</span><br><span class="line">		viewHolder.appPackageTextView.setText(appInfo.getPackageName());</span><br><span class="line">		<span class="keyword">return</span> view;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="class"><span class="keyword">class</span> <span class="title">ViewHolder</span> </span>&#123;</span><br><span class="line">		ImageView imageView;</span><br><span class="line">		TextView appNameTextView;</span><br><span class="line">		TextView appPackageTextView;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>AppInfoAdapter</code>类重写了父类的一组构造函数，用于将上下文、ListView子项布局的id和数据都传递进来。另外又重写了<code>getView（）</code>方法，这个方法在每个子项被滚动到屏幕内的时候被调用。</p>
+<p><strong>ListView的优化：</strong></p>
+<ul>
+<li><p>在<code>getView（）</code>方法中，首先通过<code>getItem()</code>方法得到当前项的<code>AppInfo</code>实例，如果<code>convertView</code>为空，则使用<code>LayoutInflater</code>去加载布局。如果不为空直接对<code>convertView</code>进行重用。</p>
+</li>
+<li><p>内部类<code>ViewHolder</code>用于对控件的实例进行缓存。当<code>convertView</code>为空的时候，创建一个<code>ViewHolder</code>对象，调用<code>View</code>的<code>findViewById()</code>方法分别获取到应用图标的ImageView、应用名称和包名的TextView 的实例，并将控件的实例都存放在<code>ViewHolder</code>里，然后调用View的<code>setTag</code>()方法，将<code>ViewHolder</code>对象存储在View中。当<code>convertView</code>不为空的时候则调用<br>View的<code>getTag</code>()方法，把<code>ViewHolder</code>重新取出。这样所有控件的实例都缓存在了<code>ViewHolder</code><br>里，就没有必要每次都通过<code>findViewById()</code>方法来获取控件实例了。最后分别调用ImageView的<code>setImageResource()</code>和TextView的<code>setText()</code>方法来设置显示的图片和文字。</p>
+</li>
+</ul>
+<h3 id="activity-main-xml"><a href="#activity-main-xml" class="headerlink" title="activity_main.xml"></a>activity_main.xml</h3><p>在布局中加入<code>ListView</code>控件，指定一个id为app_info_list_view。代码如下：</p>
+<pre><code>&lt;RelativeLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    xmlns:tools=&quot;http://schemas.android.com/tools&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot;
+    tools:context=&quot;com.example.application_info.MainActivity&quot; &gt;
+
+    &lt;ListView 
+        android:id=&quot;@+id/app_info_list_view&quot;
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;match_parent&quot; &gt;   
+    &lt;/ListView&gt;
+
+&lt;/RelativeLayout&gt;
+</code></pre><h3 id="MainActivity类"><a href="#MainActivity类" class="headerlink" title="MainActivity类"></a>MainActivity类</h3><p>在<code>onCreate()</code>方法中调用<code>PackageManager</code>来获得手机上安装的所有应用程序的信息。对于每一个应用获取它的名称、包名、图标。并显示到相应的<code>ListView</code>控件中。代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">package</span> com.example.application_info;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> android.app.Activity;</span><br><span class="line"><span class="keyword">import</span> android.content.pm.ApplicationInfo;</span><br><span class="line"><span class="keyword">import</span> android.content.pm.PackageManager;</span><br><span class="line"><span class="keyword">import</span> android.graphics.drawable.Drawable;</span><br><span class="line"><span class="keyword">import</span> android.os.Bundle;</span><br><span class="line"><span class="keyword">import</span> android.widget.ArrayAdapter;</span><br><span class="line"><span class="keyword">import</span> android.widget.ListView;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">		setContentView(R.layout.activity_main);</span><br><span class="line">	</span><br><span class="line">		PackageManager pm = getPackageManager();</span><br><span class="line">		List&lt;ApplicationInfo&gt; applicationInfos = pm.getInstalledApplications(pm.GET_UNINSTALLED_PACKAGES);</span><br><span class="line">		List&lt;AppInfo&gt; appInfoList = <span class="keyword">new</span> ArrayList&lt;AppInfo&gt;();</span><br><span class="line">	</span><br><span class="line">		<span class="keyword">for</span>(ApplicationInfo applicationInfo : applicationInfos) &#123;</span><br><span class="line">			String appName  = applicationInfo.loadLabel(getPackageManager()).toString(); <span class="comment">//应用名称</span></span><br><span class="line">			String packageName = applicationInfo.packageName; <span class="comment">//应用包名</span></span><br><span class="line">			Drawable appIcon = applicationInfo.loadIcon(pm); <span class="comment">// 应用的图标</span></span><br><span class="line">		</span><br><span class="line">			appInfoList.add(<span class="keyword">new</span> AppInfo(appName, packageName, appIcon));</span><br><span class="line">		&#125;</span><br><span class="line">	</span><br><span class="line">		ArrayAdapter&lt;AppInfo&gt; adpater = <span class="keyword">new</span> AppInfoAdapter(MainActivity.<span class="keyword">this</span>, R.layout.app_info_item, appInfoList);</span><br><span class="line">		ListView lisView = (ListView)findViewById(R.id.app_info_list_view);</span><br><span class="line">		lisView.setAdapter(adpater);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/09/03/python_crawler/" rel="next" title="python爬虫抓取app列表的图标">
+                <i class="fa fa-chevron-left"></i> python爬虫抓取app列表的图标
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#AppInfo类"><span class="nav-number">1.</span> <span class="nav-text">AppInfo类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ListView的子项的自定义布局"><span class="nav-number">2.</span> <span class="nav-text">ListView的子项的自定义布局</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AppInfoAdapter类"><span class="nav-number">3.</span> <span class="nav-text">AppInfoAdapter类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#activity-main-xml"><span class="nav-number">4.</span> <span class="nav-text">activity_main.xml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MainActivity类"><span class="nav-number">5.</span> <span class="nav-text">MainActivity类</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
