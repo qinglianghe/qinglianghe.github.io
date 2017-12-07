@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="高德地图 Android SDK 是一套地图开发调用接口，开发者可以轻松地在自己的Android应用中加入地图相关的功能，包括：地图显示（含室内、室外地图）、与地图交互、在地图上绘制、兴趣点搜索、地理编码、离线地图等功能。同时也提供也定位SDK、和导航SDK。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="高德地图Android SDK的使用">
+<meta property="og:url" content="http://yoursite.com/2017/12/07/amap/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="高德地图 Android SDK 是一套地图开发调用接口，开发者可以轻松地在自己的Android应用中加入地图相关的功能，包括：地图显示（含室内、室外地图）、与地图交互、在地图上绘制、兴趣点搜索、地理编码、离线地图等功能。同时也提供也定位SDK、和导航SDK。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/point.png">
+<meta property="og:image" content="http://yoursite.com/images/mutil_point.png">
+<meta property="og:image" content="http://yoursite.com/images/line.png">
+<meta property="og:image" content="http://yoursite.com/images/distance.png">
+<meta property="og:updated_time" content="2017-12-07T12:32:04.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="高德地图Android SDK的使用">
+<meta name="twitter:description" content="高德地图 Android SDK 是一套地图开发调用接口，开发者可以轻松地在自己的Android应用中加入地图相关的功能，包括：地图显示（含室内、室外地图）、与地图交互、在地图上绘制、兴趣点搜索、地理编码、离线地图等功能。同时也提供也定位SDK、和导航SDK。">
+<meta name="twitter:image" content="http://yoursite.com/images/point.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/12/07/amap/"/>
+
+
+
+
+
+  <title>高德地图Android SDK的使用 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/07/amap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">高德地图Android SDK的使用</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-07T00:00:00+08:00">
+                2017-12-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<blockquote>
+<p>高德地图 Android SDK 是一套地图开发调用接口，开发者可以轻松地在自己的Android应用中加入地图相关的功能，包括：地图显示（含室内、室外地图）、与地图交互、在地图上绘制、兴趣点搜索、地理编码、离线地图等功能。同时也提供也定位SDK、和导航SDK。 </p>
+</blockquote>
+<a id="more"></a>
+<p>详细参考：<a href="http://lbs.amap.com/" target="_blank" rel="noopener">http://lbs.amap.com/</a></p>
+<h2 id="使用高德地图来显示给定单个经纬度的点、多个经纬度的点、线、以及计算距离。"><a href="#使用高德地图来显示给定单个经纬度的点、多个经纬度的点、线、以及计算距离。" class="headerlink" title="使用高德地图来显示给定单个经纬度的点、多个经纬度的点、线、以及计算距离。"></a>使用高德地图来显示给定单个经纬度的点、多个经纬度的点、线、以及计算距离。</h2><p>下载高德地图开发包，添加到工程中，并获取相关的高德Key。参考:<a href="http://lbs.amap.com/api/android-sdk/gettingstarted" target="_blank" rel="noopener">http://lbs.amap.com/api/android-sdk/gettingstarted</a></p>
+<h3 id="坐标系"><a href="#坐标系" class="headerlink" title="坐标系"></a>坐标系</h3><p>在给定一个经纬度时，如果要准确显示其位置，则必须知道这个经纬度对应的坐标系。如果对应坐标系不正确，则会出现几公里的偏差。目前国内使用的坐标系主要有下面三种：</p>
+<ol>
+<li><strong>WGS84</strong>: 表示GPS获取的坐标。国际通用标准。</li>
+<li><strong>GCJ02</strong>： 表示经过国测局加密的坐标。我国特有的。</li>
+<li><strong>BD09</strong> ： 为百度坐标系，其中<strong>bd09ll</strong>表示百度经纬度坐标系。</li>
+</ol>
+<p>高德地图默认使用的是<strong>GCJ02</strong>的坐标系，也就说如果给定一个经纬度且这个经纬度对应的坐标系是<strong>GCJ02</strong> ，那么可以不需要转换，直接可以在高德地图上显示。如果是其他坐标系则需要进行转换。高德地图提供了相应的坐标系转换接口，可以把其他坐标系转换成<strong>GCJ02</strong> ，如下代码，是把<strong>WGS84</strong> 坐标的经纬度转换为<strong>GCJ02</strong>坐标：</p>
+<pre><code>CoordinateConverter converter  = new CoordinateConverter(); 
+// CoordType.GPS 待转换坐标类型
+converter.from(CoordType.GPS); 
+// sourceLatLng待转换坐标点 LatLng类型
+converter.coord(sourceLatLng); 
+// 执行转换操作
+LatLng desLatLng = converter.convert();
+</code></pre><h3 id="添加高德地图控件"><a href="#添加高德地图控件" class="headerlink" title="添加高德地图控件"></a>添加高德地图控件</h3><p>在布局xml文件中添加地图控件，代码如下：</p>
+<pre><code>&lt;com.amap.api.maps.MapView
+    android:id=&quot;@+id/map&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot;&gt;
+&lt;/com.amap.api.maps.MapView&gt;
+</code></pre><h3 id="显示单个经纬度的点"><a href="#显示单个经纬度的点" class="headerlink" title="显示单个经纬度的点"></a>显示单个经纬度的点</h3><p>显示一个给定经纬度且坐标系为<strong>GCJ02</strong>的点，如下图:</p>
+<p><img src="/images/point.png" alt="point.png"></p>
+<p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> MapView mMapView;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.layout_map);</span><br><span class="line"></span><br><span class="line">        mMapView = (MapView) findViewById(R.id.map);</span><br><span class="line">        mMapView.onCreate(savedInstanceState);</span><br><span class="line">        AMap aMap = mMapView.getMap();</span><br><span class="line"></span><br><span class="line">        LatLng latLng = <span class="keyword">new</span> LatLng(<span class="number">29.558392</span>, <span class="number">106.466887</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 居中显示</span></span><br><span class="line">        CameraUpdate mCameraUpdate = CameraUpdateFactory.newCameraPosition(</span><br><span class="line">                <span class="keyword">new</span> CameraPosition(latLng, <span class="number">18</span>, <span class="number">30</span>, <span class="number">0</span>));</span><br><span class="line">        aMap.moveCamera(mCameraUpdate);</span><br><span class="line">    </span><br><span class="line">        aMap.addMarker(<span class="keyword">new</span> MarkerOptions()</span><br><span class="line">                .position(latLng)</span><br><span class="line">                .title(<span class="string">"29.558392, 106.466887"</span>)</span><br><span class="line">                .snippet(<span class="string">"29.558392, 106.466887"</span>));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onDestroy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        mMapView.onDestroy();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>先是通过<code>R.id.map</code>找到布局文件文件中的地图控件<code>mMapView</code>，然后再获得地图对象，创建一个经纬度为<code>29.558392, 106.466887</code>的<code>LatLng</code>对象，最后通过居中显示出相应的点。</p>
+<h3 id="显示多个经纬度的点"><a href="#显示多个经纬度的点" class="headerlink" title="显示多个经纬度的点"></a>显示多个经纬度的点</h3><p>显示多个给定经纬度且坐标系为<strong>GCJ02</strong>的点，如下图:</p>
+<p><img src="/images/mutil_point.png" alt="mutil_point.png"></p>
+<p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> MapView mMapView;</span><br><span class="line">    <span class="keyword">private</span> List&lt;LatLng&gt; latLngs = <span class="keyword">new</span> ArrayList&lt;LatLng&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.558392</span>, <span class="number">106.466887</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.558239</span>, <span class="number">106.466955</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.558016</span>, <span class="number">106.466991</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.557745</span>, <span class="number">106.467043</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.557443</span>, <span class="number">106.467132</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.557175</span>, <span class="number">106.46728</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.556989</span>, <span class="number">106.467464</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.556925</span>, <span class="number">106.46764</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.556966</span>, <span class="number">106.467818</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.557039</span>, <span class="number">106.468056</span>));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.layout_map);</span><br><span class="line"></span><br><span class="line">        init();</span><br><span class="line">    </span><br><span class="line">        mMapView = (MapView) findViewById(R.id.map);</span><br><span class="line">        mMapView.onCreate(savedInstanceState);</span><br><span class="line">        AMap aMap = mMapView.getMap();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; latLngs.size(); ++i) &#123;</span><br><span class="line">    </span><br><span class="line">            <span class="keyword">if</span>(i == <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="comment">// 居中显示</span></span><br><span class="line">                CameraUpdate mCameraUpdate = CameraUpdateFactory.newCameraPosition(</span><br><span class="line">                        <span class="keyword">new</span> CameraPosition(latLngs.get(i), <span class="number">18</span>, <span class="number">30</span>, <span class="number">0</span>));</span><br><span class="line">                aMap.moveCamera(mCameraUpdate);</span><br><span class="line">            &#125;</span><br><span class="line">    </span><br><span class="line">            aMap.addMarker(<span class="keyword">new</span> MarkerOptions()</span><br><span class="line">                    .position(latLngs.get(i))</span><br><span class="line">                    .title(<span class="string">"point: "</span> + i)</span><br><span class="line">                    .snippet(latLngs.get(i).toString()));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onDestroy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        mMapView.onDestroy();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在<code>init</code>函数中把要显示点的经纬度添加到一个<code>List</code>中，以<code>List</code>中的第一个点为中心点，调用地图进行显示。</p>
+<h3 id="显示线"><a href="#显示线" class="headerlink" title="显示线"></a>显示线</h3><p>给定多个经纬度且坐标系为<strong>GCJ02</strong>的点，把它们连成一条线，如下图:</p>
+<p><img src="/images/line.png" alt="line.png"></p>
+<p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> MapView mMapView;</span><br><span class="line">    <span class="keyword">private</span> List&lt;LatLng&gt; latLngs = <span class="keyword">new</span> ArrayList&lt;LatLng&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.558392</span>, <span class="number">106.466887</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.558239</span>, <span class="number">106.466955</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.558016</span>, <span class="number">106.466991</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.557745</span>, <span class="number">106.467043</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.557443</span>, <span class="number">106.467132</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.557175</span>, <span class="number">106.46728</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.556989</span>, <span class="number">106.467464</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.556925</span>, <span class="number">106.46764</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.556966</span>, <span class="number">106.467818</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.557039</span>, <span class="number">106.468056</span>));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.layout_map);</span><br><span class="line"></span><br><span class="line">        init();</span><br><span class="line">    </span><br><span class="line">        mMapView = (MapView) findViewById(R.id.map);</span><br><span class="line">        mMapView.onCreate(savedInstanceState);</span><br><span class="line">        AMap aMap = mMapView.getMap();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 居中显示</span></span><br><span class="line">        CameraUpdate mCameraUpdate = CameraUpdateFactory.newCameraPosition(</span><br><span class="line">                <span class="keyword">new</span> CameraPosition(latLngs.get(<span class="number">0</span>), <span class="number">18</span>, <span class="number">30</span>, <span class="number">0</span>));</span><br><span class="line">        aMap.moveCamera(mCameraUpdate);    </span><br><span class="line">    </span><br><span class="line">        aMap.addPolyline(<span class="keyword">new</span> PolylineOptions()</span><br><span class="line">                .addAll(latLngs)</span><br><span class="line">                .width(<span class="number">10</span>)</span><br><span class="line">                .color(Color.argb(<span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>)));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onDestroy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        mMapView.onDestroy();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在<code>init</code>函数中把要显示点的经纬度添加到一个<code>List</code>中，以<code>List</code>中的第一个点为中心点，直接调用<code>addPolyline</code>函数就可以显示，可以设置显示线的颜色，大小等。</p>
+<h3 id="计算距离"><a href="#计算距离" class="headerlink" title="计算距离"></a>计算距离</h3><p>高德地图提供了计算两个点之间的距离的函数<code>calculateLineDistance</code>，把上面的线的距离计算出来，显示到<code>MainActivity</code>的<code>title</code>里。如下图：</p>
+<p><img src="/images/distance.png" alt="distance.png"></p>
+<p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> MapView mMapView;</span><br><span class="line">    <span class="keyword">private</span> List&lt;LatLng&gt; latLngs = <span class="keyword">new</span> ArrayList&lt;LatLng&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.558392</span>, <span class="number">106.466887</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.558239</span>, <span class="number">106.466955</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.558016</span>, <span class="number">106.466991</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.557745</span>, <span class="number">106.467043</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.557443</span>, <span class="number">106.467132</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.557175</span>, <span class="number">106.46728</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.556989</span>, <span class="number">106.467464</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.556925</span>, <span class="number">106.46764</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.556966</span>, <span class="number">106.467818</span>));</span><br><span class="line">        latLngs.add(<span class="keyword">new</span> LatLng(<span class="number">29.557039</span>, <span class="number">106.468056</span>));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.layout_map);</span><br><span class="line"></span><br><span class="line">        init();</span><br><span class="line">    </span><br><span class="line">        mMapView = (MapView) findViewById(R.id.map);</span><br><span class="line">        mMapView.onCreate(savedInstanceState);</span><br><span class="line">        AMap aMap = mMapView.getMap();</span><br><span class="line"></span><br><span class="line">        CameraUpdate mCameraUpdate = CameraUpdateFactory.newCameraPosition(</span><br><span class="line">                <span class="keyword">new</span> CameraPosition(latLngs.get(<span class="number">0</span>), <span class="number">18</span>, <span class="number">30</span>, <span class="number">0</span>));</span><br><span class="line">        aMap.moveCamera(mCameraUpdate);    </span><br><span class="line">    </span><br><span class="line">        aMap.addPolyline(<span class="keyword">new</span> PolylineOptions()</span><br><span class="line">                .addAll(latLngs)</span><br><span class="line">                .width(<span class="number">10</span>)</span><br><span class="line">                .color(Color.argb(<span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>)));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 计算距离</span></span><br><span class="line">        <span class="keyword">float</span> distance = <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; latLngs.size() - <span class="number">1</span>; ++i) &#123;</span><br><span class="line">            distance += AMapUtils.calculateLineDistance(latLngs.get(i), latLngs.get(i+<span class="number">1</span>));</span><br><span class="line">        &#125;</span><br><span class="line">        setTitle(distance + <span class="string">"m"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onDestroy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        mMapView.onDestroy();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过调用<code>calculateLineDistance</code>计算每两个点之间的距离，再把它们累加起来，最后显示在<code>MainActivity</code>的<code>title</code>里为<code>229.51405</code>米。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/03/android_app_info/" rel="next" title="Android获取安装的应用程序的信息">
+                <i class="fa fa-chevron-left"></i> Android获取安装的应用程序的信息
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用高德地图来显示给定单个经纬度的点、多个经纬度的点、线、以及计算距离。"><span class="nav-number">1.</span> <span class="nav-text">使用高德地图来显示给定单个经纬度的点、多个经纬度的点、线、以及计算距离。</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#坐标系"><span class="nav-number">1.1.</span> <span class="nav-text">坐标系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#添加高德地图控件"><span class="nav-number">1.2.</span> <span class="nav-text">添加高德地图控件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#显示单个经纬度的点"><span class="nav-number">1.3.</span> <span class="nav-text">显示单个经纬度的点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#显示多个经纬度的点"><span class="nav-number">1.4.</span> <span class="nav-text">显示多个经纬度的点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#显示线"><span class="nav-number">1.5.</span> <span class="nav-text">显示线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#计算距离"><span class="nav-number">1.6.</span> <span class="nav-text">计算距离</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
