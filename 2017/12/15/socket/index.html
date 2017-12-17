@@ -90,7 +90,7 @@
 <meta property="og:image" content="http://yoursite.com/images/close.png">
 <meta property="og:image" content="http://yoursite.com/images/socket.png">
 <meta property="og:image" content="http://yoursite.com/images/listen.png">
-<meta property="og:updated_time" content="2017-12-15T09:11:14.000Z">
+<meta property="og:updated_time" content="2017-12-17T13:15:13.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="socket编程">
 <meta name="twitter:description" content="socket是进程通讯的一种方式，即调用这个网络库的一些API函数实现分布在不同主机的相关进程之间的数据交换。在TCP/IP网络应用中，通信的两个进程间相互作用的主要模式是客户/服务器（Client/Server, C/S）模式，即客户向服务器发出服务请求，服务器接收到请求后，提供相应的服务。">
@@ -412,7 +412,7 @@ connect error: Connection timed out
 connect error: Connection refused
 </code></pre><p>服务器主机立刻响应一个RST分节。</p>
 <p>指定一个因特网不可到达的IP地址，路由器返回了主机不可达的ICMP错误。</p>
-<pre><code>daytimetcpcli 192.3.4.5
+<pre><code>[heql@ubuntu socket]$ ./daytimetcpcli 192.3.4.5
 connect error: No route to host
 </code></pre><p><code>connect</code>函数导致当前套接字从 <strong>CLOSED</strong> 状态(该套接字自从由<code>socket</code>函数创建以来一直所处的状态)转移到 <strong>SYN_SENT</strong> 状态，若成功则再转移到 <strong>ESTABLISHED</strong> 状态。若<code>connect</code>失败则该套接字不再可用，必须关闭，我们不能对这样的套接字再次调用<code>connect</code>函数。当循环调用函数<code>connect</code>为给定主机尝试各个IP地址直到有一个成功时，在每次<code>connect</code>失败后，都必须<code>close</code>当前的套接字描述符并重新调用<code>socket</code>。</p>
 <h4 id="bind函数"><a href="#bind函数" class="headerlink" title="bind函数"></a>bind函数</h4><p><code>bind</code>函数把一个本地协议地址赋予一个套接字。对于网际协议，协议地址是32位的IPv4地址或128位的IPv6地址与16位的TCP或UDP端口号的组合。</p>
@@ -502,6 +502,10 @@ connection from 192.168.1.156, port 58302
 
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/2017/12/15/process/" rel="prev" title="多进程： 并发服务器">
+                多进程： 并发服务器 <i class="fa fa-chevron-right"></i>
+              </a>
+            
           </div>
         </div>
       
@@ -581,7 +585,7 @@ connection from 192.168.1.156, port 58302
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-count">6</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

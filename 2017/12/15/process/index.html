@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="使用TCP客户/服务器程序实现echo服务：  客户端从标准输入读入一行文本，并发送给服务器。 服务器从网络输入中读入这行文本，并返回给客户端。 客户端从网络输入中读入这行文本，并显示在标准输出上。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多进程： 并发服务器">
+<meta property="og:url" content="http://yoursite.com/2017/12/15/process/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="使用TCP客户/服务器程序实现echo服务：  客户端从标准输入读入一行文本，并发送给服务器。 服务器从网络输入中读入这行文本，并返回给客户端。 客户端从网络输入中读入这行文本，并显示在标准输出上。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/echo.png">
+<meta property="og:updated_time" content="2017-12-17T13:10:58.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="多进程： 并发服务器">
+<meta name="twitter:description" content="使用TCP客户/服务器程序实现echo服务：  客户端从标准输入读入一行文本，并发送给服务器。 服务器从网络输入中读入这行文本，并返回给客户端。 客户端从网络输入中读入这行文本，并显示在标准输出上。">
+<meta name="twitter:image" content="http://yoursite.com/images/echo.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/12/15/process/"/>
+
+
+
+
+
+  <title>多进程： 并发服务器 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/15/process/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">多进程： 并发服务器</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-15T00:00:00+08:00">
+                2017-12-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<p>使用TCP客户/服务器程序实现echo服务：</p>
+<ol>
+<li>客户端从标准输入读入一行文本，并发送给服务器。</li>
+<li>服务器从网络输入中读入这行文本，并返回给客户端。</li>
+<li>客户端从网络输入中读入这行文本，并显示在标准输出上。</li>
+</ol>
+<a id="more"></a>
+<p>如图描述了这个客户/服务器：</p>
+<p><img src="/images/echo.png" alt="echo.png"></p>
+<h3 id="echo服务器程序"><a href="#echo服务器程序" class="headerlink" title="echo服务器程序"></a>echo服务器程序</h3><p>代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;                                                        </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;errno.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"error.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAXLINE 4096</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SERV_PORT 9987</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SA struct sockaddr</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> LISTENQ 1024</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">Socket</span><span class="params">(<span class="keyword">int</span> family, <span class="keyword">int</span> type, <span class="keyword">int</span> protocol)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> n;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>((n = socket(family, type, protocol)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"socket error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> n;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Bind</span><span class="params">(<span class="keyword">int</span> fd, struct sockaddr *sa, <span class="keyword">socklen_t</span> salen)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(bind(fd, sa, salen) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"bind error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Listen</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">int</span> backlog)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *ptr;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>((ptr = getenv(<span class="string">"LISTENQ"</span>)) != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        backlog = atoi(ptr);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(listen(fd, backlog) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"listen error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">Accept</span><span class="params">(<span class="keyword">int</span> fd, struct sockaddr *sa, <span class="keyword">socklen_t</span> *salenptr)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> n;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>((n = accept(fd, sa, salenptr)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span>(errno != EINTR &amp;&amp; errno != ECONNABORTED) &#123;</span><br><span class="line">            err_sys(<span class="string">"accept error"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> n;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">Close</span><span class="params">(<span class="keyword">int</span> fd)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(close(fd) == <span class="number">-1</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"close error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">writen</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">void</span> *vptr, <span class="keyword">size_t</span> nbytes)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *ptr = vptr;</span><br><span class="line">    <span class="keyword">size_t</span> left = nbytes;</span><br><span class="line">    <span class="keyword">int</span> nwritten;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(left &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span>((nwritten = write(fd, vptr, left)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ptr += nwritten;</span><br><span class="line">        left -= nwritten;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> nbytes;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Writen</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">void</span> *vptr, <span class="keyword">size_t</span> nbytes)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(writen(fd, vptr, nbytes) != nbytes) &#123;</span><br><span class="line">        err_sys(<span class="string">"write error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">str_echo</span><span class="params">(<span class="keyword">int</span> fd)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> buf[MAXLINE];</span><br><span class="line">    <span class="keyword">int</span> n;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>((n = read(fd, buf, MAXLINE))) &#123;</span><br><span class="line">        <span class="keyword">if</span>(n &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span>(errno == EINTR) &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                err_sys(<span class="string">"str_echo: read error"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Writen(fd, buf, n);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">servaddr</span>;</span></span><br><span class="line">    <span class="keyword">int</span> listenfd;</span><br><span class="line">    <span class="keyword">int</span> connfd;</span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line"></span><br><span class="line">    listenfd = Socket(AF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    bzero(&amp;servaddr, <span class="number">0</span>);</span><br><span class="line">    servaddr.sin_family = AF_INET;</span><br><span class="line">    servaddr.sin_port = htons(SERV_PORT);</span><br><span class="line">    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);</span><br><span class="line"></span><br><span class="line">    Bind(listenfd, (SA *) &amp;servaddr, <span class="keyword">sizeof</span>(servaddr));</span><br><span class="line"></span><br><span class="line">    Listen(listenfd, LISTENQ);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(;;) &#123;</span><br><span class="line">        connfd = Accept(listenfd, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">        </span><br><span class="line">        pid = fork();</span><br><span class="line">        <span class="keyword">if</span>(pid == <span class="number">0</span>) &#123;</span><br><span class="line">            Close(listenfd);</span><br><span class="line">            str_echo(connfd);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span>(pid &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            Close(connfd);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            err_sys(<span class="string">"fork error"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="main函数"><a href="#main函数" class="headerlink" title="main函数"></a>main函数</h4><ol>
+<li>调用<code>socket</code>函数创建一个套接字，IP地址为INADDR_ANY、端口号为9987，调用<code>bind</code>函数绑定该套接字，<code>listen</code>函数把该套接字转换成一个监听套接字。</li>
+<li>服务器阻塞于<code>accept</code>调用，等待客户连接的完成。<code>accept</code>要处理系统调用被中断和<code>accept</code>返回时，连接被终止的情况。</li>
+<li><code>fork</code>为每个客户派生一个处理它们的子进程。子进程关闭监听套接字，父进程关闭已连接套接字。子进程接着调用<code>str_echo</code>处理客户端。</li>
+</ol>
+<h4 id="描述符引用计数"><a href="#描述符引用计数" class="headerlink" title="描述符引用计数"></a>描述符引用计数</h4><p>每个文件或套接字都有一个引用计数，父进程关闭已连接套接字只是导致相应描述符的引用计数值减1.既然引用计数值扔大于0，这个<code>close</code>调用并不引发TCP的四分组连接终止序列。TCP的四分组连接终止序列发生在子进程调用<code>str_echo</code>返回后，调用<code>exit</code>函数退出时。</p>
+<p>如果我们确定想在某个TCP连接上发送一个FIN，那么可以改用<code>shutdown</code>函数以代替<code>close</code>。</p>
+<p>如果父进程符对每个由<code>accept</code>返回的已连接套接字都不调用<code>close</code>，首先，父进程最终将耗尽可用描述符，因为任何进程在任何时刻可拥有的打开着的描述符通常是有限制的。不过更重要的是，没有一个客户连接会被终止。当子进程关闭已连接套接字时，它的引用计数值将由2递减为1且保持为1。因为父进程永不关闭任何已连接套接字。这将妨碍TCP连接终止序列的发送，导致连接一直打开着。</p>
+<h4 id="str-echo函数"><a href="#str-echo函数" class="headerlink" title="str_echo函数"></a>str_echo函数</h4><p><code>read</code>函数从套接字读入数据，<code>writen</code>函数把其中内容返回给客户端。如果客户关闭连接，那么接收到客户的 <strong>FIN</strong> 将导致服务器子进程的<code>read</code>函数返回0，这将导致<code>str_echo</code>函数返回，从而终止子进程。<code>read</code>的时候要处理系统调用被中断的情况。</p>
+<h3 id="echo客户端程序"><a href="#echo客户端程序" class="headerlink" title="echo客户端程序"></a>echo客户端程序</h3><p>代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt; </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;errno.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"error.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAXLINE 4096</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SERV_PORT 9987</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SA struct sockaddr</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">Socket</span><span class="params">(<span class="keyword">int</span> family, <span class="keyword">int</span> type, <span class="keyword">int</span> protocol)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> n;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>((n = socket(family, type, protocol)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"socket error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> n;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Inet_pton</span><span class="params">(<span class="keyword">int</span> family, <span class="keyword">const</span> <span class="keyword">char</span> *strptr, <span class="keyword">void</span> *addrptr)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(inet_pton(family, strptr, addrptr) &lt;=<span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"inet_pton error for %s"</span>, strptr);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Connect</span><span class="params">(<span class="keyword">int</span> fd, struct sockaddr *sa, <span class="keyword">socklen_t</span> salen)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(connect(fd, sa, salen) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"connect error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">char</span>* <span class="title">Fgets</span><span class="params">(<span class="keyword">char</span> *ptr, <span class="keyword">int</span> n, FILE *stream)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *ret_ptr;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>((ret_ptr = fgets(ptr, n, stream)) == <span class="literal">NULL</span> &amp;&amp; ferror(stream)) &#123;</span><br><span class="line">        err_sys(<span class="string">"fgets error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> ret_ptr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">writen</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">void</span> *vptr, <span class="keyword">size_t</span> nbytes)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *ptr = vptr;</span><br><span class="line">    <span class="keyword">size_t</span> left = nbytes;</span><br><span class="line">    <span class="keyword">int</span> nwritten;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(left &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span>((nwritten = write(fd, vptr, left)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ptr += nwritten;</span><br><span class="line">        left -= nwritten;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> nbytes;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Writen</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">void</span> *vptr, <span class="keyword">size_t</span> nbytes)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(writen(fd, vptr, nbytes) != nbytes) &#123;</span><br><span class="line">        err_sys(<span class="string">"write error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">readline</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">void</span> *vptr, <span class="keyword">size_t</span> maxlen)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">char</span> *ptr = vptr;</span><br><span class="line">    <span class="keyword">int</span> n;</span><br><span class="line">    <span class="keyword">char</span> c;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; maxlen - <span class="number">1</span>; ++i) &#123;</span><br><span class="line">        <span class="keyword">if</span>((n = read(fd, &amp;c, <span class="number">1</span>)) == <span class="number">1</span>) &#123;</span><br><span class="line">            *ptr++ = c;</span><br><span class="line">            <span class="keyword">if</span>(c == <span class="string">'\n'</span>) &#123;</span><br><span class="line">                <span class="keyword">break</span>;        <span class="comment">/* newline */</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span>(n == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span>(i == <span class="number">0</span>) &#123;</span><br><span class="line">                *ptr = <span class="string">'\0'</span>;</span><br><span class="line">                <span class="keyword">return</span> i;     <span class="comment">/* EOF */</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span>(errno == EINTR) &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;     <span class="comment">/* read error */</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    *ptr = <span class="string">'\0'</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> i + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">Readline</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">void</span> *vptr, <span class="keyword">size_t</span> maxlen)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> n;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>((n = readline(fd, vptr, maxlen)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"read error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> n;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Fputs</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *ptr, FILE *stream)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(<span class="built_in">fputs</span>(ptr, stream) == EOF) &#123;</span><br><span class="line">        err_sys(<span class="string">"fputs error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">str_cli</span><span class="params">(FILE *fp, <span class="keyword">int</span> sockfd)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> sendline[MAXLINE];</span><br><span class="line">    <span class="keyword">char</span> recvline[MAXLINE];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>((Fgets(sendline, MAXLINE, fp)) != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        Writen(sockfd, sendline, <span class="built_in">strlen</span>(sendline));</span><br><span class="line">        <span class="keyword">if</span>(Readline(sockfd, recvline, MAXLINE) == <span class="number">0</span>) &#123;</span><br><span class="line">            err_quit(<span class="string">"server terminated permaturely"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        Fputs(recvline, <span class="built_in">stdout</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">servaddr</span>;</span></span><br><span class="line">    <span class="keyword">int</span> sockfd;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(argc != <span class="number">2</span>) &#123;</span><br><span class="line">        err_quit(<span class="string">"%s &lt;IPAdress&gt;"</span>, argv[<span class="number">0</span>]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    sockfd = Socket(AF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    bzero(&amp;servaddr, <span class="number">0</span>);</span><br><span class="line">    servaddr.sin_family = AF_INET;</span><br><span class="line">    servaddr.sin_port = htons(SERV_PORT);</span><br><span class="line">    Inet_pton(AF_INET, argv[<span class="number">1</span>], &amp;servaddr.sin_addr);</span><br><span class="line"></span><br><span class="line">    Connect(sockfd, (SA *) &amp;servaddr, <span class="keyword">sizeof</span>(servaddr));</span><br><span class="line"></span><br><span class="line">    str_cli(<span class="built_in">stdin</span>, sockfd);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="main函数-1"><a href="#main函数-1" class="headerlink" title="main函数"></a>main函数</h4><ol>
+<li>调用<code>socket</code>函数创建一个套接字，IP地址由命令行传入、端口号为9987。</li>
+<li>调用<code>connect</code>建立与服务器的连接。调用<code>str_cli</code>函数从标准输入读入一行文本，写到服务器，都会服务器返回改行数据，并把改行写到标准输出上。</li>
+</ol>
+<h4 id="str-cli函数"><a href="#str-cli函数" class="headerlink" title="str_cli函数"></a>str_cli函数</h4><ol>
+<li><code>fgets</code>读入一行文本，<code>writen</code>把该行发送给服务器</li>
+<li><code>readline</code>从服务器读入返回的数据，<code>fputs</code>把它写到标准输出。<code>readline</code>函数每次读取的是一个字节，性能是比较低的，可以加个缓冲区。<code>read</code>的时候返回0表示服务器已经终止。</li>
+</ol>
+<h3 id="正常启动"><a href="#正常启动" class="headerlink" title="正常启动"></a>正常启动</h3><p>在后台启动服务器</p>
+<pre><code>[heql@ubuntu socket]$ ./server &amp;
+[1] 3359
+</code></pre><p>服务器启动后，它调用<code>socket</code>、<code>bind</code>、<code>listen</code>和<code>accept</code>，并阻塞与<code>accept</code>调用。(我们还没有启动客户)。在启动客户之前，我们运行<code>netstat</code>程序来检查服务器监听套接字的状态。</p>
+<pre><code>[heql@ubuntu socket]$ netstat -a | grep 9987
+tcp        0      0 *:9987                  *:*                     LISTEN
+</code></pre><p>有一个套接字处于<code>LISTEN</code>状态，它有通配的本地IP地址，本地端口号为9877。netstat用星号“ * ”来表示一个未0的IP地址(IPADDR_ANY,通配地址)或为0的端口号。</p>
+<p>在同一个主机上启动客户端程序</p>
+<pre><code>[heql@ubuntu socket]$ ./client 127.0.0.1
+</code></pre><ol>
+<li>客户调用<code>str_cli</code>函数，该函数将阻塞于<code>fgets</code>调用，因为我们还未曾键入过一行文件。</li>
+<li>当服务器中的<code>accept</code>返回时，服务器调用<code>fork</code>，再由子进程调用<code>str_echo</code>。该函数调用<code>read</code>，而<code>read</code>在等待客户输入。</li>
+<li>另一方面，服务器父进程再次调用<code>accept</code>并阻塞，等待下一个客户连接。</li>
+</ol>
+<blockquote>
+<p>客户收到三路握手的第二个分节时，<code>connect</code>返回，而服务器要直到接收到三路握手的第三个分节才返回，即在<code>connect</code>返回之后再过一半RTT才返回。</p>
+</blockquote>
+<p>至此，现在有3个都在睡眠(即已阻塞)的进程：客户进程、服务器父进程和服务器的子进程。</p>
+<pre><code>[heql@ubuntu socket]$ netstat -a | grep 9987
+tcp        0      0 *:9987                  *:*                     LISTEN     
+tcp        0      0 localhost:46704         localhost:9987          ESTABLISHED
+tcp        0      0 localhost:9987          localhost:46704         ESTABLISHED    
+</code></pre><p>第一个 <strong>ESTABLISHED</strong> 对应于客户进程的套接字，因为它的端口号是46704，第二个 <strong>ESTABLISHED</strong> 对应于服务器子进程的套接字，因为它的端口号是9987。</p>
+<h3 id="正常终止"><a href="#正常终止" class="headerlink" title="正常终止"></a>正常终止</h3><p>至此连接已经建立，不论我们在客户端的标准输入中键入什么，都会回射到它的标准输出中。</p>
+<pre><code>[heql@ubuntu socket]$ ./client 127.0.0.1
+hello, world
+hello, world        这一行是服务器返回来的
+^D                    &lt;Ctrl+D&gt;终端EOF字符
+</code></pre><p>键入一行，服务器返回后，接着键入终端<code>EOF</code>字符已终止客户。此时如果立即执行<code>netstat</code>命令，可以看到如下结果：</p>
+<pre><code>[heql@ubuntu socket]$ netstat -a | grep 9987
+tcp        0      0 *:9987                  *:*                     LISTEN     
+tcp        0      0 localhost:46710         localhost:9987          TIME_WAIT
+</code></pre><p>当前连接的客户端(它的本地端口号为46710)    进入<code>TIME_WAIT</code>状态，而监听服务器扔在等待另一个客户连接。</p>
+<p>正常终止客户和服务器的步骤：</p>
+<ol>
+<li>当键入<code>EOF</code>字符时，<code>fgets</code>返回一个空指针，于是<code>str_cli</code>函数返回</li>
+<li>当<code>str_cli</code>返回到客户的<code>main</code>函数，<code>main</code>终止。</li>
+<li>进程终止处理的部分工作是关闭所有打开的描述符，因此客户打开的套接字由内核关闭。这导致客户TCP发送一个 <strong>FIN</strong> 给服务器，服务器TCP则以 <strong>ACK</strong> 响应，这就是TCP连接终止序列的前半部分。至此，服务器套接字处于 <strong>CLOSE_WAIT</strong> 状态，客户套接字则处于 <strong>FIN_WAIT_2</strong> 状态。</li>
+<li>当服务器TCP接收 <strong>FIN</strong> 时，服务器子进程阻塞于<code>readline</code>调用，于是<code>readline</code>返回0。这导致<code>str_echo</code>函数返回服务器子进程的<code>main</code>函数。</li>
+<li>服务器子进程通过调用<code>exit</code>来终止。</li>
+<li>服务器子进程中打开的所有描述符随之关闭。由子进程来关闭已连接套接字会引发TCP连接终止序列的最后两个分节：一个从服务器到客户的 <strong>FIN</strong> 和一个客户到服务器的 <strong>ACK</strong> 。至此，连接完全终止，客户套接字进入 <strong>TIME_WAIT</strong> 状态。</li>
+<li><p>进程终止处理的另一部分内容是：在服务器子进程终止时，给父进程发送一个<code>SIGCHLD</code>信号。这一点在本例中发生了，但是没有在代码中捕获该信号，而该信号的默认行为是被忽略。既然父进程未加处理，子进程于是处于僵死状态。我们可以使用<code>ps</code>命令验证这一点。</p>
+<pre><code>[heql@ubuntu socket]$ ps aux | grep server
+heql       3359  0.0  0.0   4216   636 pts/6    S    17:07   0:00 ./server
+heql       3377  0.0  0.0      0     0 pts/6    Z    17:12   0:00 [server] &lt;defunct&gt;
+</code></pre></li>
+</ol>
+<h3 id="POSIX信号处理"><a href="#POSIX信号处理" class="headerlink" title="POSIX信号处理"></a>POSIX信号处理</h3><p>信号(signal)    就是告知某个进程发生了某个事件的通知，有时也称为 <strong>软件中断</strong> 。信号通常是异步发生的，也就是说进程预先不知道信号的准确发生时刻。</p>
+<p>信号可以：</p>
+<ul>
+<li>由一个进程发给另一个进程(或自身)</li>
+<li>由内核发给进程。</li>
+</ul>
+<p><code>SIGCHLD</code>信号就是由内核在任何一个进程终止时发给它的父进程的一个信号。</p>
+<p>信号处置，有三种选择：</p>
+<ol>
+<li>我们可以提供一个函数，只要有特定信号发生它就被调用。这样的函数称为 <strong>信号处理函数</strong> ,这种行为称为捕获信号。有两个信号不能被捕获，他们是<code>SIGKILL</code>和<code>SIGSTOP</code>。对于大多数信号来说，调用<code>sigaction</code>函数并指定信号发生时所调用的函数就是捕获信号所需做的全部工作。但是<code>SIGIO</code>、<code>SIGPOLL</code>、和<code>SIGUSR</code>这些个别信号还要求捕获它们的进程做些额外工作。</li>
+<li>可以把某个信号的处置设定为<code>SIG_IGN</code>来忽略它。<code>SIGKILL</code>和<code>SIGSTOP</code>这两个信号不能被忽略。</li>
+<li>可以把某个信号的处置设定为<code>SIG_DEF</code>来启用它的默认设置。默认设置通常是在收到信号后终止进程，其中某些信号还在当前工作目录产生一个进程的核心映像(也称为内存映像)。另有个别的默认处置是忽略，<code>SIGCHLD</code>和<code>SIGUSR</code>。</li>
+</ol>
+<h4 id="POSIX信号语义"><a href="#POSIX信号语义" class="headerlink" title="POSIX信号语义"></a>POSIX信号语义</h4><ul>
+<li>一旦安装了信号处理函数，它便一直安装着。</li>
+<li>在一个信号处理函数运行期间，正被递交的信号时阻塞的(这里的阻塞某个信号或某个信号集，防止它们在阻塞期间递交)。而且，安装处理函数时在传递给<code>sigaction</code>函数的<code>sig_mask</code>信号集中指定的额外信号也被阻塞。我们将<code>sig_mask</code>置为空集，意味着除了被捕获的信号外，没有额外信号被阻塞。</li>
+<li>如果一个信号在被阻塞期间产生了一次或多次，那么该信号被解阻塞之后通常只递交一次，也就是说Unix信号默认是不排队的。</li>
+<li><code>sigprocmask</code>函数选择性地阻塞或解阻塞一组信号是可能的。这使得我们可以做到在一段临界区代码执行期间，防止捕获某些信号，以此保护这段代码。</li>
+</ul>
+<h4 id="处理SIGCHLD信号"><a href="#处理SIGCHLD信号" class="headerlink" title="处理SIGCHLD信号"></a>处理SIGCHLD信号</h4><p>设置僵死状态的目的是维护子进程的信息，以便父进程在以后某个时候获取。这些信息包括子进程的进程ID、终止状态以及资源利用信息(CPU时间、内存使用量等等)。如果一个进程终止，而该进程有子进程处于僵死状态，那么它的所有僵死子进程的父进程ID将被设置为1(init进程)。继承这些子进程的init进程将清理它们(也就是说init进程将wait它们，从而去除它们的僵死状态)</p>
+<h3 id="处理僵死进程"><a href="#处理僵死进程" class="headerlink" title="处理僵死进程"></a>处理僵死进程</h3><p>我们显然不愿意留存僵死进程。它们占用内核中的空间，最终可能导致我们耗尽进程资源。无论何时我们<code>fork</code>子进程都得<code>wait</code>它们，以防它们变成僵死进程。为此我们建立一个捕获<code>SIGCHLD</code>信号的信号处理函数，在函数体中我们调用<code>wait</code>。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">sig_chld</span><span class="params">(<span class="keyword">int</span> signo)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line">    <span class="keyword">int</span> stat;</span><br><span class="line">    </span><br><span class="line">    pid = wait(&amp;stat);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"child %d terminated\n"</span>, pid);</span><br><span class="line">    <span class="keyword">return</span> ;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>在信号处理函数中调用诸如printf这样的标准I/O函数是不适合的，在这里调用printf只是作为查看子进程何时终止的诊断手段。</strong></p>
+<pre><code>[heql@ubuntu socket]$ ./server &amp;
+[heql@ubuntu socket]$ ./client 127.0.0.1
+hi there
+hi there
+^D
+[heql@ubuntu socket]$ child 5254 terminated
+</code></pre><ol>
+<li>键入 <strong>EOF</strong> 字符来终止客户。客户TCP发送一个 <strong>FIN</strong> 给服务器，服务器响应一个 <strong>ACK</strong> 。</li>
+<li>收到客户的 <strong>FIN</strong> 导致服务器递送一个 <strong>EOF</strong> 给子进程阻塞中的<code>readline</code>，从而子进程终止。</li>
+<li>当<code>SIGCHLD</code>信号递交时，父进程阻塞于<code>accept</code>调用。<code>sig_chld</code>函数(信号处理函数)执行，其<code>wait</code>调用取到子进程的PID和终止状态，随后<code>printf</code>调用，最后返回。</li>
+<li><p>既然该信号是在父进程阻塞于慢系统调用(<code>accept</code>)时由父进程捕获的，内核就会使<code>accept</code>返回一个<strong>EINTR</strong>错误(被中断的系统调用)。而父进程如果不处理该错误，则会终止服务器程序。如下：</p>
+<pre><code>[heql@ubuntu socket]$ ./server &amp;
+[heql@ubuntu socket]$ ./client 127.0.0.1
+hi there
+hi there
+^D
+[heql@ubuntu socket]$ child 5254 terminated
+accept error: Interrupted system call
+</code></pre></li>
+</ol>
+<p>在编写捕获信号的网络程序时，必须认清被中断的系统调用且处理它们。如果系统函数库的<code>signal</code>函数没有设置的<strong>SA_RESTART</strong>标志，则不会使内核自动重启被中断的系统调用。如果系统自动重启被中断的系统调用，那么内核将重启被中断的系统调用，那么<code>accept</code>就不会返回错误。</p>
+<h3 id="处理被中断的系统调用"><a href="#处理被中断的系统调用" class="headerlink" title="处理被中断的系统调用"></a>处理被中断的系统调用</h3><p>当阻塞于某个系统调用的一个进程捕获某个信号且相应信号处理函数返回时，该系统调用可能返回一个 <strong>EINTR</strong> 错误。有些内核自动重启某些被中断的系统调用。不过为了便于移植，当编写捕获信号的程序时(多数并发服务器捕获<code>SIGCHLD</code>)，必须对系统调用返回 <strong>EINTR</strong> 有所准备。</p>
+<pre><code>while(connfd = accept(listenfd, (SA *) &amp;cliaddr, &amp;clilen)) &lt; 0) {
+        if(error == EINTR)
+            continue;
+        else
+            err_sys(&quot;accept error&quot;);
+    }
+}
+</code></pre><p>这段代码所做的事情就是自己重启被中断的系统调用。对于<code>accept</code>以及诸如<code>read</code>、<code>write</code>、<code>select</code>和<code>open</code>之类函数来说，这是适合的。不过有一个函数我们不能重启：<code>connect</code>。如果该函数返回 <strong>EINTR</strong> ，我们就不能再次调用它，否则将立即返回一个错误。当<code>connect</code>被一个捕获的信号中断而且不自动重启时。</p>
+<h3 id="wait-和-waitpid函数"><a href="#wait-和-waitpid函数" class="headerlink" title="wait 和 waitpid函数"></a>wait 和 waitpid函数</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="keyword">pid_t</span> wait(<span class="keyword">int</span> *statloc);</span><br><span class="line"><span class="keyword">pid_t</span> waitpid(<span class="keyword">pid_t</span> pid, <span class="keyword">int</span> *statloc, <span class="keyword">int</span> options);</span><br></pre></td></tr></table></figure>
+<p>函数<code>wait</code>和<code>waitpid</code>均返回两个值：已终止子进程的PID，以及通过<code>statloc</code>指针返回的子进程终止状态（一个整数），可以通过该值辨别子进程是正常终止、由某个信号杀死还是仅仅由作业控制停止。</p>
+<p>如果调用<code>wait</code>的进程没有已终止的子进程，不过有一个或多个子进程扔在执行，那么<code>wait</code>将阻塞到现有子进程第一个终止为止。</p>
+<p><code>waitpid</code>函数就等待哪个进程以及是否阻塞给了我们更多的控制。首先，<code>pid</code>参数允许我们指定等待的进程ID，值-1表示等待第一个终止的子进程。其次，<code>options</code>参数允许我们指定附加选项。最常用的选项是<code>WNOHANG</code>,它告知内核在没有已终止子进程时不要阻塞。</p>
+<h4 id="函数wait-和-waitpid的区别"><a href="#函数wait-和-waitpid的区别" class="headerlink" title="函数wait 和 waitpid的区别"></a>函数wait 和 waitpid的区别</h4><p>把上面的TCP客户端程序修改为建立5个与服务器的连接，随后在调用<code>str_cli</code>函数时仅用第一个连接(sockfd[0])。建立多个连接的目的是从并发服务器上派生多个子进程。代码如下:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">servaddr</span>;</span></span><br><span class="line">    <span class="keyword">int</span> sockfd[<span class="number">5</span>];</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(argc != <span class="number">2</span>) &#123;</span><br><span class="line">        err_quit(<span class="string">"%s &lt;IPAdress&gt;"</span>, argv[<span class="number">0</span>]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; <span class="number">5</span>; ++i) &#123;</span><br><span class="line">        sockfd[i] = Socket(AF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">        bzero(&amp;servaddr, <span class="number">0</span>);</span><br><span class="line">        servaddr.sin_family = AF_INET;</span><br><span class="line">        servaddr.sin_port = htons(SERV_PORT);</span><br><span class="line">        Inet_pton(AF_INET, argv[<span class="number">1</span>], &amp;servaddr.sin_addr);</span><br><span class="line"></span><br><span class="line">        Connect(sockfd[i], (SA *) &amp;servaddr, <span class="keyword">sizeof</span>(servaddr));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    str_cli(<span class="built_in">stdin</span>, sockfd[<span class="number">0</span>]);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当客户终止时，所有打开的描述符由内核自动关闭，且所有5个连接基本在同一时刻终止。这就引发了5个 <strong>FIN</strong> ，每个连接一个，它们反过来使服务器的5个进程基本在同一时刻终止。这又导致差不多在同一时刻有5个<code>SIGCHLD</code>信号递交给父进程</p>
+<p>运行服务器的程序：</p>
+<pre><code>[heql@ubuntu socket]$ ./server
+</code></pre><p>运行修改的客户端程序：</p>
+<pre><code>[heql@ubuntu socket]$ ./tcpcli 127.0.0.1
+hi there
+hi there
+^D
+</code></pre><p>服务器的输出：</p>
+<pre><code>[heql@ubuntu socket]$ ./server
+child 4771 terminated
+child 4770 terminated
+child 4772 terminated
+child 4773 terminated
+</code></pre><p>只有4个进程有<code>printf</code>输出，还有一个子进程任仍然处于僵死进程存在，查看进程状态:</p>
+<pre><code>[heql@ubuntu socket]$ ps aux | grep server
+heql       4768  0.0  0.0   4220   640 pts/6    S+   20:15   0:00 ./server
+heql       4774  0.0  0.0      0     0 pts/6    Z+   20:15   0:00 [server] &lt;defunct&gt;
+</code></pre><p>建立一个信号处理函数并在其中调用<code>wait</code>并不足以防止出现僵死进程。本问题在于：所有5个信号都在信号处理函数执行之前产生，而信号处理函数只执行一次，因为Unix信号一般是不排队的。更严重的是，本问题是不确定的。客户与服务器在同一个主机上，信号处理函数执行1次，留下4个僵死进程。但是如果我们在不同的主机上运行客户和服务器，那么信号处理函数一般执行2次：一次是第一个产生的信号引起的，由于另外4个信号在信号处理函数第一次执行时发生，因此该处理函数仅仅再被调用一次，从而留下3个僵死进程。不过有的时候，依赖于 <strong>FIN</strong> 到达服务器主机的时机，信号处理函数可能执行3次甚至4次。</p>
+<p>正确的解决办法是调用<code>waitpid</code>而不是<code>wait</code>,必须指定<code>WNOHANG</code>选项，它告知<code>waitpid</code>在有尚未终止的子进程在运行时不要阻塞。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sig_chld</span><span class="params">(<span class="keyword">int</span> signo)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line">    <span class="keyword">int</span> stat;</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">while</span>((pid = waitpid(<span class="number">-1</span>, &amp;stat, WNOHANG)) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"child %d terminated\n"</span>, pid);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="accept返回前连接中止"><a href="#accept返回前连接中止" class="headerlink" title="accept返回前连接中止"></a>accept返回前连接中止</h3><p>类似于被中断系统调用的例子，另有一种情形也能够导致<code>accept</code>返回一个非致命的错误，在这种情况下，只需要再次调用<code>accept</code>。在较繁忙的服务器(典型的是较忙的Web服务器)上已出现过。</p>
+<p>这里，三路握手完成从而连接建立之后，客户TCP却发送了一个<strong>RST</strong>(复位)。在服务器端开来，就在该连接已由TCP排队，等着服务器进程调用<code>accept</code>的时候 <strong>RST</strong> 到达。稍后，服务器进程调用<code>accept</code>。</p>
+<blockquote>
+<p>模拟这种情形的一个简单方法就是：启动服务器，让它调用<code>socket</code>、<code>bind</code>和<code>listen</code>，然后再调用<code>accept</code>之前睡眠一小段时间。在服务器进程睡眠时，启动客户，让它调用<code>socket</code>和<code>connect</code>。一旦<code>connect</code>返回，就设置<strong>SO_LINGER</strong>套接字选项以产生这个 <strong>RST</strong> ,然后终止。</p>
+</blockquote>
+<p>但是，如何处理这种中止的连接依赖于不同的实现。源自Berkeley的完全在内核中处理中止的连接。服务器进程根本看不到。然而大多数 SVR4实现返回一个错误给服务器进程，作为<code>accept</code>的返回结果，不过错误本身取决于实现。这些 <strong>SVR4</strong> 实现返回一个 <strong>EPROTO</strong> (“protocol error”)<code>errno</code>值，而 <strong>POSIX</strong> 指出返回的<code>errno</code>值必须是<strong>ECONNABORTED</strong>(“software caused connection abort”, 软件引起的连接中止)。</p>
+<h3 id="服务器进程终止"><a href="#服务器进程终止" class="headerlink" title="服务器进程终止"></a>服务器进程终止</h3><p>启动我们的客户/服务器对，然后杀死服务器子进程。这是在模拟服务器进程崩溃的情形，我们可以查看客户将发生什么。(必须小心区别即将讨论的服务器 <strong>进程</strong> 崩溃与服务器 <strong>主机</strong> 崩溃)所发生的步骤如下所述：</p>
+<ol>
+<li>我们在同一主机上启动服务器和客户，并在客户上键入一行文件，以验证一切正常。正常情况下该行文本由服务器子进程返回给客户端。</li>
+<li>找到服务器子进程的进程ID，并执行<code>kill</code>命令杀死它。作为进程终止处理的部分工作，子进程中所有打开着的描述符都被关闭。这就导致向客户发送一个 <strong>FIN</strong> ，而客户TCP则响应以一个 <strong>ACK</strong> 。这就是TCP连接终止工作的前半部分。</li>
+<li><strong>SIGCHLD</strong> 信号被发送给服务器父进程，并得到正确处理。</li>
+<li>客户上没有发生任何特殊之事。客户TCP接收来自服务器TCP的 <strong>FIN</strong> 并响应以一个 <strong>ACK</strong> ，然而问题是客户进程阻塞在<code>fgets</code>调用上，等待从终端接收一行文本。</li>
+<li><p>此时，在另外一个窗口上运行<code>netstat</code>命令，以观察套接字的状态，可以看到TCP连接终止序列的前半部分已经完成。</p>
+<pre><code>[heql@ubuntu socket]$ netstat -a | grep 9987
+tcp        0      0 *:9987                  *:*                     LISTEN     
+tcp        1      0 localhost:46978         localhost:9987          CLOSE_WAIT 
+tcp        0      0 localhost:9987          localhost:46978         FIN_WAIT2 
+</code></pre></li>
+<li><p>在客户端上再键入一行文本。</p>
+<pre><code>another line
+str_cli: server terminated prematurely
+</code></pre></li>
+</ol>
+<p>当我们键入 “another line” 时，str_cli调用<code>writen</code>，客户TCP接着把数据发送给服务器。TCP允许这么做，因为客户TCP接收到 <strong>FIN</strong> 只是表示服务器进程已关闭了连接的服务器端，从而不再往其中发送任何数据而已。<strong>FIN</strong> 的接收并没有告知TCP服务器进程已经终止。</p>
+<p>当服务器TCP接收到来自客户的数据时，既然先前打开那个套接字的进程已经终止，于是响应以一个RST。</p>
+<ol>
+<li>然而客户进程看不到这个<strong>RST</strong>，因为他在调用<code>writen</code>后立即调用<code>readline</code>，并且由于第2步中接收的 <strong>FIN</strong> ,所调用的<code>readline</code>立即返回0(表示 <strong>EOF</strong> )。我们的客户端此时并未预期收到 <strong>EOF</strong> ，于是出错信息“server terminated permaturely”(服务器过早终止)退出。</li>
+<li>当客户终止时，它所有打开着的描述符都被关闭。</li>
+</ol>
+<p>本例子的问题在于：在 <strong>FIN</strong> 到达套接字时，客户正阻塞在<code>fgets</code>调用上。客户实际上在应对两个描述符——套接字和用户输入，它不能单纯阻塞在这两个源中某个特定源的输入上，而是应该阻塞在其中任何一个源的输入上。事实上这正是<code>select</code>和<code>poll</code>这两个函数的目的之一，一旦杀死服务器子进程，客户就会立即被告知已收到 <strong>FIN</strong> 。</p>
+<h3 id="SIGPIPE信号"><a href="#SIGPIPE信号" class="headerlink" title="SIGPIPE信号"></a>SIGPIPE信号</h3><p>要是客户不理会<code>readline</code>函数返回的错误，反而写入更多的数据到服务器上，那么又会发送什么呢？这种情况是可能发生的，举例来说，客户可能在读回任何数据之前执行两次针对服务器的写操作。而 <strong>RST</strong> 是由其中第一次写操作引发的。</p>
+<p>使用于此的规则是：当一个进程向某个已收到 <strong>RST</strong> 的套接字执行写操作时，内核向该进程发送一个<code>SIGPIPE</code>信号。该信号的默认行为是终止进程，因此进程必须捕获它以免不情愿地被终止。</p>
+<p>不论该进程是捕获了该信号并从其信号处理函数返回，还是简单地忽略该信号，写操作将返回<code>EPIPE</code>错误。</p>
+<blockquote>
+<p>第一次写操作引发 <strong>RST</strong>，第二次写引发<code>SIGPIPE</code>信号。写一个已接收了<strong>FIN</strong>的套接字不成问题，但是写一个已接收了 <strong>RST</strong> 的套接字则是一个错误。</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">str_cli</span><span class="params">(FILE *fp, <span class="keyword">int</span> sockfd)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> sendline[MAXLINE];</span><br><span class="line">    <span class="keyword">char</span> recvline[MAXLINE];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(Fgets(sendline, MAXLINE, fp) != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        Writen(sockfd, sendline, <span class="number">1</span>);</span><br><span class="line">        sleep(<span class="number">1</span>);</span><br><span class="line">        Writen(sockfd, sendline + <span class="number">1</span>, <span class="built_in">strlen</span>(sendline) <span class="number">-1</span>);</span><br><span class="line">        <span class="keyword">if</span>(Readline(sockfd, recvline, MAXLINE) == <span class="number">0</span>) &#123;</span><br><span class="line">            err_quit(<span class="string">"str_cli: server terminated prematurely"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        Fputs(recvline, <span class="built_in">stdout</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的代码修改就是调用<code>writen</code>两次：第一次把文本行数据的第一个字节写入套接字。暂停一秒钟后，第二次把同一文本行中剩余字节写入套接字。目的是让第一次<code>writen</code>引发一个<strong>RST</strong>，在让第二个<code>writen</code>产生<code>SIGPIPE</code>。</p>
+<pre><code>tcpcli01 127.0.0.1
+hi there
+hi there    被服务器回射回来
+            在这杀死服务器子进程
+bye         然后键入这行文本
+Broken pipe 本行由shell显示
+</code></pre><p>启动客户端，键入一行文本，看到它被正确返回后，在服务器主机上终止服务器子进程。接着键入另一行文本(“ bye ”)，结果是没有任何返回，而shell告诉我们客户进程因为<code>SIGPIPE</code>信号而死亡了。当前台进程未曾执行内存内容core dumping就死亡时，有些shell不显示任何信息。处理<code>SIGPIPE</code>的建议方法取决于它发生时应用进程想做什么。如果没有特殊的事情要做，那么将信号处理方法直接设置为<code>SIG_IGN</code>，并假设后续的输出操作将捕捕获<code>EPIPE</code>错误并终止。如果信号出现时需采取特殊措施(可能需在日志文件中登记)，那么就必须捕获该信号，以便在信号处理函数中执行所有期望的动作。但是必须意识到，如果使用了多个套接字，该信号的递交无法告诉我们是哪个套接字出的错。如果我们确实需要知道是哪个<code>write</code>出了错，那么必须要么不理会该信号，要么从信号处理函数返回后再处理来自<code>write</code>的<code>EPIPE</code>。</p>
+<h3 id="服务器主机崩溃"><a href="#服务器主机崩溃" class="headerlink" title="服务器主机崩溃"></a>服务器主机崩溃</h3><p>为了模拟这种情形，我们必须在不同的主机上运行客户和服务器。我们先启动服务器，再启动客户，接着在客户上键入一行文本以确认连接工作正常，然后从网络上断开服务器主机，并在客户上键入另一行文本。这样同时也模拟了客户发送数据时服务器主机不可达的情形（即建立连接后某些中间路由器不工作）。</p>
+<p>步骤如下所述：  </p>
+<ol>
+<li>当服务器主机崩溃时，已有的网络连接上不发出任何东西。这里我们假设的是主机崩溃，而不是由操作员执行命令关机。</li>
+<li>我们在客户上键入一行文本，它由<code>writen</code>写入内核，再由客户TCP作为一个数据分节送出。客户随后阻塞于<code>readline</code>调用，等待回射的应答。</li>
+<li>如果我们用<code>tcpdump</code>观察网络就会发现，客户TCP持续重传数据分节，试图从服务器上接收一个<strong>ACK</strong> 。经过一段时间后，客户TCP最后终于放弃时（假设在这段时间内，服务器主机没有重新启动，或者如果是服务器主机为崩溃但是从网络上不可达，那么假设主机仍然不可达），给客户进程返回一个错误。既然客户阻塞在<code>readline</code>调用上，该调用将返回一个错误。假设服务器主机已崩溃，从而对客户的数据分节根本没有响应，那么所返回的错误是 <strong>ETIMEDOUT</strong> 。然而如果某个中间路由器判定服务器主机已不可达，从而响应一个“destination unreachable”（目的地不可达）ICMP消息，那么所返回的错误是 <strong>EHOSTUNREACH</strong> 或 <strong>ENETUNREACH</strong> 。</li>
+</ol>
+<p>尽管我们的客户最终还是会发现对端主机已崩溃或不可达，不多超时的时间是由内核决定的，可能会等待的时间比较常，可以在<code>readline</code>调用设置一个超时的时间，或用心跳检测程序。</p>
+<h3 id="服务器主机崩溃后重启"><a href="#服务器主机崩溃后重启" class="headerlink" title="服务器主机崩溃后重启"></a>服务器主机崩溃后重启</h3><p>在这种情形中，我们先在客户与服务器之间建立连接，然后假设服务器主机崩溃并重启。模拟这种情形的最简单方法就是：先建立连接，再从网络上断开服务器主机，将它关机后再重新启动，最后把它从新连接到网络中。我们不想客户知道服务器的关机。</p>
+<p>如果在服务器主机崩溃时客户不主动给服务器发送数据，那么客户将不会知道服务器主机已经崩溃。（这里假设我们没有使用SO_KEEPALIVE套接字选项）。所发生的步骤如下所述：</p>
+<ol>
+<li>我们启动服务器和客户，并在客户键入一行文本以确认连接已经建立。</li>
+<li>服务器主机崩溃并重启</li>
+<li>在客户上键入一行文本，它将作为一个TCP数据分节发送到服务器主机。</li>
+<li>当服务器主机崩溃后重启时，它的TCP丢失了崩溃前的所有连接信息，因此服务器TCP对于所收到的来自客户的数据分节响应以一个 <strong>RST</strong> 。</li>
+<li>当客户TCP收到该 <strong>RST</strong> 时，客户正阻塞于<code>readline</code>调用，导致该调用返回 <strong>ECONNRESET</strong> 错误。</li>
+</ol>
+<p>如果对客户而言检测服务器主机崩溃与否很重要，即使客户不主动发送数据也要检测出来，就需要采用其他某种技术（诸如SO_KEEPALIVE套接字选项或某些客户/服务器心跳函数）。</p>
+<h3 id="服务器主机关机"><a href="#服务器主机关机" class="headerlink" title="服务器主机关机"></a>服务器主机关机</h3><p>Unix系统关机时，<code>init</code>进程通常先给所有进程发送<code>SIGTERM</code>信号(该信号可被捕获)，等待一段固定的时间(往往在5到20秒之间)，然后给所有扔在运行的进程发送<code>SIGKILL</code>信号（该信号不能被捕获）。这么做留给所有运行的进程一小段时间来清除和终止。如果我们不捕获<code>SIGTERM</code>信号并终止，我们的服务器将由<code>SIGKILL</code>信号终止。当服务器进程终止时，它的所有打开着的描述符都被关闭，随后发生的步骤与服务器进程终止一样。正如上面所述，必须在客户中调用<code>select</code>和<code>poll</code>函数。使得服务器进程的终止一经发生，客户就能检测到。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/15/socket/" rel="next" title="socket编程">
+                <i class="fa fa-chevron-left"></i> socket编程
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#echo服务器程序"><span class="nav-number">1.</span> <span class="nav-text">echo服务器程序</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#main函数"><span class="nav-number">1.1.</span> <span class="nav-text">main函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#描述符引用计数"><span class="nav-number">1.2.</span> <span class="nav-text">描述符引用计数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#str-echo函数"><span class="nav-number">1.3.</span> <span class="nav-text">str_echo函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#echo客户端程序"><span class="nav-number">2.</span> <span class="nav-text">echo客户端程序</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#main函数-1"><span class="nav-number">2.1.</span> <span class="nav-text">main函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#str-cli函数"><span class="nav-number">2.2.</span> <span class="nav-text">str_cli函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#正常启动"><span class="nav-number">3.</span> <span class="nav-text">正常启动</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#正常终止"><span class="nav-number">4.</span> <span class="nav-text">正常终止</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#POSIX信号处理"><span class="nav-number">5.</span> <span class="nav-text">POSIX信号处理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#POSIX信号语义"><span class="nav-number">5.1.</span> <span class="nav-text">POSIX信号语义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#处理SIGCHLD信号"><span class="nav-number">5.2.</span> <span class="nav-text">处理SIGCHLD信号</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#处理僵死进程"><span class="nav-number">6.</span> <span class="nav-text">处理僵死进程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#处理被中断的系统调用"><span class="nav-number">7.</span> <span class="nav-text">处理被中断的系统调用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#wait-和-waitpid函数"><span class="nav-number">8.</span> <span class="nav-text">wait 和 waitpid函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#函数wait-和-waitpid的区别"><span class="nav-number">8.1.</span> <span class="nav-text">函数wait 和 waitpid的区别</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#accept返回前连接中止"><span class="nav-number">9.</span> <span class="nav-text">accept返回前连接中止</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务器进程终止"><span class="nav-number">10.</span> <span class="nav-text">服务器进程终止</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SIGPIPE信号"><span class="nav-number">11.</span> <span class="nav-text">SIGPIPE信号</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务器主机崩溃"><span class="nav-number">12.</span> <span class="nav-text">服务器主机崩溃</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务器主机崩溃后重启"><span class="nav-number">13.</span> <span class="nav-text">服务器主机崩溃后重启</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务器主机关机"><span class="nav-number">14.</span> <span class="nav-text">服务器主机关机</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
