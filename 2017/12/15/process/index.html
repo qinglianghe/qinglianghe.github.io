@@ -87,7 +87,7 @@
 <meta property="og:description" content="使用TCP客户/服务器程序实现echo服务：  客户端从标准输入读入一行文本，并发送给服务器。 服务器从网络输入中读入这行文本，并返回给客户端。 客户端从网络输入中读入这行文本，并显示在标准输出上。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/images/echo.png">
-<meta property="og:updated_time" content="2017-12-17T13:10:58.000Z">
+<meta property="og:updated_time" content="2017-12-17T13:25:31.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="多进程： 并发服务器">
 <meta name="twitter:description" content="使用TCP客户/服务器程序实现echo服务：  客户端从标准输入读入一行文本，并发送给服务器。 服务器从网络输入中读入这行文本，并返回给客户端。 客户端从网络输入中读入这行文本，并显示在标准输出上。">
@@ -442,7 +442,7 @@ accept error: Interrupted system call
 <p>运行服务器的程序：</p>
 <pre><code>[heql@ubuntu socket]$ ./server
 </code></pre><p>运行修改的客户端程序：</p>
-<pre><code>[heql@ubuntu socket]$ ./tcpcli 127.0.0.1
+<pre><code>[heql@ubuntu socket]$ ./client 127.0.0.1
 hi there
 hi there
 ^D
@@ -497,7 +497,7 @@ str_cli: server terminated prematurely
 </blockquote>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">str_cli</span><span class="params">(FILE *fp, <span class="keyword">int</span> sockfd)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> sendline[MAXLINE];</span><br><span class="line">    <span class="keyword">char</span> recvline[MAXLINE];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(Fgets(sendline, MAXLINE, fp) != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        Writen(sockfd, sendline, <span class="number">1</span>);</span><br><span class="line">        sleep(<span class="number">1</span>);</span><br><span class="line">        Writen(sockfd, sendline + <span class="number">1</span>, <span class="built_in">strlen</span>(sendline) <span class="number">-1</span>);</span><br><span class="line">        <span class="keyword">if</span>(Readline(sockfd, recvline, MAXLINE) == <span class="number">0</span>) &#123;</span><br><span class="line">            err_quit(<span class="string">"str_cli: server terminated prematurely"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        Fputs(recvline, <span class="built_in">stdout</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>上面的代码修改就是调用<code>writen</code>两次：第一次把文本行数据的第一个字节写入套接字。暂停一秒钟后，第二次把同一文本行中剩余字节写入套接字。目的是让第一次<code>writen</code>引发一个<strong>RST</strong>，在让第二个<code>writen</code>产生<code>SIGPIPE</code>。</p>
-<pre><code>tcpcli01 127.0.0.1
+<pre><code>[heql@ubuntu socket]$ ./client 127.0.0.1
 hi there
 hi there    被服务器回射回来
             在这杀死服务器子进程
