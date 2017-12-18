@@ -87,7 +87,7 @@
 <meta property="og:description" content="使用TCP客户/服务器程序实现echo服务：  客户端从标准输入读入一行文本，并发送给服务器。 服务器从网络输入中读入这行文本，并返回给客户端。 客户端从网络输入中读入这行文本，并显示在标准输出上。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/images/echo.png">
-<meta property="og:updated_time" content="2017-12-17T13:25:31.000Z">
+<meta property="og:updated_time" content="2017-12-18T08:07:00.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="多进程： 并发服务器">
 <meta name="twitter:description" content="使用TCP客户/服务器程序实现echo服务：  客户端从标准输入读入一行文本，并发送给服务器。 服务器从网络输入中读入这行文本，并返回给客户端。 客户端从网络输入中读入这行文本，并显示在标准输出上。">
@@ -424,14 +424,8 @@ accept error: Interrupted system call
 </ol>
 <p>在编写捕获信号的网络程序时，必须认清被中断的系统调用且处理它们。如果系统函数库的<code>signal</code>函数没有设置的<strong>SA_RESTART</strong>标志，则不会使内核自动重启被中断的系统调用。如果系统自动重启被中断的系统调用，那么内核将重启被中断的系统调用，那么<code>accept</code>就不会返回错误。</p>
 <h3 id="处理被中断的系统调用"><a href="#处理被中断的系统调用" class="headerlink" title="处理被中断的系统调用"></a>处理被中断的系统调用</h3><p>当阻塞于某个系统调用的一个进程捕获某个信号且相应信号处理函数返回时，该系统调用可能返回一个 <strong>EINTR</strong> 错误。有些内核自动重启某些被中断的系统调用。不过为了便于移植，当编写捕获信号的程序时(多数并发服务器捕获<code>SIGCHLD</code>)，必须对系统调用返回 <strong>EINTR</strong> 有所准备。</p>
-<pre><code>while(connfd = accept(listenfd, (SA *) &amp;cliaddr, &amp;clilen)) &lt; 0) {
-        if(error == EINTR)
-            continue;
-        else
-            err_sys(&quot;accept error&quot;);
-    }
-}
-</code></pre><p>这段代码所做的事情就是自己重启被中断的系统调用。对于<code>accept</code>以及诸如<code>read</code>、<code>write</code>、<code>select</code>和<code>open</code>之类函数来说，这是适合的。不过有一个函数我们不能重启：<code>connect</code>。如果该函数返回 <strong>EINTR</strong> ，我们就不能再次调用它，否则将立即返回一个错误。当<code>connect</code>被一个捕获的信号中断而且不自动重启时。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span>(connfd = accept(listenfd, (SA *) &amp;cliaddr, &amp;clilen)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span>(error == EINTR)</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            err_sys(<span class="string">"accept error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这段代码所做的事情就是自己重启被中断的系统调用。对于<code>accept</code>以及诸如<code>read</code>、<code>write</code>、<code>select</code>和<code>open</code>之类函数来说，这是适合的。不过有一个函数我们不能重启：<code>connect</code>。如果该函数返回 <strong>EINTR</strong> ，我们就不能再次调用它，否则将立即返回一个错误。当<code>connect</code>被一个捕获的信号中断而且不自动重启时。</p>
 <h3 id="wait-和-waitpid函数"><a href="#wait-和-waitpid函数" class="headerlink" title="wait 和 waitpid函数"></a>wait 和 waitpid函数</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="keyword">pid_t</span> wait(<span class="keyword">int</span> *statloc);</span><br><span class="line"><span class="keyword">pid_t</span> waitpid(<span class="keyword">pid_t</span> pid, <span class="keyword">int</span> *statloc, <span class="keyword">int</span> options);</span><br></pre></td></tr></table></figure>
 <p>函数<code>wait</code>和<code>waitpid</code>均返回两个值：已终止子进程的PID，以及通过<code>statloc</code>指针返回的子进程终止状态（一个整数），可以通过该值辨别子进程是正常终止、由某个信号杀死还是仅仅由作业控制停止。</p>
 <p>如果调用<code>wait</code>的进程没有已终止的子进程，不过有一个或多个子进程扔在执行，那么<code>wait</code>将阻塞到现有子进程第一个终止为止。</p>
@@ -557,6 +551,10 @@ Broken pipe 本行由shell显示
 
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/2017/12/16/thread/" rel="prev" title="多线程：并发服务器">
+                多线程：并发服务器 <i class="fa fa-chevron-right"></i>
+              </a>
+            
           </div>
         </div>
       
@@ -636,7 +634,7 @@ Broken pipe 本行由shell显示
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
