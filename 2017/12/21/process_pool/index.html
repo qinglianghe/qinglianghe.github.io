@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="在并发服务器调用fork派生一个子进程来处理每个客户端，这使得服务器能够同时为多个客户端服务，每个进程处理一个客户端。客户端数目的唯一限制是操作系统能拥有多少子进程的限制。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="进程池">
+<meta property="og:url" content="http://yoursite.com/2017/12/21/process_pool/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="在并发服务器调用fork派生一个子进程来处理每个客户端，这使得服务器能够同时为多个客户端服务，每个进程处理一个客户端。客户端数目的唯一限制是操作系统能拥有多少子进程的限制。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/process_pool.png">
+<meta property="og:image" content="http://yoursite.com/images/proc.png">
+<meta property="og:updated_time" content="2017-12-21T07:52:58.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="进程池">
+<meta name="twitter:description" content="在并发服务器调用fork派生一个子进程来处理每个客户端，这使得服务器能够同时为多个客户端服务，每个进程处理一个客户端。客户端数目的唯一限制是操作系统能拥有多少子进程的限制。">
+<meta name="twitter:image" content="http://yoursite.com/images/process_pool.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/12/21/process_pool/"/>
+
+
+
+
+
+  <title>进程池 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/21/process_pool/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">进程池</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-21T00:00:00+08:00">
+                2017-12-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<p>在并发服务器调用<code>fork</code>派生一个子进程来处理每个客户端，这使得服务器能够同时为多个客户端服务，每个进程处理一个客户端。客户端数目的唯一限制是操作系统能拥有多少子进程的限制。</p>
+<a id="more"></a>
+<p>在未每个客户端的连接<code>fork</code>一个子进程是比较耗费CPU时间，一个系统能创建的进程个数也是有限的，如果创建的进程过多，就会发生CPU的“空转”，也就是CPU频繁的在进程间切换。对于像繁忙的Web服务器来说，这种做法显然是不可取的。</p>
+<h3 id="TCP预先派生子进程"><a href="#TCP预先派生子进程" class="headerlink" title="TCP预先派生子进程"></a>TCP预先派生子进程</h3><p>在启动阶段预先派生一个数量的子进程，当各个客户连接到达时，这些子进程立即就能为它们服务。而不是为每个客户连接现场派生一个子进程。如图，展示了服务器父进程预先派生出N个子进程且正有2个客户连接着的情形。</p>
+<p><img src="/images/process_pool.png" alt="process_pool.png"></p>
+<p>这种技术的优点在于无须引入父进程执行<code>fork</code>的开销就能处理新到的客户。确定则是父进程必须在服务器启动阶段猜测需要预先派生多少个子进程。如果某个时刻客户端的数量恰好等于子进程总数，那么新到的客户端将被忽略，直到至少有一个子进程重新可用。这些客户端并未被完全忽略。内核将为每个新到的客户完成三路握手，直到达到相应套接字<code>listen</code>调用的<code>blocklog</code>数为止，然后再服务器调用<code>accept</code>时把这些已完成的连接传递给它。这么一来客户端就能知道服务器在响应时间的恶化，因为尽管它的<code>connect</code>调用立即返回，但是它的第一个请求可能是在一段时间之后才被服务器处理。</p>
+<p>服务器可以通过父进程持续监视可用(即闲置)子进程数，来应对客户端负载的变动。一旦该值讲到低于某个阈值就派生额外的子进程，同样，一旦该值超过一个阈值就终止一些过剩的子进程。</p>
+<h3 id="TCP进程池客户端测试程序"><a href="#TCP进程池客户端测试程序" class="headerlink" title="TCP进程池客户端测试程序"></a>TCP进程池客户端测试程序</h3><p>代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;                                                        </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;errno.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/select.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/time.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"error.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAXLINE 4096</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SA struct sockaddr</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">Socket</span><span class="params">(<span class="keyword">int</span> family, <span class="keyword">int</span> type, <span class="keyword">int</span> protocol)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> n;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>((n = socket(family, type, protocol)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"socket error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> n;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Inet_pton</span><span class="params">(<span class="keyword">int</span> family, <span class="keyword">const</span> <span class="keyword">char</span> *strptr, <span class="keyword">void</span> *addrptr)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(inet_pton(family, strptr, addrptr) &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">        err_quit(<span class="string">"inet_pton error for %s"</span>, strptr);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">Connect</span><span class="params">(<span class="keyword">int</span> fd, struct sockaddr *sa, <span class="keyword">socklen_t</span> salen)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(connect(fd, sa, salen) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"connect error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">tcp_connect</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *ip, <span class="keyword">const</span> <span class="keyword">char</span> *port)</span> </span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">servaddr</span>;</span></span><br><span class="line">    <span class="keyword">int</span> sockfd;</span><br><span class="line">    </span><br><span class="line">    sockfd = Socket(AF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    bzero(&amp;servaddr, <span class="number">0</span>);</span><br><span class="line">    servaddr.sin_family = AF_INET;</span><br><span class="line">    servaddr.sin_port = htons(atoi(port));</span><br><span class="line">    Inet_pton(AF_INET, ip, &amp;servaddr.sin_addr);</span><br><span class="line"></span><br><span class="line">    Connect(sockfd, (SA *) &amp;servaddr, <span class="keyword">sizeof</span>(servaddr));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> sockfd;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">writen</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">void</span> *vptr, <span class="keyword">size_t</span> nbytes)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *ptr = vptr;</span><br><span class="line">    <span class="keyword">int</span> left = nbytes;</span><br><span class="line">    <span class="keyword">int</span> written;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(left &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span>((written = write(fd, ptr, left)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ptr += written;</span><br><span class="line">        left -= written;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> nbytes;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Writen</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">void</span> *vptr, <span class="keyword">size_t</span> nbytes)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(writen(fd, vptr, nbytes) != nbytes) &#123;</span><br><span class="line">        err_sys(<span class="string">"write error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">readn</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">void</span> *vptr, <span class="keyword">size_t</span> nbytes)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *ptr = vptr;</span><br><span class="line">    <span class="keyword">int</span> nread;</span><br><span class="line">    <span class="keyword">int</span> left = nbytes;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(left &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        nread = read(fd, vptr, nbytes);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(nread &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span>(errno != EINTR) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span>(nread == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            ptr += nread;</span><br><span class="line">            left -= nread;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> nbytes - left;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">Readn</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">void</span> *vptr, <span class="keyword">size_t</span> nbytes)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(readn(fd, vptr, nbytes) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"read error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="title">Close</span><span class="params">(<span class="keyword">int</span> fd)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(close(fd) == <span class="number">-1</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"close error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> sockfd;</span><br><span class="line">    <span class="keyword">int</span> num_children;</span><br><span class="line">    <span class="keyword">int</span> nloops;</span><br><span class="line">    <span class="keyword">int</span> request_bytes;</span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">int</span> j;</span><br><span class="line">    <span class="keyword">int</span> n;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">char</span> request[MAXLINE];</span><br><span class="line">    <span class="keyword">char</span> reply[MAXLINE];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(argc != <span class="number">6</span>) &#123;</span><br><span class="line">        err_quit(<span class="string">"%s &lt;IPAdress&gt; &lt;port&gt; &lt;num_children&gt; &lt;num_loops&gt; &lt;request_bytes&gt;"</span>, argv[<span class="number">0</span>]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    num_children = atoi(argv[<span class="number">3</span>]);</span><br><span class="line">    nloops = atoi(argv[<span class="number">4</span>]);</span><br><span class="line">    request_bytes = atoi(argv[<span class="number">5</span>]);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">snprintf</span>(request, MAXLINE, <span class="string">"%d\n"</span>, request_bytes);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; num_children; ++i) &#123;</span><br><span class="line">        pid = fork();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(pid == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">for</span>(j = <span class="number">0</span>; j &lt; nloops; ++j) &#123;</span><br><span class="line">                sockfd = tcp_connect(argv[<span class="number">1</span>], argv[<span class="number">2</span>]);</span><br><span class="line">                Writen(sockfd, request, <span class="built_in">strlen</span>(request));</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span>((n = Readn(sockfd, reply, MAXLINE)) != request_bytes) &#123;</span><br><span class="line">                    err_quit(<span class="string">"server returned %d bytes"</span>, n);</span><br><span class="line">                &#125;</span><br><span class="line">                Close(sockfd);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"child %d done\n"</span>, i);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span>(pid &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            err_sys(<span class="string">"fork error"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(wait(<span class="literal">NULL</span>) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        ;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(errno != ECHILD) &#123;</span><br><span class="line">        err_sys(<span class="string">"wait error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>每次运行客户程序时，需要指定服务器的主机名或IP地址、服务器的端口、由客户端<code>fork</code>的子进程数(以允许客户端并发地向同一个服务器发起多个连接)、每个子进程发送给服务器的请求数，以及每个请求要求服务器返送的数据字节数。</p>
+<p>父进程调用<code>fork</code>派生指定个数的子进程，每个子进程再与服务器建立指定数目的连接。每次建立连接之后，子进程就在该连接上向服务器发送一行文本，指定需由服务器返回多少字节的数据，然后再该连接上读入这个数量的数据，最后关闭连接。父进程只是调用<code>wait</code>等待所有子进程都终止。需注意的是，这里关闭每个TCP连接的是客户端，因而TCP的<code>TIME_WAIT</code>状态在客户端而不是服务器。</p>
+<p>用于执行本客户端程序的命令如下：</p>
+<pre><code>./client 192.168.1.156 9987 5 500 4096 
+</code></pre><p>这将建立2500个与服务器的TCP连接：5个子进程各自发起500次连接。在每个连接上，客户向服务器发送5字节数据(“4096\n”),服务器向客户返回4096字节数据。</p>
+<h3 id="TCP预先派生子进程服务器程序，accept无上锁保护"><a href="#TCP预先派生子进程服务器程序，accept无上锁保护" class="headerlink" title="TCP预先派生子进程服务器程序，accept无上锁保护"></a>TCP预先派生子进程服务器程序，accept无上锁保护</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;                                                        </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;errno.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/select.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/time.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;time.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/resource.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/mman.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"error.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> LISTENQ 1024</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAX_BUF 4096</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SA struct sockaddr</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAX_CHILDREN 24</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SERV_PORT 9987</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> min(a, b) ((a) &lt; (b) ? (a) : (b))</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">int</span> num_children;</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">pid_t</span> pids[MAX_CHILDREN];</span><br><span class="line"><span class="keyword">long</span> *cptr;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">Socket</span><span class="params">(<span class="keyword">int</span> family, <span class="keyword">int</span> type, <span class="keyword">int</span> protocol)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> n;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>((n = socket(family, type, protocol)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"socket error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> n;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">Bind</span><span class="params">(<span class="keyword">int</span> fd, struct sockaddr *sa, <span class="keyword">socklen_t</span> salen)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(bind(fd, sa, salen) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"bind error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">Listen</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">int</span> backlog)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *ptr;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>((ptr = getenv(<span class="string">"LISTENQ"</span>)) != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        backlog = atoi(ptr);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(listen(fd, backlog) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"listen error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">tcp_listen</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> listenfd;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">servaddr</span>;</span></span><br><span class="line">    </span><br><span class="line">    listenfd = Socket(AF_INET, SOCK_STREAM, <span class="number">0</span>);    </span><br><span class="line"></span><br><span class="line">    bzero(&amp;servaddr, <span class="number">0</span>);</span><br><span class="line">    servaddr.sin_family = AF_INET;</span><br><span class="line">    servaddr.sin_port = htons(SERV_PORT);</span><br><span class="line">    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);</span><br><span class="line"></span><br><span class="line">    Bind(listenfd, (SA *) &amp;servaddr, <span class="keyword">sizeof</span>(servaddr));</span><br><span class="line"></span><br><span class="line">    Listen(listenfd, LISTENQ);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> listenfd;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">Accept</span><span class="params">(<span class="keyword">int</span> fd, struct sockaddr *sa, <span class="keyword">socklen_t</span> *salenptr)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> n;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>((n = accept(fd, sa, salenptr)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span>(errno != EINTR &amp;&amp; errno != ECONNABORTED) &#123;</span><br><span class="line">            err_sys(<span class="string">"accept error"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> n;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">readline</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">void</span> *vptr, <span class="keyword">size_t</span> maxlen)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">char</span> *ptr = vptr;</span><br><span class="line">    <span class="keyword">int</span> n;</span><br><span class="line">    <span class="keyword">char</span> c;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; maxlen - <span class="number">1</span>; ++i) &#123;</span><br><span class="line">        <span class="keyword">if</span>((n = read(fd, &amp;c, <span class="number">1</span>)) == <span class="number">1</span>) &#123;</span><br><span class="line">            *ptr++ = c;</span><br><span class="line">            <span class="keyword">if</span>(c == <span class="string">'\n'</span>) &#123;</span><br><span class="line">                <span class="keyword">break</span>;        <span class="comment">/* newline */</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span>(n == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span>(i == <span class="number">0</span>) &#123;</span><br><span class="line">                *ptr = <span class="string">'\0'</span>;</span><br><span class="line">                <span class="keyword">return</span> i;     <span class="comment">/* EOF */</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span>(errno == EINTR) &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;     <span class="comment">/* read error */</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    *ptr = <span class="string">'\0'</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> i + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">Readline</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">void</span> *vptr, <span class="keyword">size_t</span> maxlen)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> n;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>((n = readline(fd, vptr, maxlen)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"read error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> n;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">writen</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">void</span> *vptr, <span class="keyword">size_t</span> nbytes)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *ptr = vptr;</span><br><span class="line">    <span class="keyword">size_t</span> left = nbytes;</span><br><span class="line">    <span class="keyword">int</span> nwritten;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(left &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span>((nwritten = write(fd, vptr, left)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ptr += nwritten;</span><br><span class="line">        left -= nwritten;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> nbytes;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Writen</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">void</span> *vptr, <span class="keyword">size_t</span> nbytes)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(writen(fd, vptr, nbytes) != nbytes) &#123;</span><br><span class="line">        err_sys(<span class="string">"write error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">Close</span><span class="params">(fd)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(close(fd) == <span class="number">-1</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"close error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">process_request</span><span class="params">(<span class="keyword">int</span> fd)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> recvline[MAX_BUF];</span><br><span class="line">    <span class="keyword">char</span> result[MAX_BUF];</span><br><span class="line">    <span class="keyword">int</span> nread;</span><br><span class="line">    <span class="keyword">int</span> towrite;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(;;) &#123;</span><br><span class="line">        <span class="keyword">if</span>((nread = Readline(fd, recvline, MAX_BUF)) == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        towrite = atol(recvline);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(towrite &lt;= <span class="number">0</span> || towrite &gt; MAX_BUF) &#123;</span><br><span class="line">            err_quit(<span class="string">"client request for %d bytes"</span>, towrite);</span><br><span class="line">        &#125;</span><br><span class="line">        Writen(fd, result, towrite);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">child_main</span><span class="params">(<span class="keyword">int</span> i, <span class="keyword">int</span> listenfd)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> connfd;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"child %d starting\n"</span>, i);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(;;) &#123;</span><br><span class="line">        connfd = Accept(listenfd, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">        ++cptr[i];</span><br><span class="line">        process_request(connfd);</span><br><span class="line">        Close(connfd);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">child_make</span><span class="params">(<span class="keyword">int</span> i, <span class="keyword">int</span> listenfd)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line"></span><br><span class="line">    pid = fork();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(pid == <span class="number">0</span>) &#123;</span><br><span class="line">        child_main(i, listenfd);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span>(pid &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> pid;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        err_sys(<span class="string">"fork error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sig_chld</span><span class="params">(<span class="keyword">int</span> signo)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line">    <span class="keyword">int</span> stat;</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">while</span>((pid = waitpid(<span class="number">-1</span>, &amp;stat, WNOHANG)) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        ;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sig_int</span><span class="params">(<span class="keyword">int</span> signo)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* terminate all chlidren */</span></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; num_children; ++i) &#123;</span><br><span class="line">        kill(pids[i], SIGTERM);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(wait(<span class="literal">NULL</span>) &gt; <span class="number">0</span>) &#123; <span class="comment">/* wait for all children */</span></span><br><span class="line">        ;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span>(errno != ECHILD) &#123;</span><br><span class="line">        err_sys(<span class="string">"wait error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; num_children; ++i) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"child %d, %ld connections\n"</span>, i, cptr[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">long</span>* <span class="title">meter</span><span class="params">(<span class="keyword">int</span> num_children)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> fd;</span><br><span class="line">    <span class="keyword">void</span> *ptr;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>((fd = open(<span class="string">"/dev/zero"</span>, O_RDWR, <span class="number">0</span>)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"open /dev/zero error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>((ptr = mmap(<span class="number">0</span>, num_children * <span class="keyword">sizeof</span>(<span class="keyword">long</span>), PROT_READ|PROT_WRITE, MAP_SHARED, fd, <span class="number">0</span>)) == (<span class="keyword">void</span>*)<span class="number">-1</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"mmap error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    Close(fd);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (<span class="keyword">long</span> *)ptr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> listenfd;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(argc != <span class="number">2</span>) &#123;</span><br><span class="line">        err_quit(<span class="string">"usage: %s &lt;num_children&gt;"</span>, argv[<span class="number">0</span>]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    num_children = min(atoi(argv[<span class="number">1</span>]), MAX_CHILDREN);</span><br><span class="line">    listenfd = tcp_listen();</span><br><span class="line"></span><br><span class="line">    cptr = meter(num_children);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; num_children; ++i) &#123;</span><br><span class="line">        pids[i] = child_make(i, listenfd);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    signal(SIGINT, sig_int);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(;;) &#123;</span><br><span class="line">        pause();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="main函数"><a href="#main函数" class="headerlink" title="main函数"></a>main函数</h4><p>调用<code>tcp_listen</code>函数创建一个监听套接字。调用<code>child_make</code>预先创建子进程，创建的个数由命令行指定，最大的个数不能超过<code>MAX_CHILDREN</code>。<code>SIGINT</code>信号处理函数，在终止服务器(CTRL+C)时被调用，用于统计各个子进程处理的连接数。</p>
+<h4 id="child-make函数"><a href="#child-make函数" class="headerlink" title="child_make函数"></a>child_make函数</h4><p>调用<code>fork</code>派生子进程，父进程返回子进程的<code>pid</code>。子进程调用<code>child_main</code>函数。</p>
+<h4 id="child-main函数"><a href="#child-main函数" class="headerlink" title="child_main函数"></a>child_main函数</h4><p>每个子进程调用<code>accept</code>返回一个已连接套接字，然后调用<code>process_request</code>函数处理客户请求，最后关闭连接。子进程一直在这个循环中反复，直到被父进程终止。</p>
+<h4 id="sig-int函数"><a href="#sig-int函数" class="headerlink" title="sig_int函数"></a>sig_int函数</h4><p>在服务器终止(CTRL+C)时被调用，调用<code>kill</code>给每个子进程发送<code>STGTERM</code>信号终止它们，并通过调用<code>wait</code>等待子进程结束。最后打印每个子进程处理的连接数。</p>
+<h4 id="meter函数"><a href="#meter函数" class="headerlink" title="meter函数"></a>meter函数</h4><p>在共享内存区中分配一个长整数计数器数组，用于查看客户端在阻塞于<code>accept</code>调用中的可用子进程池上的分布，每个子进程一个计数器，在<code>accept</code>返回后，对应子进程的计数器加1。<code>SIGINT</code>信号处理函数在所有子进程终止之后显示每个进程的计数器的值。</p>
+<p>在分配共享内存区时，使用<code>/dev/zero</code>映射。数组是本进程在尚未派生各个子进程之前调用<code>mmap</code>创建的，它将由本进程(父进程)和后来<code>fork</code>的所有子进程共享。</p>
+<h4 id="运行服务器程序："><a href="#运行服务器程序：" class="headerlink" title="运行服务器程序："></a>运行服务器程序：</h4><p>服务器程序创建了10个子进程，输出如下信息：</p>
+<pre><code>[heql@ubuntu socket]$ ./process_pool_serve 10
+child 2 starting
+child 1 starting
+child 3 starting
+child 0 starting
+child 5 starting
+child 7 starting
+child 6 starting
+child 4 starting
+child 8 starting
+child 9 starting
+</code></pre><h4 id="运行客户端程序："><a href="#运行客户端程序：" class="headerlink" title="运行客户端程序："></a>运行客户端程序：</h4><p>客户端使用5个子进程各自发起5000次连接。在每个连接上，客户向服务器发送请求4096字节数据，服务器将向每个连接的客户返回4096字节数据。</p>
+<pre><code>[heql@ubuntu socket]$ ./test_client 127.0.0.1 9987 5 5000 4096
+child 0 done
+child 3 done
+child 2 done
+child 1 done
+child 4 done
+</code></pre><h4 id="终止服务器"><a href="#终止服务器" class="headerlink" title="终止服务器"></a>终止服务器</h4><p>客户端程序运行完后，按下CTRL+C终止服务器，查看每个子进程的处理的连接个数：</p>
+<pre><code>^C
+child 0, 2466 connections
+child 1, 2536 connections
+child 2, 2500 connections
+child 3, 2481 connections
+child 4, 2516 connections
+child 5, 2475 connections
+child 6, 2550 connections
+child 7, 2446 connections
+child 8, 2524 connections
+child 9, 2506 connections
+</code></pre><p>多个进程在同一个监听描述符上调用<code>accept</code>：父进程在派生任何子进程之前创建监听套接字，而每次调用<code>fork</code>时，所有描述符也被复制。如图展示了<code>proc</code>结构(每个进程一个)、监听描述符的单个<code>file</code>结构以及单个<code>socket</code>结构之间的关系。</p>
+<p><img src="/images/proc.png" alt="proc.png"></p>
+<p>描述符只是本进程应用<code>file</code>结构的<code>proc</code>结构中一个数组中某个元素的下标而已。<code>fork</code>调用执行期间为子进程复制描述符的特性之一是：子进程中一个给定描述符引用的<code>file</code>结构正是父进程中同一个描述符引用的<code>file</code>结构。每个<code>file</code>结构都有一个引用计数。当打开一个文件或套接字时，内核将为之构造一个<code>file</code>结构，并由作为打开操作返回值的描述符引用，它的引用计数值位1，以后每当调用<code>fork</code>以派生子进程或对打开的操作返回的描述符(或其复制品)调用<code>dup</code>以复制描述符时，该<code>file</code>结构的引用计数就递增(每次递增1)。在我们的N个子进程的例子中，<code>file</code>结构的引用计数为N+1(别忘了父进程仍然保持该监听描述符打开着，不过它从不调用<code>accept</code>)。</p>
+<p>服务器进程在程序启动阶段派生N个子进程，它们各自调用<code>accept</code>并因而均被内核投入睡眠。当第一个客户连接到达时，所有N个子进程均被唤醒。这是因为所有N个子进程所用的监听描述符执行同一个<code>socket</code>结构，致使它们在同一个等待通道上进行睡眠。尽管所有N个子进程均被唤醒，其中只有最先运行的子进程获得那个客户连接，其余N-1个子进程继续恢复睡眠。</p>
+<p>这就是有时候称为 <strong>惊群</strong> 的问题，因为尽管只有一个子进程将获得连接，所有N个子进程却都被唤醒。如果被唤醒的子进程过多，这也会导致性能受损。</p>
+<h3 id="TCP预先派生子进程服务器程序，accept文件上锁保护"><a href="#TCP预先派生子进程服务器程序，accept文件上锁保护" class="headerlink" title="TCP预先派生子进程服务器程序，accept文件上锁保护"></a>TCP预先派生子进程服务器程序，accept文件上锁保护</h3><p>上面的实现允许多个进程在引用同一个监听套接字的描述符上调用<code>accept</code>，然而这种做法对于有些内核来说，是不允许这么做的，在客户开始连接到该服务器后不久，某个子进程的<code>accept</code>就会返回<code>EPROTO</code>错误(表示协议出错)。</p>
+<p>解决办法是让应用进程在调用<code>accept</code>前后安置某种形式的锁(lock)，这样任意时刻只有一个子进程阻塞在<code>accept</code>调用中，其他子进程则阻塞在试图获取用于保护<code>accept</code>的锁上。</p>
+<h4 id="lock-init函数"><a href="#lock-init函数" class="headerlink" title="lock_init函数"></a>lock_init函数</h4><p>代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">flock</span> <span class="title">lock_it</span>;</span></span><br><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">flock</span> <span class="title">unlock_it</span>;</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">int</span> lock_fd = <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">lock_init</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *pathname)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> lock_file[<span class="number">1024</span>];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">strncpy</span>(lock_file, pathname, <span class="keyword">sizeof</span>(lock_file));</span><br><span class="line">    <span class="keyword">if</span>((lock_fd = mkstemp(lock_file)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"mkstemp error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(unlink(lock_file) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"unlink error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    lock_it.l_type = F_WRLCK;</span><br><span class="line">    lock_it.l_whence = SEEK_SET;</span><br><span class="line">    lock_it.l_start = <span class="number">0</span>;</span><br><span class="line">    lock_it.l_len = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    unlock_it.l_type = F_UNLCK;</span><br><span class="line">    unlock_it.l_whence = SEEK_SET;</span><br><span class="line">    unlock_it.l_start = <span class="number">0</span>;</span><br><span class="line">    unlock_it.l_len = <span class="number">0</span>;    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>lock_init</code>函数由调用者指定一个路径名模板，<code>mktemp</code>函数根据该模板创建一个唯一的路径名，本函数随后创建一个具备该路径名的文件并立即<code>unlink</code>掉。通过从文件系统目录中删除该路径名，以后即使程序崩溃，这个临时文件也完全消失。只要有一个或多个进程打开着这个文件(也就是说它的引用计数大于0)，该文件本身就不会被删除。</p>
+<p>初始化两个<code>flock</code>结构，一个用于上述文件，一个用于解锁文件。文件上述范围起自字节偏移量0(<code>l_whence</code>值为SEEK_SET， <code>l_start</code>值为0)，跨越整个文件(<code>l_len</code>值为0，表示锁住整个文件或到文件尾)。</p>
+<p>在<code>main</code>函数中在派生子进程的循环之前增加<code>lock_init</code>函数的调用。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">+   lock_init(<span class="string">"/tmp/lock.XXXXXX"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; nchildren; ++i) &#123;</span><br><span class="line">        cptr[i] = <span class="number">0</span>;</span><br><span class="line">        pids[i] = child_make(i, listenfd);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h4 id="lock-wait、lock-release函数"><a href="#lock-wait、lock-release函数" class="headerlink" title="lock_wait、lock_release函数"></a>lock_wait、lock_release函数</h4><p>代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">lock_wait</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(fcntl(lock_fd, F_SETLKW, &amp;lock_it) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span>(errno == EINTR) &#123;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            err_sys(<span class="string">"fcntl error for lock_wait"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">lock_release</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(fcntl(lock_fd, F_SETLKW, &amp;unlock_it) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"fcntl error for lock_release"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>lock_wait</code>、<code>lock_release</code>函数用于加锁和解锁。在<code>child_main</code>函数中在调用<code>accept</code>之前获取文件锁，在<code>accept</code>返回之后释放文件锁。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(;;) &#123;</span><br><span class="line">+   lock_wait();</span><br><span class="line">    connfd = Accept(listenfd, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">+   lock_release();</span><br><span class="line">    </span><br><span class="line">    ++cptr[i];</span><br><span class="line">    process_request(connfd);</span><br><span class="line">    Close(connfd);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="TCP预先派生子进程服务器程序，accept使用线程上锁保护"><a href="#TCP预先派生子进程服务器程序，accept使用线程上锁保护" class="headerlink" title="TCP预先派生子进程服务器程序，accept使用线程上锁保护"></a>TCP预先派生子进程服务器程序，accept使用线程上锁保护</h3><p>上面使用的是文件上述方法，不过它涉及文件系统操作，可能比较耗时。可以改用线程上锁保护<code>accept</code>，因为这种方法不仅适用于同一进程内各线程之间的上锁，而且适用了不同进程之间的上锁。</p>
+<p>在不同进程之间使用线程上锁要求：</p>
+<ol>
+<li>互斥锁变量必须存放在由所有共享的内存区中</li>
+<li>必须告知线程函数库这是在不同进程之间共享的互斥锁</li>
+</ol>
+<p><strong>要求线程库支持PTHREAD_PROCESS_SHARED属性</strong></p>
+<h4 id="lock-init函数-1"><a href="#lock-init函数-1" class="headerlink" title="lock_init函数"></a>lock_init函数</h4><p>代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">pthread_mutex_t</span> *mutex_ptr;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">lock_init</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *pathname)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> fd;</span><br><span class="line">    <span class="keyword">pthread_mutexattr_t</span> mattr;</span><br><span class="line">    <span class="keyword">void</span> *ptr;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>((fd = open(<span class="string">"/dev/zero"</span>, O_RDWR, <span class="number">0</span>)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"open /dev/zero error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>((ptr = mmap(<span class="number">0</span>, <span class="keyword">sizeof</span>(<span class="keyword">pthread_mutex_t</span>), PROT_READ | PROT_WRITE, MAP_SHARED, fd, <span class="number">0</span>)) == (<span class="keyword">void</span> *)<span class="number">-1</span>) &#123;</span><br><span class="line">        err_sys(<span class="string">"mmap error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    mutex_ptr = (<span class="keyword">pthread_mutex_t</span> *)ptr;</span><br><span class="line"></span><br><span class="line">    Close(fd);</span><br><span class="line"></span><br><span class="line">    CHECK(pthread_mutexattr_init(&amp;mattr));</span><br><span class="line">    CHECK(pthread_mutexattr_setpshared(&amp;mattr, PTHREAD_PROCESS_SHARED));</span><br><span class="line">    CHECK(pthread_mutex_init(mutex_ptr, &amp;mattr));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>打开<code>/dev/zero</code>然后调用<code>mmap</code>。所映射的字节数是一个<code>pthread_mutex_t</code>类型变量的大小。随后关闭描述符，因为描述符已被内存映射了。</p>
+<p>对于一个存放在共享内存区中的互斥锁，必须调用一些pthread库函数以告知该函数库：这是一个位于共享内存区中互斥锁，将用于不同进程之间的上锁。首先为一个互斥锁以默认属性初始化一个<code>pthread_mutexattr_t</code>结构，然后赋予该结构<code>PTHREAD_PROCESS_SHARED</code>属性(该属性的默认值为<code>PTHREAD_PROCESS_PRIVATE</code>，即只允许在单个进程内使用)。最后调用<code>pthread_mutex_init</code>函数以这些属性初始化共享内存区中的互斥锁。</p>
+<h4 id="lock-wait、lock-release函数-1"><a href="#lock-wait、lock-release函数-1" class="headerlink" title="lock_wait、lock_release函数"></a>lock_wait、lock_release函数</h4><p>代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">lock_wait</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    CHECK(pthread_mutex_lock(mutex_ptr));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">lock_release</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    CHECK(pthread_mutex_unlock(mutex_ptr));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/17/thread/" rel="next" title="多线程：并发服务器">
+                <i class="fa fa-chevron-left"></i> 多线程：并发服务器
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#TCP预先派生子进程"><span class="nav-number">1.</span> <span class="nav-text">TCP预先派生子进程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TCP进程池客户端测试程序"><span class="nav-number">2.</span> <span class="nav-text">TCP进程池客户端测试程序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TCP预先派生子进程服务器程序，accept无上锁保护"><span class="nav-number">3.</span> <span class="nav-text">TCP预先派生子进程服务器程序，accept无上锁保护</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#main函数"><span class="nav-number">3.1.</span> <span class="nav-text">main函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#child-make函数"><span class="nav-number">3.2.</span> <span class="nav-text">child_make函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#child-main函数"><span class="nav-number">3.3.</span> <span class="nav-text">child_main函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sig-int函数"><span class="nav-number">3.4.</span> <span class="nav-text">sig_int函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#meter函数"><span class="nav-number">3.5.</span> <span class="nav-text">meter函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#运行服务器程序："><span class="nav-number">3.6.</span> <span class="nav-text">运行服务器程序：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#运行客户端程序："><span class="nav-number">3.7.</span> <span class="nav-text">运行客户端程序：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#终止服务器"><span class="nav-number">3.8.</span> <span class="nav-text">终止服务器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TCP预先派生子进程服务器程序，accept文件上锁保护"><span class="nav-number">4.</span> <span class="nav-text">TCP预先派生子进程服务器程序，accept文件上锁保护</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#lock-init函数"><span class="nav-number">4.1.</span> <span class="nav-text">lock_init函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#lock-wait、lock-release函数"><span class="nav-number">4.2.</span> <span class="nav-text">lock_wait、lock_release函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TCP预先派生子进程服务器程序，accept使用线程上锁保护"><span class="nav-number">5.</span> <span class="nav-text">TCP预先派生子进程服务器程序，accept使用线程上锁保护</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#lock-init函数-1"><span class="nav-number">5.1.</span> <span class="nav-text">lock_init函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#lock-wait、lock-release函数-1"><span class="nav-number">5.2.</span> <span class="nav-text">lock_wait、lock_release函数</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
