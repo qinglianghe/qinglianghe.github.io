@@ -86,7 +86,7 @@
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
 <meta property="og:description" content="poll 函数poll提供的功能与select类似，不过在处理流设备时，它能够提供额外的信息。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2017-12-25T00:49:02.000Z">
+<meta property="og:updated_time" content="2017-12-26T03:03:29.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="I&#x2F;O复用：poll">
 <meta name="twitter:description" content="poll 函数poll提供的功能与select类似，不过在处理流设备时，它能够提供额外的信息。">
@@ -302,7 +302,7 @@
         <hr>
 <h3 id="poll-函数"><a href="#poll-函数" class="headerlink" title="poll 函数"></a>poll 函数</h3><p><code>poll</code>提供的功能与<code>select</code>类似，不过在处理流设备时，它能够提供额外的信息。</p>
 <a id="more"></a>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;poll.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">poll</span><span class="params">(struct pollfd *fdarray, <span class="keyword">unsigned</span> <span class="keyword">long</span> nfds, <span class="keyword">int</span> timeout)</span></span>;</span><br><span class="line">                返回：若有就绪描述符则为其数目，若超时则为<span class="number">-1</span>，若出错则为<span class="number">-1</span>。</span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;poll.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">poll</span><span class="params">(struct pollfd *fdarray, <span class="keyword">unsigned</span> <span class="keyword">long</span> nfds, <span class="keyword">int</span> timeout)</span></span>;</span><br><span class="line">                返回：若有就绪描述符则为其数目，若超时则为<span class="number">0</span>，若出错则为<span class="number">-1</span>。</span><br></pre></td></tr></table></figure>
 <p>第一个参数是指向一个结构数组第一个元素的指针。每个数组元素都是一个<code>pollfd</code>结构，用于指定测试某个给定描述符<code>fd</code>的条件。</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">pollfd</span> &#123;</span></span><br><span class="line">    <span class="keyword">int</span> fd;       <span class="comment">/* descriptor to check */</span></span><br><span class="line">    <span class="keyword">short</span> events; <span class="comment">/* events of interest on fd */</span></span><br><span class="line">    <span class="keyword">short</span> revents <span class="comment">/* events that occurred on fd */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 <p>要测试的条件由<code>events</code>成员指定，函数在相应的<code>revents</code>成员中返回该描述符的状态。这两个成员中的每一个都由指定的某个特定条件的一位或多位构成。用于指定<code>events</code>标志以及测试<code>revents</code>标志的一些常值。</p>
@@ -374,6 +374,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/26/epoll/" rel="prev" title="I/O复用：epoll">
+                I/O复用：epoll <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -454,7 +458,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-count">12</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
