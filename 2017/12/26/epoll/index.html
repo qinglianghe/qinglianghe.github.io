@@ -79,17 +79,17 @@
 
 
 
-<meta name="description" content="epollepoll是Linux内核为处理大批量文件描述符而做了改进的poll，是Linux下多路复用IO接口select/poll的增强版本，它能显著提高程序在大量并发连接中只有少量活跃的情况下的系统CPU利用率。">
+<meta name="description" content="epoll是Linux内核为处理大批量文件描述符而做了改进的poll，是Linux下多路复用IO接口select/poll的增强版本，它能显著提高程序在大量并发连接中只有少量活跃的情况下的系统CPU利用率。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="I&#x2F;O复用：epoll">
 <meta property="og:url" content="http://yoursite.com/2017/12/26/epoll/index.html">
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
-<meta property="og:description" content="epollepoll是Linux内核为处理大批量文件描述符而做了改进的poll，是Linux下多路复用IO接口select/poll的增强版本，它能显著提高程序在大量并发连接中只有少量活跃的情况下的系统CPU利用率。">
+<meta property="og:description" content="epoll是Linux内核为处理大批量文件描述符而做了改进的poll，是Linux下多路复用IO接口select/poll的增强版本，它能显著提高程序在大量并发连接中只有少量活跃的情况下的系统CPU利用率。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2017-12-26T03:36:47.000Z">
+<meta property="og:updated_time" content="2017-12-26T07:20:31.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="I&#x2F;O复用：epoll">
-<meta name="twitter:description" content="epollepoll是Linux内核为处理大批量文件描述符而做了改进的poll，是Linux下多路复用IO接口select/poll的增强版本，它能显著提高程序在大量并发连接中只有少量活跃的情况下的系统CPU利用率。">
+<meta name="twitter:description" content="epoll是Linux内核为处理大批量文件描述符而做了改进的poll，是Linux下多路复用IO接口select/poll的增强版本，它能显著提高程序在大量并发连接中只有少量活跃的情况下的系统CPU利用率。">
 
 
 
@@ -300,9 +300,9 @@
 
       
         <hr>
-<h3 id="epoll"><a href="#epoll" class="headerlink" title="epoll"></a>epoll</h3><p><code>epoll</code>是Linux内核为处理大批量文件描述符而做了改进的<code>poll</code>，是Linux下多路复用IO接口select/poll的增强版本，它能显著提高程序在大量并发连接中只有少量活跃的情况下的系统CPU利用率。</p>
+<p><code>epoll</code>是Linux内核为处理大批量文件描述符而做了改进的<code>poll</code>，是Linux下多路复用IO接口select/poll的增强版本，它能显著提高程序在大量并发连接中只有少量活跃的情况下的系统CPU利用率。</p>
 <a id="more"></a>
-<h4 id="epoll的优点"><a href="#epoll的优点" class="headerlink" title="epoll的优点"></a>epoll的优点</h4><ul>
+<h3 id="epoll的优点"><a href="#epoll的优点" class="headerlink" title="epoll的优点"></a>epoll的优点</h3><ul>
 <li><p><strong>支持一个进程打开大数目的文件描述符：</strong> <code>select</code>在一个进程所打开的文件描述符是有一定限制的，由<code>FD_SETSIZE</code>设置，默认值是1024。不过<code>epoll</code>则没有这个限制，它所支持的文件描述符的上限是系统最大可以打开文件的数目，可以在<code>/proc/sys/fs/file-max</code>查看，一般来说，这个数目和系统的内存有很大关系。</p>
 </li>
 <li><p><strong>I/O效率不随文件描述符数目增加而线性下降：</strong> 传统的<code>select/poll</code>有一个缺点就是在一个很大的<code>socket</code>集合时，不过由于网络延时，任一时间只有部分的<code>socket</code>是 “活跃” 的，但是<code>select/poll</code>每次调用都会线性扫描全部的集合，导致效率呈现下降。但是<code>epoll</code>不存在这个问题，它只会对 “活跃” 的<code>socket</code>进行操作。如果对于所有的<code>socket</code>基本上都是 “活跃” 的，<code>epoll</code>并不比<code>select/poll</code>效率高。如果应用中存在大量的短连接，<code>epoll_ctl</code>将被频繁地调用，这也可能会影响<code>epoll</code>的效率。</p>
@@ -330,7 +330,7 @@
 <li><strong>EPOLLET</strong> ： 将EPOLL设为边缘触发(Edge Triggered)模式，这是相对于水平触发(Level Triggered)来说的。</li>
 <li><strong>EPOLLONESHOT</strong>：只监听一次事件，当监听完这次事件之后，如果还需要继续监听这个<code>socket</code>的话，需要再次把这个<code>socket</code>加入到EPOLL队列里</li>
 </ul>
-<h4 id="epoll-wait函数"><a href="#epoll-wait函数" class="headerlink" title="epoll_wait函数"></a>epoll_wait函数</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/epoll.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">epoll_wait</span><span class="params">(<span class="keyword">int</span> epfd, struct epoll_event *events,</span></span></span><br><span class="line"><span class="function"><span class="params">                  <span class="keyword">int</span> maxevents, <span class="keyword">int</span> timeout)</span></span>;</span><br><span class="line">                返回：若有就绪描述符则为其数目，若超时则为<span class="number">0</span>，若出错则为<span class="number">-1</span>。</span><br></pre></td></tr></table></figure>
+<h4 id="epoll-wait函数"><a href="#epoll-wait函数" class="headerlink" title="epoll_wait函数"></a>epoll_wait函数</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/epoll.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">epoll_wait</span><span class="params">(<span class="keyword">int</span> epfd, struct epoll_event *events, <span class="keyword">int</span> maxevents, <span class="keyword">int</span> timeout)</span></span>;</span><br><span class="line">                返回：若有就绪描述符则为其数目，若超时则为<span class="number">0</span>，若出错则为<span class="number">-1</span>。</span><br></pre></td></tr></table></figure>
 <p>等待事件的产生，类似于<code>select/poll</code>调用。参数<code>events</code>用来从内核得到事件的集合，<code>maxevents</code>告之内核这个<code>events</code>有多大，这个<code>maxevents</code>的值不能大于创建<code>epoll_create</code>时的<code>size</code>，参数<code>timeout</code>是超时时间（0会立即返回，-1是永久阻塞）。该函数返回需要处理的事件数目，如返回0表示已超时。</p>
 <h3 id="epoll工作模式"><a href="#epoll工作模式" class="headerlink" title="epoll工作模式"></a>epoll工作模式</h3><p>epoll对文件描述符的操作有两种模式：LT（level trigger）和ET（edge trigger）。LT模式是默认模式，LT模式与ET模式的区别如下：</p>
 <p><strong>LT模式</strong> : 是缺省的工作方式，并且同时支持<code>bloc</code>k和<code>non-block</code> socket。在这种模式下，当<code>epoll_wai</code>t检测到描述符事件发生并将此事件通知应用程序，应用程序可以不立即处理该事件。下次调用<code>epoll_wait</code>时，会再次响应程序并通知此事件。</p>
@@ -375,6 +375,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/27/nonblocking/" rel="prev" title="非阻塞式I/O">
+                非阻塞式I/O <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -455,7 +459,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-count">13</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -494,7 +498,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#epoll"><span class="nav-number">1.</span> <span class="nav-text">epoll</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#epoll的优点"><span class="nav-number">1.1.</span> <span class="nav-text">epoll的优点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#epoll的系统调用"><span class="nav-number">2.</span> <span class="nav-text">epoll的系统调用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#epoll-create函数"><span class="nav-number">2.1.</span> <span class="nav-text">epoll_create函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#epoll-ctl函数"><span class="nav-number">2.2.</span> <span class="nav-text">epoll_ctl函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#epoll-wait函数"><span class="nav-number">2.3.</span> <span class="nav-text">epoll_wait函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#epoll工作模式"><span class="nav-number">3.</span> <span class="nav-text">epoll工作模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用epoll的echo服务器程序"><span class="nav-number">4.</span> <span class="nav-text">使用epoll的echo服务器程序</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#epoll的优点"><span class="nav-number">1.</span> <span class="nav-text">epoll的优点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#epoll的系统调用"><span class="nav-number">2.</span> <span class="nav-text">epoll的系统调用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#epoll-create函数"><span class="nav-number">2.1.</span> <span class="nav-text">epoll_create函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#epoll-ctl函数"><span class="nav-number">2.2.</span> <span class="nav-text">epoll_ctl函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#epoll-wait函数"><span class="nav-number">2.3.</span> <span class="nav-text">epoll_wait函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#epoll工作模式"><span class="nav-number">3.</span> <span class="nav-text">epoll工作模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用epoll的echo服务器程序"><span class="nav-number">4.</span> <span class="nav-text">使用epoll的echo服务器程序</span></a></li></ol></div>
             
 
           </div>
