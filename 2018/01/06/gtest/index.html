@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="gtest 是一个google开源的C++单元测试的框架，它是跨平台的，可应用在windows、linux、Mac等OS平台。https://github.com/google/googletest">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Google Test单元测试框架的使用">
+<meta property="og:url" content="http://yoursite.com/2018/01/06/gtest/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="gtest 是一个google开源的C++单元测试的框架，它是跨平台的，可应用在windows、linux、Mac等OS平台。https://github.com/google/googletest">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/factorial_unittest.png">
+<meta property="og:image" content="http://yoursite.com/images/factorial_unittest_err.png">
+<meta property="og:image" content="http://yoursite.com/images/factorial_unittest_err_msg.png">
+<meta property="og:image" content="http://yoursite.com/images/true_or_false.png">
+<meta property="og:image" content="http://yoursite.com/images/factorial_unittest_err_expect.png">
+<meta property="og:image" content="http://yoursite.com/images/factorial_unittest_err_assert.png">
+<meta property="og:image" content="http://yoursite.com/images/binary.png">
+<meta property="og:image" content="http://yoursite.com/images/string.png">
+<meta property="og:image" content="http://yoursite.com/images/float.png">
+<meta property="og:image" content="http://yoursite.com/images/param.png">
+<meta property="og:image" content="http://yoursite.com/images/is_prime_unittest.png">
+<meta property="og:updated_time" content="2018-01-06T04:17:04.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Google Test单元测试框架的使用">
+<meta name="twitter:description" content="gtest 是一个google开源的C++单元测试的框架，它是跨平台的，可应用在windows、linux、Mac等OS平台。https://github.com/google/googletest">
+<meta name="twitter:image" content="http://yoursite.com/images/factorial_unittest.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/01/06/gtest/"/>
+
+
+
+
+
+  <title>Google Test单元测试框架的使用 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/06/gtest/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Google Test单元测试框架的使用</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-01-06T00:00:00+08:00">
+                2018-01-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>gtest</strong> 是一个google开源的C++单元测试的框架，它是跨平台的，可应用在windows、linux、Mac等OS平台。<a href="https://github.com/google/googletest" target="_blank" rel="noopener">https://github.com/google/googletest</a></p>
+<a id="more"></a>
+<h3 id="编译gtest"><a href="#编译gtest" class="headerlink" title="编译gtest"></a>编译gtest</h3><h4 id="下载gtest源码"><a href="#下载gtest源码" class="headerlink" title="下载gtest源码"></a>下载gtest源码</h4><pre><code>[heql@ubuntu gtest]$ git clone https://github.com/google/googletest.git
+</code></pre><h4 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h4><pre><code>[heql@ubuntu gtest]$ cd googletest/googletest
+[heql@ubuntu googletest]$ g++ -isystem $(pwd)/include -I$(pwd) -lpthread -c $(pwd)/src/gtest-all.cc
+</code></pre><p>编译成功后，会在当前目录下生成一个<code>gtest-all.o</code>文件。</p>
+<h4 id="生成静态库"><a href="#生成静态库" class="headerlink" title="生成静态库"></a>生成静态库</h4><pre><code>[heql@ubuntu googletest]$ ar -rv libgtest.a gtest-all.o
+</code></pre><p>执行成功后，会在当前目录下生成一个<code>libgtest.a</code>的静态库，以后编译测试程序链接的时候，指定这个静态库和包含本目录下的<code>include</code>头文件。或者可以将这个静态库和头文件拷贝到环境变量中，如下，将<code>libgtest.a</code>拷贝到<code>/usr/local/lib/</code>，将<code>include</code>下的<code>gtest</code>目录拷贝到<code>/usr/local/include/</code>。</p>
+<pre><code>[heql@ubuntu googletest]$ cp libgtest.a /usr/local/lib/ 
+[heql@ubuntu googletest]$ sudo cp include/gtest/ /usr/local/include/ -rf
+</code></pre><h3 id="简单测试"><a href="#简单测试" class="headerlink" title="简单测试"></a>简单测试</h3><h4 id="Factorial函数"><a href="#Factorial函数" class="headerlink" title="Factorial函数"></a>Factorial函数</h4><p>在<code>factorial.cc</code>文件中，创建一个求阶乘的函数<code>Factorial</code>，代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">Factorial</span><span class="params">(<span class="keyword">int</span> n)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> result = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= n; ++i) &#123;</span><br><span class="line">        result *= i;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Factorial函数的测试用例"><a href="#Factorial函数的测试用例" class="headerlink" title="Factorial函数的测试用例"></a>Factorial函数的测试用例</h4><p>在<code>factorial_unittest.cc</code>文件中，创建测试<code>Factorial</code>函数的测试用例，代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;gtest/gtest.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">extern</span> <span class="keyword">int</span> <span class="title">Factorial</span><span class="params">(<span class="keyword">int</span> n)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Tests factorial of 0</span></span><br><span class="line">TEST(FactorialTest, Zero) &#123;</span><br><span class="line">    EXPECT_EQ(<span class="number">1</span>, Factorial(<span class="number">0</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Tests factorial of positive numbers</span></span><br><span class="line">TEST(FactorialTest, Positive) &#123;</span><br><span class="line">    EXPECT_EQ(<span class="number">1</span>, Factorial(<span class="number">1</span>));</span><br><span class="line">    EXPECT_EQ(<span class="number">2</span>, Factorial(<span class="number">2</span>));</span><br><span class="line">    EXPECT_EQ(<span class="number">6</span>, Factorial(<span class="number">3</span>));</span><br><span class="line">    EXPECT_EQ(<span class="number">40320</span>, Factorial(<span class="number">8</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    ::testing::InitGoogleTest(&amp;argc, argv);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> RUN_ALL_TESTS();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li><strong>TEST()</strong> 宏用来定义和命名测试函数，这些是不返回值的普通C++函数。</li>
+<li>在此函数中，可以使用任何有效的C++语句，使用各种Google Test断言来检查值。</li>
+<li>测试的结果由断言确定，如果测试中的任何断言失败(致命或非致命)，或者如果测试崩溃，则整个测试失败。 否则，它成功。</li>
+</ol>
+<p><strong>TEST()</strong> 的第一个参数是测试用例的名称，第二个参数是测试用例中的测试名称。 这两个名称必须是有效的C ++标识符，并且它们不应包含下划线（_）。一个测试的全称包括了包含它的测试用例名称，及其独立的测试名称。不同测试用例中的独立测试可以有相同的测试名称。</p>
+<p><strong>gtest</strong> 通过测试用例对测试结果进行分组，因此逻辑相关的测试应该在同一测试用例中; 换句话说，它们的 <strong>TEST()</strong> 的第一个参数应该是相同的。 在上面的例子中，有两个测试，<code>Zero</code>和<code>Positive</code>，属于同一个测试用例<code>FactorialTest</code>。</p>
+<p><code>EXPECT_EQ</code>宏用来比较两个数字是否相等。</p>
+<p><code>::testing::InitGoogleTest(&amp;argc, argv)</code>，将命令行参数传递给gtest，进行一些初始化操作。如：<code>--gtest_list_tests</code>会列出所有的测试用例和测试名称。</p>
+<pre><code>[heql@ubuntu gtest]$ ./factorial_unittest --gtest_list_tests
+FactorialTest.
+  Zero
+  Positive
+</code></pre><p>可以执行<code>./factorial_unittest --help</code>查看命令行支持的参数。</p>
+<p><code>RUN_ALL_TESTS()</code>表示运行所有测试案例。</p>
+<h4 id="编译程序"><a href="#编译程序" class="headerlink" title="编译程序"></a>编译程序</h4><pre><code>[heql@ubuntu gtest]$ g++ factorial_unittest.cc factorial.cc -o factorial_unittest -lgtest -lpthread
+</code></pre><p><strong>运行上面的单元测试程序，输出如下：</strong></p>
+<p><img src="/images/factorial_unittest.png" alt="factorial_unittest.png"></p>
+<p><code>FactorialTest</code>测试用例，运行了两次测试，分别是<code>Zero</code>和<code>Positive</code>，测试的结果是正确的。<strong>注意：</strong> <code>Zero</code>和<code>Positive</code>的测试，执行的顺序是不确定的。</p>
+<h3 id="断言"><a href="#断言" class="headerlink" title="断言"></a>断言</h3><p><strong>gtest</strong> 断言是类似于函数调用的宏。您可以通过对其行为进行断言来测试类或函数。当断言失败时，<strong>gtest</strong> 会打印断言的源文件和行号位置以及失败消息。也可以提供自定义失败消息，该消息将附加到测试的信息中。</p>
+<h4 id="断言失败"><a href="#断言失败" class="headerlink" title="断言失败"></a>断言失败</h4><p>把上面的<code>FactorialTest</code>测试用例的<code>Positive</code>测试改为：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">TEST(FactorialTest, Positive) &#123;</span><br><span class="line">    EXPECT_EQ(<span class="number">1</span>, Factorial(<span class="number">1</span>));</span><br><span class="line">    EXPECT_EQ(<span class="number">2</span>, Factorial(<span class="number">2</span>));</span><br><span class="line">    EXPECT_EQ(<span class="number">7</span>, Factorial(<span class="number">3</span>));</span><br><span class="line">    EXPECT_EQ(<span class="number">40320</span>, Factorial(<span class="number">8</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>编译、运行程序，输出如下：</strong></p>
+<p><img src="/images/factorial_unittest_err.png" alt="factorial_unittest_err.png"></p>
+<p><code>FactorialTest</code>测试用例，运行了两次测试，分别是<code>Zero</code>和<code>Positive</code>，<code>Zero</code>测试成功，<code>Positive</code>测试失败：在factorial_unittest.cc文件的15行，<code>Factorial(3)</code>执行的结果应该是6，但是<code>EXPECT_EQ</code>的断言是7。</p>
+<h4 id="自定义断言失败消息"><a href="#自定义断言失败消息" class="headerlink" title="自定义断言失败消息"></a>自定义断言失败消息</h4><p>要提供自定义失败消息，只需使用&lt;&lt;运算符或一系列此类运算符将其流式传输到宏中即可。把上面的<code>FactorialTest</code>测试用例的<code>Positive</code>测试改为：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">TEST(FactorialTest, Positive) &#123;</span><br><span class="line">    EXPECT_EQ(<span class="number">1</span>, Factorial(<span class="number">1</span>));</span><br><span class="line">    EXPECT_EQ(<span class="number">2</span>, Factorial(<span class="number">2</span>));</span><br><span class="line">    EXPECT_EQ(<span class="number">7</span>, Factorial(<span class="number">3</span>)) &lt;&lt; <span class="string">"Factorial(3) unequal to 7."</span>;</span><br><span class="line">    EXPECT_EQ(<span class="number">40320</span>, Factorial(<span class="number">8</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>编译、运行程序，输出如下：</strong></p>
+<p><img src="/images/factorial_unittest_err_msg.png" alt="factorial_unittest_err_msg.png"></p>
+<p>可以看到输出的失败消息中，有自定义的消息<code>Factorial(3) unequal to 7.</code>。</p>
+<h4 id="布尔值检查"><a href="#布尔值检查" class="headerlink" title="布尔值检查"></a>布尔值检查</h4><p>这些断言做基本的真/假条件测试。</p>
+<p><img src="/images/true_or_false.png" alt="true_or_false.png"></p>
+<p><strong>gtest</strong> 中，断言的宏可以理解为分为两类，一类是<strong>ASSERT系列</strong>，一类是<strong>EXPECT系列</strong>。</p>
+<ol>
+<li><strong>ASSERT_*</strong> 系列的断言，当检查点失败时，退出当前函数（注意：并非退出当前用例）。</li>
+<li><strong>EXPECT_*</strong> 系列的断言，当检查点失败时，继续往下执行。</li>
+</ol>
+<p>把上面的<code>FactorialTest</code>测试用例的<code>Positive</code>测试改为：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">TEST(FactorialTest, Positive) &#123;</span><br><span class="line">    EXPECT_EQ(<span class="number">1</span>, Factorial(<span class="number">1</span>));</span><br><span class="line">    EXPECT_EQ(<span class="number">2</span>, Factorial(<span class="number">2</span>));</span><br><span class="line">    EXPECT_EQ(<span class="number">7</span>, Factorial(<span class="number">3</span>));</span><br><span class="line">    EXPECT_EQ(<span class="number">40</span>, Factorial(<span class="number">8</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>编译、运行程序，输出如下：</strong></p>
+<p><img src="/images/factorial_unittest_err_expect.png" alt="factorial_unittest_err_expect.png">    </p>
+<p><code>FactorialTest</code>测试用例，运行了两次测试，分别是<code>Zero</code>和<code>Positive</code>，<code>Zero</code>测试成功，<code>Positive</code>的<code>Factorial(3)</code>和<code>Factorial(8)</code>测试失败。</p>
+<p>把上面的<code>FactorialTest</code>测试用例的<code>Positive</code>测试改为：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">TEST(FactorialTest, Positive) &#123;</span><br><span class="line">    EXPECT_EQ(<span class="number">1</span>, Factorial(<span class="number">1</span>));</span><br><span class="line">    EXPECT_EQ(<span class="number">2</span>, Factorial(<span class="number">2</span>));</span><br><span class="line">    ASSERT_EQ(<span class="number">7</span>, Factorial(<span class="number">3</span>));</span><br><span class="line">    EXPECT_EQ(<span class="number">40</span>, Factorial(<span class="number">8</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>编译、运行程序，输出如下：</strong></p>
+<p><img src="/images/factorial_unittest_err_assert.png" alt="factorial_unittest_err_assert.png"></p>
+<p><code>FactorialTest</code>测试用例，运行了两次测试，分别是<code>Zero</code>和<code>Positive</code>，<code>Zero</code>照常测试，测试成功，<code>Positive</code>的<code>Factorial(3)</code>测试失败后，<code>Factorial(8)</code>不在进行测试。</p>
+<h4 id="数值型数据检查"><a href="#数值型数据检查" class="headerlink" title="数值型数据检查"></a>数值型数据检查</h4><p>比较两个值的断言。</p>
+<p><img src="/images/binary.png" alt="binary.png"></p>
+<h4 id="字符串检查"><a href="#字符串检查" class="headerlink" title="字符串检查"></a>字符串检查</h4><p>该组中的断言比较两个C字符串的值。 如果要比较两个字符串对象，请改用EXPECT_EQ，EXPECT_NE等。</p>
+<p><img src="/images/string.png" alt="string.png"></p>
+<p><strong>ASSERT_EQ</strong> 在两个C字符串上使用，它会测试它们是否在同一个内存位置，而不是它们具有相同的值。因此，如果想比较C字符串（例如const char *）的值，请使用 <strong>ASSERT_STREQ</strong> 。要比较两个字符串对象，应该使用 <strong>ASSERT_EQ</strong> 。</p>
+<p>要断言C字符串为NULL，请使用 <code>ASSERT_STREQ（NULL，c_string）</code>，NULL指针和空字符串被认为是不同的。</p>
+<p>如下代码，测试成功：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;gtest/gtest.h&gt;</span></span></span><br><span class="line"></span><br><span class="line">TEST(StringTest, Zero) &#123;</span><br><span class="line">    <span class="keyword">char</span> *p = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    EXPECT_STREQ(<span class="literal">NULL</span>, p);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">TEST(StringTest, Address) &#123;</span><br><span class="line">    <span class="keyword">int</span> number = <span class="number">100</span>;</span><br><span class="line">    <span class="keyword">int</span> *p = &amp;number;</span><br><span class="line">    <span class="keyword">int</span> *q = &amp;number;</span><br><span class="line"></span><br><span class="line">    EXPECT_EQ(p, q);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">TEST(StringTest, Content) &#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *kHelloString1 = <span class="string">"hello"</span>;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *kHelloString2 = <span class="string">"hello"</span>;</span><br><span class="line"></span><br><span class="line">    EXPECT_STREQ(kHelloString1, kHelloString2);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">string</span> hello_string1 = <span class="string">"hello, world"</span>;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">string</span> hello_string2 = <span class="string">"hello, world"</span>;</span><br><span class="line"></span><br><span class="line">    EXPECT_EQ(hello_string1, hello_string2);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    ::testing::InitGoogleTest(&amp;argc, argv);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> RUN_ALL_TESTS();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="浮点数检查"><a href="#浮点数检查" class="headerlink" title="浮点数检查"></a>浮点数检查</h4><p><img src="/images/float.png" alt="float.png"></p>
+<h3 id="Test-Fixtures-测试装饰类-对多个测试使用相同的数据配置"><a href="#Test-Fixtures-测试装饰类-对多个测试使用相同的数据配置" class="headerlink" title="Test Fixtures(测试装饰类) 对多个测试使用相同的数据配置"></a>Test Fixtures(测试装饰类) 对多个测试使用相同的数据配置</h3><p>如果你发现自己写了两个或更多的测试来操作类似的数据，你可以使用测试装饰类。它允许您为几个不同的测试重复使用相同的对象配置。</p>
+<p>要创建测试装饰类，只需：</p>
+<ol>
+<li>从<code>::testing::Test</code>派生一个类。 使用<code>protected</code>：或<code>public</code>：开始它的主体，因为我们想从子类访问<code>fixture</code>成员。</li>
+<li>在类中，声明你打算使用的任何对象。</li>
+<li>如果需要，可以编写默认构造函数或<code>SetUp</code>函数来为每个测试准备对象。</li>
+<li>如果需要，写一个析构函数或<code>TearDown</code>函数来释放你在<code>SetUp</code>中分配的任何资源。 </li>
+</ol>
+<p>当使用夹具时，使用 <strong>TEST_F()</strong> 而不是 <strong>TEST()</strong></p>
+<h4 id="Foo类"><a href="#Foo类" class="headerlink" title="Foo类"></a>Foo类</h4><p>在<code>foo.h</code>文件中，创建一个类<code>Foo</code>，代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> FOO_H_</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> FOO_H_</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Foo</span> &#123;</span></span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">        Foo() : value_(<span class="number">0</span>) &#123;&#125;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">set_value</span><span class="params">(<span class="keyword">const</span> <span class="keyword">int</span> value)</span> </span>&#123;value_ = value;&#125;</span><br><span class="line">        <span class="function"><span class="keyword">int</span> <span class="title">value</span><span class="params">(<span class="keyword">void</span>)</span> <span class="keyword">const</span> </span>&#123;<span class="keyword">return</span> value_;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">        <span class="keyword">int</span> value_;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">// FOO_H_</span></span></span><br></pre></td></tr></table></figure>
+<h4 id="Foo类的测试用例"><a href="#Foo类的测试用例" class="headerlink" title="Foo类的测试用例"></a>Foo类的测试用例</h4><p>在<code>foo_unittest.cc</code>文件中，创建测试<code>Foo</code>类的测试用例，使用<strong>TEST()</strong> 宏进行测试，代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;gtest/gtest.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"foo.h"</span></span></span><br><span class="line"></span><br><span class="line">TEST(FooTest, DefaultConstructor) &#123;</span><br><span class="line">    Foo foo;</span><br><span class="line"></span><br><span class="line">    EXPECT_EQ(<span class="number">0</span>, foo.value());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">TEST(FooTest, SetValue) &#123;</span><br><span class="line">    Foo foo;</span><br><span class="line"></span><br><span class="line">    foo.set_value(<span class="number">100</span>);</span><br><span class="line">    EXPECT_EQ(<span class="number">100</span>, foo.value());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    ::testing::InitGoogleTest(&amp;argc, argv);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> RUN_ALL_TESTS();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在<code>FooTest</code>测试用例的测试<code>DefaultConstructor</code>和<code>SetValue</code>分别创建一个<code>Foo</code>的实例。可以使用<code>TEST_F()</code>来共享这个实例，指向创建一个实例即可，代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;gtest/gtest.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"foo.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">FooTest</span> :</span> <span class="keyword">public</span> ::testing::Test &#123;</span><br><span class="line">    <span class="keyword">protected</span>:</span><br><span class="line">        <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">SetUp</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">        <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">TearDown</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">        Foo foo;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">TEST_F(FooTest, DefaultConstructor) &#123;</span><br><span class="line">    EXPECT_EQ(<span class="number">0</span>, foo.value());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">TEST_F(FooTest, SetValue) &#123;</span><br><span class="line">    foo.set_value(<span class="number">100</span>);</span><br><span class="line">    EXPECT_EQ(<span class="number">100</span>, foo.value());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    ::testing::InitGoogleTest(&amp;argc, argv);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> RUN_ALL_TESTS();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在这里<code>SetUp</code>和<code>TearDown</code>函数并没有使用，如果需要可以使用<code>SetUp</code>函数对<code>foo</code>实例进行一些初始化，<code>TearDown</code>函数来释放<code>foo</code>的资源。</p>
+<h3 id="参数化测试"><a href="#参数化测试" class="headerlink" title="参数化测试"></a>参数化测试</h3><p>在设计测试用例时，经常需要考虑给被测函数传入不同的值的情况。我们之前的做法通常是写一个通用方法，然后编写在测试案例调用它。即使使用了通用方法，这样的工作也是有很多重复性的。</p>
+<h4 id="IsPrime函数"><a href="#IsPrime函数" class="headerlink" title="IsPrime函数"></a>IsPrime函数</h4><p><code>IsPrime</code>函数是用来判断一个整数是否为素数，代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">IsPrime</span><span class="params">(<span class="keyword">int</span> n)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(n &lt;= <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(n % <span class="number">2</span> == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> (n == <span class="number">2</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">3</span>;; i += <span class="number">2</span>) &#123;</span><br><span class="line">       <span class="keyword">if</span>(i &gt; n / i) &#123;</span><br><span class="line">           <span class="keyword">break</span>;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="keyword">if</span>(n % i == <span class="number">0</span>) &#123;</span><br><span class="line">           <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">       &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="IsPrime函数的测试用例"><a href="#IsPrime函数的测试用例" class="headerlink" title="IsPrime函数的测试用例"></a>IsPrime函数的测试用例</h4><h5 id="使用TEST-宏进行测试"><a href="#使用TEST-宏进行测试" class="headerlink" title="使用TEST()宏进行测试"></a>使用TEST()宏进行测试</h5><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;gtest/gtest.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">IsPrime</span><span class="params">(<span class="keyword">int</span> n)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Tests n is not prime</span></span><br><span class="line">TEST(IsPrimeTest, FalseReturn) &#123;</span><br><span class="line">    EXPECT_FALSE(IsPrime(<span class="number">-1</span>));</span><br><span class="line">    EXPECT_FALSE(IsPrime(<span class="number">0</span>));</span><br><span class="line">    EXPECT_FALSE(IsPrime(<span class="number">1</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Tests n is prime</span></span><br><span class="line">TEST(IsPrimeTest, TrueReturn) &#123;</span><br><span class="line">    EXPECT_TRUE(IsPrime(<span class="number">3</span>));</span><br><span class="line">    EXPECT_TRUE(IsPrime(<span class="number">5</span>));</span><br><span class="line">    EXPECT_TRUE(IsPrime(<span class="number">11</span>));</span><br><span class="line">    EXPECT_TRUE(IsPrime(<span class="number">17</span>));</span><br><span class="line">    EXPECT_TRUE(IsPrime(<span class="number">19</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    ::testing::InitGoogleTest(&amp;argc, argv);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> RUN_ALL_TESTS();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="使用值参数化进行测试"><a href="#使用值参数化进行测试" class="headerlink" title="使用值参数化进行测试"></a>使用值参数化进行测试</h5><ol>
+<li>添加一个类，继承<code>testing::TestWithParam&lt;T&gt;</code>，其中T就是你需要参数化的参数类型，比如上面的例子，需要参数化一个int型的参数。</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">IsPrimeTest</span> :</span> <span class="keyword">public</span> ::testing::TestWithParam&lt;<span class="keyword">int</span>&gt; &#123;</span><br><span class="line"></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>使用一个新的宏<strong>TEST_P</strong>，在 <strong>TEST_P</strong> 宏里，使用GetParam()获取当前的参数的具体值。</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">TEST_P(IsPrimeTest, TestReturnTrue) &#123;</span><br><span class="line">    <span class="keyword">int</span> n = GetParam();</span><br><span class="line">    EXPECT_TRUE(IsPrime(n));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>使用 <strong>INSTANTIATE_TEST_CASE_P</strong> 这宏来告诉gtest要测试的参数范围。</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">INSTANTIATE_TEST_CASE_P(PrimeParamTest, </span><br><span class="line">                        IsPrimeTest, </span><br><span class="line">                        ::testing::Values(<span class="number">-1</span>, <span class="number">0</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">11</span>));</span><br></pre></td></tr></table></figure>
+<p>第一个参数是测试用例的前缀，可以任意取。<br>第二个参数是测试案例的名称，需要和之前定义的参数化的类的名称相同，如：<code>IsPrimeTest</code>。<br>第三个参数是可以理解为参数生成器，上面的例子使用<code>test::Values</code>表示使用括号内的参数。Google提供了一系列的参数生成的函数：  </p>
+<p><img src="/images/param.png" alt="param.png"></p>
+<p><strong>编译、运行程序，输出如下：</strong></p>
+<p><img src="/images/is_prime_unittest.png" alt="is_prime_unittest.png"></p>
+<p>可以看到参数-1，0的返回值不是<code>true</code>，而是<code>false</code>。其余的参数测试是正确的。</p>
+<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><p><strong>gtest</strong> 还提供了一些高级的用法，可以参考：</p>
+<p><a href="https://github.com/google/googletest/blob/master/googletest/docs/AdvancedGuide.md" target="_blank" rel="noopener">https://github.com/google/googletest/blob/master/googletest/docs/AdvancedGuide.md</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/28/out-of-band_data/" rel="next" title="使用带外数据实现心跳包">
+                <i class="fa fa-chevron-left"></i> 使用带外数据实现心跳包
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#编译gtest"><span class="nav-number">1.</span> <span class="nav-text">编译gtest</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#下载gtest源码"><span class="nav-number">1.1.</span> <span class="nav-text">下载gtest源码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#编译"><span class="nav-number">1.2.</span> <span class="nav-text">编译</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#生成静态库"><span class="nav-number">1.3.</span> <span class="nav-text">生成静态库</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简单测试"><span class="nav-number">2.</span> <span class="nav-text">简单测试</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Factorial函数"><span class="nav-number">2.1.</span> <span class="nav-text">Factorial函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Factorial函数的测试用例"><span class="nav-number">2.2.</span> <span class="nav-text">Factorial函数的测试用例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#编译程序"><span class="nav-number">2.3.</span> <span class="nav-text">编译程序</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#断言"><span class="nav-number">3.</span> <span class="nav-text">断言</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#断言失败"><span class="nav-number">3.1.</span> <span class="nav-text">断言失败</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#自定义断言失败消息"><span class="nav-number">3.2.</span> <span class="nav-text">自定义断言失败消息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#布尔值检查"><span class="nav-number">3.3.</span> <span class="nav-text">布尔值检查</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#数值型数据检查"><span class="nav-number">3.4.</span> <span class="nav-text">数值型数据检查</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#字符串检查"><span class="nav-number">3.5.</span> <span class="nav-text">字符串检查</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#浮点数检查"><span class="nav-number">3.6.</span> <span class="nav-text">浮点数检查</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Test-Fixtures-测试装饰类-对多个测试使用相同的数据配置"><span class="nav-number">4.</span> <span class="nav-text">Test Fixtures(测试装饰类) 对多个测试使用相同的数据配置</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Foo类"><span class="nav-number">4.1.</span> <span class="nav-text">Foo类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Foo类的测试用例"><span class="nav-number">4.2.</span> <span class="nav-text">Foo类的测试用例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参数化测试"><span class="nav-number">5.</span> <span class="nav-text">参数化测试</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#IsPrime函数"><span class="nav-number">5.1.</span> <span class="nav-text">IsPrime函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IsPrime函数的测试用例"><span class="nav-number">5.2.</span> <span class="nav-text">IsPrime函数的测试用例</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#使用TEST-宏进行测试"><span class="nav-number">5.2.1.</span> <span class="nav-text">使用TEST()宏进行测试</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#使用值参数化进行测试"><span class="nav-number">5.2.2.</span> <span class="nav-text">使用值参数化进行测试</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他"><span class="nav-number">6.</span> <span class="nav-text">其他</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
