@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="打开神州租车的官网 https://service.zuche.com/ ,在地图上选择广东，然后点击广州，可以看到广州市所有门店的服务点，点击客村店。如图：可以看到客村店的门店地址、联系电话等。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="python 爬虫抓取神州租车的门店信息">
+<meta property="og:url" content="http://yoursite.com/2018/01/26/service_shenzhou/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="打开神州租车的官网 https://service.zuche.com/ ,在地图上选择广东，然后点击广州，可以看到广州市所有门店的服务点，点击客村店。如图：可以看到客村店的门店地址、联系电话等。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/kecun_store.png">
+<meta property="og:image" content="http://yoursite.com/images/map.png">
+<meta property="og:image" content="http://yoursite.com/images/city_link.png">
+<meta property="og:image" content="http://yoursite.com/images/store.png">
+<meta property="og:image" content="http://yoursite.com/images/store_link.png">
+<meta property="og:image" content="http://yoursite.com/images/kecun_store_info.png">
+<meta property="og:image" content="http://yoursite.com/images/zuche_result.png">
+<meta property="og:updated_time" content="2018-01-26T08:48:48.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="python 爬虫抓取神州租车的门店信息">
+<meta name="twitter:description" content="打开神州租车的官网 https://service.zuche.com/ ,在地图上选择广东，然后点击广州，可以看到广州市所有门店的服务点，点击客村店。如图：可以看到客村店的门店地址、联系电话等。">
+<meta name="twitter:image" content="http://yoursite.com/images/kecun_store.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/01/26/service_shenzhou/"/>
+
+
+
+
+
+  <title>python 爬虫抓取神州租车的门店信息 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/26/service_shenzhou/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">python 爬虫抓取神州租车的门店信息</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-01-26T00:00:00+08:00">
+                2018-01-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<p>打开神州租车的官网 <a href="https://service.zuche.com/" target="_blank" rel="noopener">https://service.zuche.com/</a> ,在地图上选择广东，然后点击广州，可以看到广州市所有门店的服务点，点击客村店。如图：可以看到客村店的门店地址、联系电话等。</p>
+<a id="more"></a>
+<p><img src="/images/kecun_store.png" alt="kecun_store.png"></p>
+<p>关于爬虫的步骤可以参考:  <a href="https://qinglianghe.github.io/2017/09/03/python_crawler/" target="_blank" rel="noopener">https://qinglianghe.github.io/2017/09/03/python_crawler/</a></p>
+<h3 id="url-请求的过程"><a href="#url-请求的过程" class="headerlink" title="url 请求的过程"></a>url 请求的过程</h3><h4 id="请求首页"><a href="#请求首页" class="headerlink" title="请求首页"></a>请求首页</h4><p>当发送 <a href="https://service.zuche.com/" target="_blank" rel="noopener">https://service.zuche.com/</a> 请求后，界面上会显示一张地图，如图所示：</p>
+<p><img src="/images/map.png" alt="map.png"></p>
+<p>查看对应的<code>html</code>文档，可以看到包含有每个城市的链接地址。如图：</p>
+<p><img src="/images/city_link.png" alt="map.png"></p>
+<p>所以可以把上面的<code>html</code>文档中的每个城市的链接提取出来，然后对每个提取的链接分别发起http请求，即可得到对应城市的信息。下面的代码用于提取每个城市的链接：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_city_list</span><span class="params">(data)</span>:</span></span><br><span class="line">    <span class="string">"""提取城市的链接"""</span></span><br><span class="line">    soup = BeautifulSoup(data, <span class="string">'lxml'</span>)</span><br><span class="line">    <span class="keyword">for</span> tag <span class="keyword">in</span> soup.find(<span class="string">"div"</span>, <span class="string">"mapcitylist"</span>).find_all(<span class="string">'a'</span>):</span><br><span class="line">        <span class="keyword">yield</span> tag.string, tag[<span class="string">'href'</span>]</span><br></pre></td></tr></table></figure>
+<p>使用<code>BeautifulSoup</code>提取<code>&lt;div class=&quot;mapcitylist&quot;&gt;</code>后面的所有<code>a</code>标签的内容，<code>tag.string</code>为城市的名称，<code>tag[&#39;href&#39;]</code>为城市的链接。返回的是一个生成器。</p>
+<h4 id="请求城市链接"><a href="#请求城市链接" class="headerlink" title="请求城市链接"></a>请求城市链接</h4><p>使用上面提取的城市链接，再次发起http请求。如：上面提取的广州市的链接为：<a href="https://guangzhou.zuche.com" target="_blank" rel="noopener">https://guangzhou.zuche.com</a>。返回的页面如图，可以看到广州市所有门店：</p>
+<p><img src="/images/store.png" alt="store.png"></p>
+<p>查看对应的<code>html</code>文档，可以看到包含有广州市所有门店的链接地址。如图：</p>
+<p><img src="/images/store_link.png" alt="store_link.png"></p>
+<p>所以可以把上面的<code>html</code>文档中的所有门店的链接提取出来，然后对每个提取的链接分别发起http请求，即可得到对应门店的链接。下面的代码用于提取每个门店的链接：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_city_store</span><span class="params">(data)</span>:</span></span><br><span class="line">    <span class="string">"""提取门店的链接"""</span></span><br><span class="line">    soup = BeautifulSoup(data, <span class="string">'lxml'</span>)</span><br><span class="line">    <span class="keyword">for</span> tag_li <span class="keyword">in</span> soup.find_all(<span class="string">'li'</span>, id=re.compile(<span class="string">r'depLi.*'</span>)):</span><br><span class="line">        <span class="keyword">for</span> tag <span class="keyword">in</span> tag_li.find_all(<span class="string">'dd'</span>):</span><br><span class="line">            <span class="keyword">yield</span> tag.a.string, tag.a[<span class="string">'href'</span>]</span><br></pre></td></tr></table></figure>
+<p>使用<code>BeautifulSoup</code>找出所有<code>id</code>属性符合<code>depLi.*</code>的正则表达式的<code>li</code>标签。对每个<code>li</code>标签提取<code>dd</code>标签的内容，<code>tag.a.string</code>为门店的名称，<code>tag.a[&#39;href&#39;]</code>为门店的链接。返回的是一个生成器。</p>
+<h4 id="请求门店的信息"><a href="#请求门店的信息" class="headerlink" title="请求门店的信息"></a>请求门店的信息</h4><p>使用上面提取的门店链接，再次发起http请求。如：上面提取的客村店的链接为：<br><a href="https://guangzhou.zuche.com/452" target="_blank" rel="noopener">https://guangzhou.zuche.com/452</a> 返回的页面即是最上面的对应的那张图。查看对应的<code>html</code>文档，可以看到客村店的对应的租车信息：</p>
+<p><img src="/images/kecun_store_info.png" alt="kecun_store_info.png"></p>
+<p>下面的代码用于门店的信息：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_store_details</span><span class="params">(data)</span>:</span></span><br><span class="line">    <span class="string">"""提取门店的信息"""</span></span><br><span class="line">    soup = BeautifulSoup(data, <span class="string">'lxml'</span>)</span><br><span class="line">    info = <span class="string">''</span></span><br><span class="line">    <span class="keyword">for</span> tag <span class="keyword">in</span> soup.find(<span class="string">"div"</span>, <span class="string">"addressInfo"</span>).find_all(<span class="string">"span"</span>):</span><br><span class="line">        info += <span class="string">'       '</span> + tag.next_element + <span class="string">' '</span> + str(tag.next_element.next_element) + <span class="string">'/n'</span></span><br><span class="line">    <span class="keyword">return</span> info</span><br></pre></td></tr></table></figure>
+<p>使用<code>BeautifulSoup</code>提取<code>&lt;div class=&quot;addressInfo&quot;&gt;</code>后面的所有<code>span</code>标签的后面的内容。</p>
+<h3 id="结果如下"><a href="#结果如下" class="headerlink" title="结果如下"></a>结果如下</h3><p>经过上面的爬取，最后可以爬取到神州租车所有的门店信息，如图：</p>
+<p><img src="/images/zuche_result.png" alt="zuche_result.png"></p>
+<h3 id="代码如下"><a href="#代码如下" class="headerlink" title="代码如下:"></a>代码如下:</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">爬取神州租车的门店信息</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> urllib <span class="keyword">import</span> request</span><br><span class="line"><span class="keyword">from</span> functools <span class="keyword">import</span> wraps</span><br><span class="line"><span class="keyword">from</span> bs4 <span class="keyword">import</span> BeautifulSoup</span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"></span><br><span class="line">__author__ = <span class="string">'heql'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">url_decorate</span><span class="params">(func)</span>:</span></span><br><span class="line"></span><br><span class="line"><span class="meta">    @wraps(func)</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">decorate</span><span class="params">(*args, **kwargs)</span>:</span></span><br><span class="line">        <span class="keyword">if</span> args:</span><br><span class="line">            print(*args)</span><br><span class="line">            <span class="keyword">return</span> func(*args)</span><br><span class="line">    <span class="keyword">return</span> decorate</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@url_decorate</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">request_url</span><span class="params">(url, cnt=<span class="number">3</span>)</span>:</span></span><br><span class="line">    <span class="string">"""请求url"""</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(cnt):</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            req = request.Request(url)</span><br><span class="line">            req.add_header(<span class="string">'User-Agent'</span>, <span class="string">'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36'</span>)</span><br><span class="line">            <span class="keyword">with</span> request.urlopen(req, timeout=<span class="number">5</span>) <span class="keyword">as</span> f:</span><br><span class="line">                <span class="keyword">return</span> f.read()</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            <span class="keyword">if</span> i &lt; (cnt - <span class="number">1</span>):</span><br><span class="line">                print(<span class="string">'request again'</span>)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                print(<span class="string">'except:'</span>, e)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_city_list</span><span class="params">(data)</span>:</span></span><br><span class="line">    <span class="string">"""提取城市的链接"""</span></span><br><span class="line">    soup = BeautifulSoup(data, <span class="string">'lxml'</span>)</span><br><span class="line">    <span class="keyword">for</span> tag <span class="keyword">in</span> soup.find(<span class="string">"div"</span>, <span class="string">"mapcitylist"</span>).find_all(<span class="string">'a'</span>):</span><br><span class="line">        <span class="keyword">yield</span> tag.string, tag[<span class="string">'href'</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_city_store</span><span class="params">(data)</span>:</span></span><br><span class="line">    <span class="string">"""提取门店的链接"""</span></span><br><span class="line">    soup = BeautifulSoup(data, <span class="string">'lxml'</span>)</span><br><span class="line">    <span class="keyword">for</span> tag_li <span class="keyword">in</span> soup.find_all(<span class="string">'li'</span>, id=re.compile(<span class="string">r'depLi.*'</span>)):</span><br><span class="line">        <span class="keyword">for</span> tag <span class="keyword">in</span> tag_li.find_all(<span class="string">'dd'</span>):</span><br><span class="line">            <span class="keyword">yield</span> tag.a.string, tag.a[<span class="string">'href'</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_store_details</span><span class="params">(data)</span>:</span></span><br><span class="line">    <span class="string">"""提取门店的信息"""</span></span><br><span class="line">    soup = BeautifulSoup(data, <span class="string">'lxml'</span>)</span><br><span class="line">    info = <span class="string">''</span></span><br><span class="line">    <span class="keyword">for</span> tag <span class="keyword">in</span> soup.find(<span class="string">"div"</span>, <span class="string">"addressInfo"</span>).find_all(<span class="string">"span"</span>):</span><br><span class="line">        info += <span class="string">'       '</span> + tag.next_element + <span class="string">' '</span> + str(tag.next_element.next_element) + <span class="string">'/n'</span></span><br><span class="line">    <span class="keyword">return</span> info</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">save_info</span><span class="params">(info)</span>:</span></span><br><span class="line">    <span class="string">"""保存信息"""</span></span><br><span class="line">    <span class="keyword">with</span> open(<span class="string">'info.txt'</span>, <span class="string">'a'</span>, encoding=<span class="string">'utf-8'</span>) <span class="keyword">as</span> f:</span><br><span class="line">        f.write(info)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">    data = request_url(<span class="string">'https://service.zuche.com/'</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> data:</span><br><span class="line">        <span class="keyword">for</span> city, city_link <span class="keyword">in</span> get_city_list(data.decode(<span class="string">'utf-8'</span>)):</span><br><span class="line">            data = request_url(city_link)</span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> data:</span><br><span class="line">                <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line">            save_info(city + <span class="string">'/n'</span>)</span><br><span class="line">            <span class="keyword">for</span> store, store_link <span class="keyword">in</span> get_city_store(data.decode(<span class="string">'utf-8'</span>)):</span><br><span class="line">                data = request_url(store_link)</span><br><span class="line">                <span class="keyword">if</span> <span class="keyword">not</span> data:</span><br><span class="line">                    <span class="keyword">continue</span></span><br><span class="line">                </span><br><span class="line">                save_info(<span class="string">'    '</span> + store + <span class="string">':\n'</span> + get_store_details(data.decode(<span class="string">'utf-8'</span>)))</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+<p>在<code>main</code>函数中首先请求神州租车的首页，然后获得每个城市的链接，再对每个城市的链接，发起<code>http</code>请求，得到每个城市的门店链接，对每个门店的链接再次发次<code>http</code>请求，最后得到门店的信息，并保存结果。</p>
+<p><code>request_url</code>函数用于请求对应的<code>url</code>，它有一个<code>url_decorate</code>装饰器用于打印每次请求的<code>url</code>。在发送请求的时，需要在头部中添加<code>User-Agent</code>，不然服务器会拒绝请求。如果一个<code>url</code>请求超过3次失败，则丢弃这次请求。</p>
+<p><code>save_info</code>函数用于保存结果，每次保存了结果后，都会关闭文件，这会影响效率，实际使用时，可以在所有结果爬取完后再关闭文件。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/01/06/gtest/" rel="next" title="Google Test单元测试框架的使用">
+                <i class="fa fa-chevron-left"></i> Google Test单元测试框架的使用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#url-请求的过程"><span class="nav-number">1.</span> <span class="nav-text">url 请求的过程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#请求首页"><span class="nav-number">1.1.</span> <span class="nav-text">请求首页</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#请求城市链接"><span class="nav-number">1.2.</span> <span class="nav-text">请求城市链接</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#请求门店的信息"><span class="nav-number">1.3.</span> <span class="nav-text">请求门店的信息</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#结果如下"><span class="nav-number">2.</span> <span class="nav-text">结果如下</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码如下"><span class="nav-number">3.</span> <span class="nav-text">代码如下:</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
