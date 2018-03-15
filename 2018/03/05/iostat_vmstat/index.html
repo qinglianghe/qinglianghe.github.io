@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="iostatiostat 命令用来监视系统输入/输出设备负载，这通过观察与它们的平均传送速率相关的物理磁盘的活动时间来实现。iostat 命令生成的报告可以用来更改系统配置来更好地平衡物理磁盘和适配器之间的输入/输出负载。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iostat、vmstat">
+<meta property="og:url" content="http://yoursite.com/2018/03/05/iostat_vmstat/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="iostatiostat 命令用来监视系统输入/输出设备负载，这通过观察与它们的平均传送速率相关的物理磁盘的活动时间来实现。iostat 命令生成的报告可以用来更改系统配置来更好地平衡物理磁盘和适配器之间的输入/输出负载。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-03-14T18:56:41.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="iostat、vmstat">
+<meta name="twitter:description" content="iostatiostat 命令用来监视系统输入/输出设备负载，这通过观察与它们的平均传送速率相关的物理磁盘的活动时间来实现。iostat 命令生成的报告可以用来更改系统配置来更好地平衡物理磁盘和适配器之间的输入/输出负载。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/03/05/iostat_vmstat/"/>
+
+
+
+
+
+  <title>iostat、vmstat | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/05/iostat_vmstat/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">iostat、vmstat</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-05T00:00:00+08:00">
+                2018-03-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<h3 id="iostat"><a href="#iostat" class="headerlink" title="iostat"></a>iostat</h3><p><code>iostat</code> 命令用来监视系统输入/输出设备负载，这通过观察与它们的平均传送速率相关的物理磁盘的活动时间来实现。<code>iostat</code> 命令生成的报告可以用来更改系统配置来更好地平衡物理磁盘和适配器之间的输入/输出负载。</p>
+<a id="more"></a>
+<h4 id="安装iostat"><a href="#安装iostat" class="headerlink" title="安装iostat"></a>安装iostat</h4><p><code>iostat</code>包含在<code>sysstat</code>包内。如果没有，需要安装它。在<code>ubuntu</code>可以执行以下命令：</p>
+<pre><code>sudo apt-get install sysstat
+</code></pre><h4 id="使用iostat"><a href="#使用iostat" class="headerlink" title="使用iostat"></a>使用iostat</h4><h5 id="不带参数的iostat命令将会输出CPU和每个分区的输出-输出的统计信息，如下所示："><a href="#不带参数的iostat命令将会输出CPU和每个分区的输出-输出的统计信息，如下所示：" class="headerlink" title="不带参数的iostat命令将会输出CPU和每个分区的输出/输出的统计信息，如下所示："></a>不带参数的<code>iostat</code>命令将会输出CPU和每个分区的输出/输出的统计信息，如下所示：</h5><pre><code>[heql@ubuntu ~]$ iostat
+Linux 4.2.0-27-generic (ubuntu)     03/14/2018     _x86_64_    (1 CPU)
+
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+            3.23    0.68    1.97    3.04    0.00   91.07
+
+Device:            tps    kB_read/s    kB_wrtn/s    kB_read    kB_wrtn
+sda              10.22       189.72        63.84     960303     323128
+</code></pre><ul>
+<li>第一部分包含了CPU报告:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>%user</td>
+<td style="text-align:left">CPU在用户态执行进程的时间百分比。</td>
+</tr>
+<tr>
+<td>%nice</td>
+<td style="text-align:left">显示了在以nice优先级运行用户态的CPU利用率</td>
+</tr>
+<tr>
+<td>%system</td>
+<td style="text-align:left">CPU处在内核态执行进程的时间百分比</td>
+</tr>
+<tr>
+<td>%iowait</td>
+<td style="text-align:left">CPU用于等待I/O操作占用CPU总时间的百分比</td>
+</tr>
+<tr>
+<td>%steal</td>
+<td style="text-align:left">管理程序(hypervisor)为另一个虚拟进程提供服务而等待虚拟CPU的百分比</td>
+</tr>
+<tr>
+<td>%idle</td>
+<td style="text-align:left">CPU空闲时间百分比</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>第二部分包含了设备利用率报告:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tps</td>
+<td style="text-align:left">每秒向磁盘设备请求数据的次数，包括读、写请求，为rtps与wtps的和。出于效率考虑，每一次IO下发后并不是立即处理请求，而是将请求合并(merge)，这里tps指请求合并后的请求计数。更高的tps意味着处理器更忙。</td>
+</tr>
+<tr>
+<td>kB_read/s</td>
+<td style="text-align:left">每秒从设备读取的数据量</td>
+</tr>
+<tr>
+<td>kB_wrtn/s</td>
+<td style="text-align:left">每秒向设备写入的数据量</td>
+</tr>
+<tr>
+<td>kB_read</td>
+<td style="text-align:left">读取的总数据量</td>
+</tr>
+<tr>
+<td>kB_wrtn</td>
+<td style="text-align:left">写入的总数量数据量</td>
+</tr>
+</tbody>
+</table>
+<h5 id="c-参数仅输出CPU的统计信息，如下所示"><a href="#c-参数仅输出CPU的统计信息，如下所示" class="headerlink" title="-c 参数仅输出CPU的统计信息，如下所示:"></a><code>-c</code> 参数仅输出CPU的统计信息，如下所示:</h5><pre><code>[heql@ubuntu ~]$ iostat -c
+Linux 4.2.0-27-generic (ubuntu)     03/14/2018     _x86_64_    (1 CPU)
+
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+            2.80    0.55    1.68    2.47    0.00   92.49
+</code></pre><h5 id="d-参数仅输出磁盘的所有分区的输入-输出的统计信息，如下所示："><a href="#d-参数仅输出磁盘的所有分区的输入-输出的统计信息，如下所示：" class="headerlink" title="-d 参数仅输出磁盘的所有分区的输入/输出的统计信息，如下所示："></a><code>-d</code> 参数仅输出磁盘的所有分区的输入/输出的统计信息，如下所示：</h5><pre><code>[heql@ubuntu ~]$ iostat -d
+Linux 4.2.0-27-generic (ubuntu)     03/14/2018     _x86_64_    (1 CPU)
+
+Device:            tps    kB_read/s    kB_wrtn/s    kB_read    kB_wrtn
+sda               8.09       150.00        50.56     960563     323788
+</code></pre><h5 id="m-选项，指定输出结果以MB为单位"><a href="#m-选项，指定输出结果以MB为单位" class="headerlink" title="-m 选项，指定输出结果以MB为单位:"></a><code>-m</code> 选项，指定输出结果以MB为单位:</h5><pre><code>[heql@ubuntu ~]$ iostat -m -d
+Linux 4.2.0-27-generic (ubuntu)     03/14/2018     _x86_64_    (1 CPU)
+
+Device:            tps    MB_read/s    MB_wrtn/s    MB_read    MB_wrtn
+sda               7.77         0.14         0.05        938        316
+</code></pre><h5 id="x-选项，显示更详细的io设备统计信息"><a href="#x-选项，显示更详细的io设备统计信息" class="headerlink" title="-x 选项，显示更详细的io设备统计信息:"></a><code>-x</code> 选项，显示更详细的io设备统计信息:</h5><pre><code>[heql@ubuntu ~]$ iostat -x -d
+Linux 4.2.0-27-generic (ubuntu)     03/14/2018     _x86_64_    (1 CPU)
+
+Device:         rrqm/s   wrqm/s     r/s     w/s    rkB/s    wkB/s avgrq-sz avgqu-sz   await r_await w_await  svctm  %util
+sda               0.15     1.82    6.64    0.94   140.30    47.32    49.53     0.17   22.69   18.32   53.53   4.83   3.66
+</code></pre><table>
+<thead>
+<tr>
+<th>选项</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>rrqm/s</td>
+<td style="text-align:left">每秒对该设备的读请求被合并次数，文件系统会对读取同块(block)的请求进行合并</td>
+</tr>
+<tr>
+<td>wrqm/s</td>
+<td style="text-align:left">每秒对该设备的写请求被合并次数</td>
+</tr>
+<tr>
+<td>r/s</td>
+<td style="text-align:left">每秒完成的读次数</td>
+</tr>
+<tr>
+<td>w/s</td>
+<td style="text-align:left">每秒完成的写次数</td>
+</tr>
+<tr>
+<td>rkB/s</td>
+<td style="text-align:left">每秒读数据量(kB为单位)</td>
+</tr>
+<tr>
+<td>wkB/s</td>
+<td style="text-align:left">每秒写数据量(kB为单位)</td>
+</tr>
+<tr>
+<td>avgrq-sz</td>
+<td style="text-align:left">平均每次IO操作的数据量(扇区数为单位)</td>
+</tr>
+<tr>
+<td>avgqu-sz</td>
+<td style="text-align:left">平均等待处理的IO请求队列长度</td>
+</tr>
+<tr>
+<td>await</td>
+<td style="text-align:left">平均每次IO请求等待时间(包括等待时间和处理时间，毫秒为单位)</td>
+</tr>
+<tr>
+<td>r_await</td>
+<td style="text-align:left">平均每次IO请求读等待时间</td>
+</tr>
+<tr>
+<td>w_await</td>
+<td style="text-align:left">平均每次IO请求写等待时间</td>
+</tr>
+<tr>
+<td>svctm</td>
+<td style="text-align:left">平均每次IO请求的处理时间(毫秒为单位)</td>
+</tr>
+<tr>
+<td>%util</td>
+<td style="text-align:left">采用周期内用于IO操作的时间比率，即IO队列非空的时间比率</td>
+</tr>
+</tbody>
+</table>
+<h5 id="作为一个统计工具，最好带延迟参数来使用它，形式指定iostat命令的采样间隔和采样次数："><a href="#作为一个统计工具，最好带延迟参数来使用它，形式指定iostat命令的采样间隔和采样次数：" class="headerlink" title="作为一个统计工具，最好带延迟参数来使用它，形式指定iostat命令的采样间隔和采样次数："></a>作为一个统计工具，最好带延迟参数来使用它，形式指定<code>iostat</code>命令的采样间隔和采样次数：</h5><pre><code>[heql@ubuntu ~]$ iostat -xd 1 2 
+Linux 4.2.0-27-generic (ubuntu)     03/14/2018     _x86_64_    (1 CPU)
+
+Device:         rrqm/s   wrqm/s     r/s     w/s    rkB/s    wkB/s avgrq-sz avgqu-sz   await r_await w_await  svctm  %util
+sda               0.14     1.66    6.01    0.87   127.14    43.01    49.45     0.16   22.64   18.32   52.60   4.82   3.32
+
+Device:         rrqm/s   wrqm/s     r/s     w/s    rkB/s    wkB/s avgrq-sz avgqu-sz   await r_await w_await  svctm  %util
+sda               0.00     0.00    0.00    0.00     0.00     0.00     0.00     0.00    0.00    0.00    0.00   0.00   0.00
+</code></pre><p>上面的命令为采样时间为1秒，采样2次，若不指定采样次数，则<code>iostat</code>会一直输出采样信息，直到按<code>ctrl+c</code>退出命令。</p>
+<h3 id="vmstat"><a href="#vmstat" class="headerlink" title="vmstat"></a>vmstat</h3><p><code>vmstat</code>是<code>Virtual Meomory Statistics</code>（虚拟内存统计）的缩写，可对操作系统的虚拟内存、进程、CPU活动进行监控。</p>
+<h4 id="选项参数"><a href="#选项参数" class="headerlink" title="选项参数:"></a>选项参数:</h4><table>
+<thead>
+<tr>
+<th>选项</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-a</td>
+<td style="text-align:left">显示活跃和非活跃内存</td>
+</tr>
+<tr>
+<td>-f</td>
+<td style="text-align:left">显示从系统启动至今的fork数量</td>
+</tr>
+<tr>
+<td>-m</td>
+<td style="text-align:left">显示slabinfo</td>
+</tr>
+<tr>
+<td>-d</td>
+<td style="text-align:left">显示磁盘相关统计信息</td>
+</tr>
+<tr>
+<td>-p</td>
+<td style="text-align:left">显示指定磁盘分区统计信息</td>
+</tr>
+</tbody>
+</table>
+<h5 id="显示虚拟内存使用情况"><a href="#显示虚拟内存使用情况" class="headerlink" title="显示虚拟内存使用情况"></a>显示虚拟内存使用情况</h5><pre><code>[heql@ubuntu ~]$ vmstat
+procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+0  0      0 939172  74020 393880    0    0   645    21   87  464  5  3 91  0  0
+</code></pre><p><strong>procs(进程)：</strong></p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>r</td>
+<td style="text-align:left">运行队列中进程数量</td>
+</tr>
+<tr>
+<td>b</td>
+<td style="text-align:left">等待IO的进程数量</td>
+</tr>
+</tbody>
+</table>
+<p><strong>memory(内存)：</strong></p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>swpd</td>
+<td style="text-align:left">使用虚拟内存大小，如果swpd的值不为0，但是si，so的值长期为0，这种情况不会影响系统性能</td>
+</tr>
+<tr>
+<td>free</td>
+<td style="text-align:left">空闲物理内存大小</td>
+</tr>
+<tr>
+<td>buff</td>
+<td style="text-align:left">用作缓冲的内存大小</td>
+</tr>
+<tr>
+<td>cache</td>
+<td style="text-align:left">用作缓存的内存大小，如果cache的值大的时候，说明cache处的文件数多，如果频繁访问到的文件都能被cache处，那么磁盘的读IO bi会非常小</td>
+</tr>
+</tbody>
+</table>
+<p><strong>swap:</strong></p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>si</td>
+<td style="text-align:left">每秒从交换区写到内存的大小，由磁盘调入内存</td>
+</tr>
+<tr>
+<td>so</td>
+<td style="text-align:left">每秒写入交换区的内存大小，由内存调入磁盘</td>
+</tr>
+</tbody>
+</table>
+<p>内存够用的时候，这2个值都是0，如果这2个值长期大于0时，系统性能会受到影响，磁盘IO和CPU资源都会被消耗。当看到空闲内存（free）很少的或接近于0时，不能就认为内存不够用了，还要结合si和so。如果free很少，但是si和so也很少（大多时候是0），那么不用担心，系统性能这时不会受到影响的。</p>
+<p><strong>io：</strong></p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bi</td>
+<td style="text-align:left">每秒读取的块数</td>
+</tr>
+<tr>
+<td>bo</td>
+<td style="text-align:left">每秒写入的块数</td>
+</tr>
+</tbody>
+</table>
+<p><strong>system：</strong></p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>in</td>
+<td style="text-align:left">每秒中断数，包括时钟中断</td>
+</tr>
+<tr>
+<td>cs</td>
+<td style="text-align:left">每秒上下文切换数</td>
+</tr>
+</tbody>
+</table>
+<p>上面2个值越大，会看到由内核消耗的CPU时间会越大。</p>
+<p><strong>CPU（以百分比表示）：</strong></p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>us</td>
+<td style="text-align:left">用户进程执行时间百分比</td>
+</tr>
+<tr>
+<td>sy</td>
+<td style="text-align:left">内核系统进程执行时间百分比</td>
+</tr>
+<tr>
+<td>wa</td>
+<td style="text-align:left">IO等待时间百分比 wa的值高时，说明IO等待比较严重，这可能由于磁盘大量作随机访问造成，也有可能磁盘出现瓶颈</td>
+</tr>
+<tr>
+<td>id</td>
+<td style="text-align:left">空闲时间百分比</td>
+</tr>
+</tbody>
+</table>
+<h5 id="和iostat命令一样，vmstat命令也可以指定采样间隔和采样次数："><a href="#和iostat命令一样，vmstat命令也可以指定采样间隔和采样次数：" class="headerlink" title="和iostat命令一样，vmstat命令也可以指定采样间隔和采样次数："></a>和<code>iostat</code>命令一样，<code>vmstat</code>命令也可以指定采样间隔和采样次数：</h5><pre><code>[heql@ubuntu ~]$ vmstat 1 2
+procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+0  0      0 447436 142740 737004    0    0   332    88   79  285  3  2 94  0  0
+0  0      0 447420 142748 736996    0    0     0    44   74  330  2  1 97  0  0
+</code></pre><p>上面的命令为采样时间为1秒，采样2次。</p>
+<h5 id="显示活跃和非活跃内存"><a href="#显示活跃和非活跃内存" class="headerlink" title="显示活跃和非活跃内存"></a>显示活跃和非活跃内存</h5><pre><code>[heql@ubuntu ~]$ vmstat -a 1 2
+procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+r  b   swpd   free  inact active   si   so    bi    bo   in   cs us sy id wa st
+0  0      0 451780 350368 950324    0    0   317    84   79  281  3  2 94  0  0
+0  0      0 451780 350368 950368    0    0     0     0   63  308  2  1 97  0  0
+</code></pre><h5 id="查看系统已经fork了多少次"><a href="#查看系统已经fork了多少次" class="headerlink" title="查看系统已经fork了多少次"></a>查看系统已经fork了多少次</h5><pre><code>[heql@ubuntu ~]$ vmstat -f
+ 3940 forks
+</code></pre><p>这个数据是从/proc/stat中的processes字段里取得的。</p>
+<h5 id="查看内存使用的详细信息"><a href="#查看内存使用的详细信息" class="headerlink" title="查看内存使用的详细信息"></a>查看内存使用的详细信息</h5><pre><code>[heql@ubuntu ~]$ vmstat -s
+2031216 K total memory
+1579204 K used memory
+955796 K active memory
+345028 K inactive memory
+452012 K free memory
+142812 K buffer memory
+737004 K swap cache
+2094076 K total swap
+      0 K used swap
+2094076 K free swap
+   4778 non-nice user cpu ticks
+   2819 nice user cpu ticks
+   4777 system cpu ticks
+ 228449 idle cpu ticks
+    974 IO-wait cpu ticks
+      0 IRQ cpu ticks
+     68 softirq cpu ticks
+      0 stolen cpu ticks
+ 718947 pages paged in
+ 191472 pages paged out
+      0 pages swapped in
+      0 pages swapped out
+ 190045 interrupts
+ 678710 CPU context switches
+1521078128 boot time
+   3950 forks
+</code></pre><p>这些信息的分别来自于/proc/meminfo,/proc/stat和/proc/vmstat</p>
+<h5 id="查看磁盘的读-写"><a href="#查看磁盘的读-写" class="headerlink" title="查看磁盘的读/写"></a>查看磁盘的读/写</h5><pre><code>[heql@ubuntu ~]$ vmstat -d
+disk- ------------reads------------ ------------writes----------- -----IO------
+total merged sectors      ms  total merged sectors      ms    cur    sec
+ram0       0      0       0       0      0      0       0       0      0      0
+ram1       0      0       0       0      0      0       0       0      0      0
+ram2       0      0       0       0      0      0       0       0      0      0
+ram3       0      0       0       0      0      0       0       0      0      0
+ram4       0      0       0       0      0      0       0       0      0      0
+ram5       0      0       0       0      0      0       0       0      0      0
+ram6       0      0       0       0      0      0       0       0      0      0
+ram7       0      0       0       0      0      0       0       0      0      0
+ram8       0      0       0       0      0      0       0       0      0      0
+ram9       0      0       0       0      0      0       0       0      0      0
+ram10      0      0       0       0      0      0       0       0      0      0
+ram11      0      0       0       0      0      0       0       0      0      0
+ram12      0      0       0       0      0      0       0       0      0      0
+ram13      0      0       0       0      0      0       0       0      0      0
+ram14      0      0       0       0      0      0       0       0      0      0
+ram15      0      0       0       0      0      0       0       0      0      0
+loop0      0      0       0       0      0      0       0       0      0      0
+loop1      0      0       0       0      0      0       0       0      0      0
+loop2      0      0       0       0      0      0       0       0      0      0
+loop3      0      0       0       0      0      0       0       0      0      0
+loop4      0      0       0       0      0      0       0       0      0      0
+disk- ------------reads------------ ------------writes----------- -----IO------
+total merged sectors      ms  total merged sectors      ms    cur    sec
+loop5      0      0       0       0      0      0       0       0      0      0
+loop6      0      0       0       0      0      0       0       0      0      0
+loop7      0      0       0       0      0      0       0       0      0      0
+sda    32062   1280 1437510   53952   2060   3483  383448   10992      0     18
+sr0        0      0       0       0      0      0       0       0      0      0
+</code></pre><h5 id="查看-dev-sda1磁盘的读-写"><a href="#查看-dev-sda1磁盘的读-写" class="headerlink" title="查看/dev/sda1磁盘的读/写"></a>查看/dev/sda1磁盘的读/写</h5><pre><code>[heql@ubuntu ~]$ vmstat -p /dev/sda1
+sda1          reads   read sectors  writes    requested writes
+                31636    1433866       2082     383696
+</code></pre><p>这些信息主要来自于/proc/diskstats。</p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>reads</td>
+<td style="text-align:left">来自于这个分区的读的次数</td>
+</tr>
+<tr>
+<td>read sectors</td>
+<td style="text-align:left">来自于这个分区的读扇区的次数</td>
+</tr>
+<tr>
+<td>writes</td>
+<td style="text-align:left">来自于这个分区的写的次数</td>
+</tr>
+<tr>
+<td>requested writes</td>
+<td style="text-align:left">来自于这个分区的写请求次数</td>
+</tr>
+</tbody>
+</table>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/01/26/service_shenzhou/" rel="next" title="python 爬虫抓取神州租车的门店信息">
+                <i class="fa fa-chevron-left"></i> python 爬虫抓取神州租车的门店信息
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/03/09/database_01/" rel="prev" title="MySQL数据库基础(一)">
+                MySQL数据库基础(一) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#iostat"><span class="nav-number">1.</span> <span class="nav-text">iostat</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#安装iostat"><span class="nav-number">1.1.</span> <span class="nav-text">安装iostat</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用iostat"><span class="nav-number">1.2.</span> <span class="nav-text">使用iostat</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#不带参数的iostat命令将会输出CPU和每个分区的输出-输出的统计信息，如下所示："><span class="nav-number">1.2.1.</span> <span class="nav-text">不带参数的iostat命令将会输出CPU和每个分区的输出/输出的统计信息，如下所示：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#c-参数仅输出CPU的统计信息，如下所示"><span class="nav-number">1.2.2.</span> <span class="nav-text">-c 参数仅输出CPU的统计信息，如下所示:</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#d-参数仅输出磁盘的所有分区的输入-输出的统计信息，如下所示："><span class="nav-number">1.2.3.</span> <span class="nav-text">-d 参数仅输出磁盘的所有分区的输入/输出的统计信息，如下所示：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#m-选项，指定输出结果以MB为单位"><span class="nav-number">1.2.4.</span> <span class="nav-text">-m 选项，指定输出结果以MB为单位:</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#x-选项，显示更详细的io设备统计信息"><span class="nav-number">1.2.5.</span> <span class="nav-text">-x 选项，显示更详细的io设备统计信息:</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#作为一个统计工具，最好带延迟参数来使用它，形式指定iostat命令的采样间隔和采样次数："><span class="nav-number">1.2.6.</span> <span class="nav-text">作为一个统计工具，最好带延迟参数来使用它，形式指定iostat命令的采样间隔和采样次数：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#vmstat"><span class="nav-number">2.</span> <span class="nav-text">vmstat</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#选项参数"><span class="nav-number">2.1.</span> <span class="nav-text">选项参数:</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#显示虚拟内存使用情况"><span class="nav-number">2.1.1.</span> <span class="nav-text">显示虚拟内存使用情况</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#和iostat命令一样，vmstat命令也可以指定采样间隔和采样次数："><span class="nav-number">2.1.2.</span> <span class="nav-text">和iostat命令一样，vmstat命令也可以指定采样间隔和采样次数：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#显示活跃和非活跃内存"><span class="nav-number">2.1.3.</span> <span class="nav-text">显示活跃和非活跃内存</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#查看系统已经fork了多少次"><span class="nav-number">2.1.4.</span> <span class="nav-text">查看系统已经fork了多少次</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#查看内存使用的详细信息"><span class="nav-number">2.1.5.</span> <span class="nav-text">查看内存使用的详细信息</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#查看磁盘的读-写"><span class="nav-number">2.1.6.</span> <span class="nav-text">查看磁盘的读/写</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#查看-dev-sda1磁盘的读-写"><span class="nav-number">2.1.7.</span> <span class="nav-text">查看/dev/sda1磁盘的读/写</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
