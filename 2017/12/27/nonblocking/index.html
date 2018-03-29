@@ -88,7 +88,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/images/toptr.png">
 <meta property="og:image" content="http://yoursite.com/images/fromptr.png">
-<meta property="og:updated_time" content="2017-12-27T08:55:05.000Z">
+<meta property="og:updated_time" content="2018-03-26T23:02:48.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="非阻塞式I&#x2F;O">
 <meta name="twitter:description" content="套接字的默认状态是阻塞的。这就意味着当发出一个不能立即完成的套接字调用时，其进程将投入睡眠，等待相应操作完成。可能阻塞的套接字调用可分为以下四类。">
@@ -340,7 +340,7 @@
 <p><strong>read返回数据：</strong> 当<code>read</code>返回数据时，相应地增加<code>toiptr</code>，并打开描述符集中与套接字对应的位。</p>
 <p><strong>从套接字read：</strong> 如果<code>read</code>返回<code>EWOULDBLOCK</code>错误，那么不做任何处理。遇到来自服务器的EOF，如果已经在标准输入上遇到EOF则没有问题，否则来自服务器的EOF并非预期。如果<code>read</code>返回一些数据，就相应地增加<code>fromiptr</code>，并把写描述符集中与标准输出对应的位打开。</p>
 <p><strong>write到标准输出：</strong> 如果标准输出可写而且要写的字节数大于0，那就调用<code>write</code>。如果返回<code>EWOULDBLOCK</code>错误，那么不做任何处理。注意这种条件完全可能发生，因为在上面的代码在不清楚<code>write</code>是否会成功的前提下就打开了写描述符集中与标准输出对应的位。</p>
-<p><strong>write成功：</strong> 如果<code>write</code>成，<code>fromoptr</code>就增加相应的字节数。如果输出指针<code>fromoptr</code>追上输入指针<code>fromiptr</code>，这两个指针就同时恢复为指向缓冲区开始处。</p>
+<p><strong>write成功：</strong> 如果<code>write</code>成功，<code>fromoptr</code>就增加相应的字节数。如果输出指针<code>fromoptr</code>追上输入指针<code>fromiptr</code>，这两个指针就同时恢复为指向缓冲区开始处。</p>
 <p><strong>write到套接字：</strong> 当输出指针追上输入指针时，不仅这两个指针同时恢复到缓冲区开始处，而且如果已经在标准输入遇到EOF就要发送 <strong>FIN</strong> 到服务器。</p>
 <h3 id="非阻塞connect"><a href="#非阻塞connect" class="headerlink" title="非阻塞connect"></a>非阻塞connect</h3><p>当在一个非阻塞的TCP套接字上调用<code>connect</code>时，<code>connect</code>将立即返回一个<code>EINPROGRESS</code>错误，不过已经发起的TCP三路握手继续进行。接着可以使用<code>select</code>检测这个连接或成功或失败的已建立条件。非阻塞的<code>connect</code>有三个用途。</p>
 <ol>

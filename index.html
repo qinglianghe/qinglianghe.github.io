@@ -1428,7 +1428,7 @@
       
         
           <hr>
-<p>在实现TCP的echo服务的那节中，客户端同时处理两个输入：标准输入和TCP套接字。会遇到这样的问题：客户在阻塞于(标准输入上的)<code>fgets</code>调用期间，服务器进程会被杀死，服务器TCP虽然正确地给客户TCP发送了一个 <strong>FIN</strong> ，但是既然客户进程正阻塞于标准输入读入过程，它将看不到这个 <strong>EOF</strong> ,直到从套接字读时为止(可能过了很长时间)。这样的进程需要一种预先告知内核的能力，使得内核一旦发现进程指定的一个或多个I/O 条件就绪(也就是说输入已准备好被读取，或者描述符已能承接更多的输入)，它就通知进程。这称为I/O复用(I/O multiplexing)，在linux下由<code>select</code>、<code>poll</code>或<code>epoll</code>实现。</p>
+<p>在实现TCP的<a href="https://qinglianghe.github.io/2017/12/16/process/" target="_blank" rel="noopener">echo服务的那节中</a>，客户端同时处理两个输入：标准输入和TCP套接字。会遇到这样的问题：客户在阻塞于(标准输入上的)<code>fgets</code>调用期间，服务器进程会被杀死，服务器TCP虽然正确地给客户TCP发
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2017/12/24/select/#more" rel="contents">
