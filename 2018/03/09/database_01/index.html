@@ -86,7 +86,7 @@
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
 <meta property="og:description" content="数据库： 是一个以某种有组织的方式存储的数据集合。 表： 某种特定类型数据的结构化清单。在相同的数据库中的每个表都有一个名字，用来标识自己，此名字是唯一的。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-03-09T01:31:33.000Z">
+<meta property="og:updated_time" content="2018-04-08T18:10:36.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="MySQL数据库基础(一)">
 <meta name="twitter:description" content="数据库： 是一个以某种有组织的方式存储的数据集合。 表： 某种特定类型数据的结构化清单。在相同的数据库中的每个表都有一个名字，用来标识自己，此名字是唯一的。">
@@ -335,7 +335,7 @@
 <h4 id="检索不同的行"><a href="#检索不同的行" class="headerlink" title="检索不同的行"></a>检索不同的行</h4><p>使用<code>DISTINCT</code>关键字，它必须直接放在列名的前面。</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">DISTINCT</span> vend_id <span class="keyword">FROM</span> products;</span><br></pre></td></tr></table></figure>
 <p><code>DISTINCT</code>关键字应用于所有列而不仅是前置它的列。如果给出<code>SELECT DISTINCT vend_id,
-prod_price</code>，除非指定的两个列都不同，否则所有行都将被<br>检索出来。</p>
+prod_price</code>，除非指定的两个列都不同，否则所有行都将被检索出来。</p>
 <h4 id="限制结果"><a href="#限制结果" class="headerlink" title="限制结果"></a>限制结果</h4><p>为了返回第一行或前几行，可使用<code>LIMIT</code>子句。</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> prod_name  <span class="keyword">FROM</span> products <span class="keyword">LIMIT</span> <span class="number">5</span>;</span><br></pre></td></tr></table></figure>
 <p><code>LIMIT 5</code>表示返回不多于5行。</p>
@@ -358,11 +358,11 @@ prod_price</code>，除非指定的两个列都不同，否则所有行都将被
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> prod_id, prod_price, prod_name <span class="keyword">FROM</span> products </span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> prod_price <span class="keyword">DESC</span>;</span><br></pre></td></tr></table></figure>
 <p>多个列排序，下面的例子以prod_price降序排序，然后再对产品名排序：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> prod_id, prod_price, prod_name <span class="keyword">FROM</span> products </span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> prod_price <span class="keyword">DESC</span>, prod_name;</span><br></pre></td></tr></table></figure>
-<p><code>DESC</code>关键字只应用到直接位于其前面的列名。在上例中，只对prod_price列指定<code>DESC</code>，对prod_name列不指定。因此，<br>prod_price列以降序排序，而prod_name列仍然按默认的升序排序。</p>
+<p><code>DESC</code>关键字只应用到直接位于其前面的列名。在上例中，只对prod_price列指定<code>DESC</code>，对prod_name列不指定。因此，prod_price列以降序排序，而prod_name列仍然按默认的升序排序。</p>
 <h3 id="过滤数据"><a href="#过滤数据" class="headerlink" title="过滤数据"></a>过滤数据</h3><h4 id="使用WHERE字句"><a href="#使用WHERE字句" class="headerlink" title="使用WHERE字句"></a>使用WHERE字句</h4><p>在<code>SELECT</code>语句中，数据根据WHERE子句中指定的搜索条件进行过滤。<br><code>WHERE</code>子句在表名（<code>FROM</code>子句）之后给出，如下所示：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> prod_name, prod_price <span class="keyword">FROM</span> products </span><br><span class="line"><span class="keyword">WHERE</span> prod_price = <span class="number">2.50</span>;</span><br></pre></td></tr></table></figure>
-<p>这条语句从products表中检索两个列，但不返回所有行，只返<br>回prod_price值为2.50的行。</p>
-<p><strong>WHERE字句的位置：</strong> 在同时使用<code>ORDER BY</code>和<code>WHERE</code>子句时，应<br>该让<code>ORDER BY</code>位于<code>WHERE</code>之后，否则将会产生错误。</p>
+<p>这条语句从products表中检索两个列，但不返回所有行，只返回prod_price值为2.50的行。</p>
+<p><strong>WHERE字句的位置：</strong> 在同时使用<code>ORDER BY</code>和<code>WHERE</code>子句时，应该让<code>ORDER BY</code>位于<code>WHERE</code>之后，否则将会产生错误。</p>
 <h4 id="WHERE字句操作符"><a href="#WHERE字句操作符" class="headerlink" title="WHERE字句操作符"></a>WHERE字句操作符</h4><table>
 <thead>
 <tr>
@@ -420,11 +420,11 @@ prod_price</code>，除非指定的两个列都不同，否则所有行都将被
 <li>范围值检查</li>
 </ol>
 <p>为了检查某个范围的值，可使用<code>BETWEEN</code>操作符。它需要两个值，即范围的开始值和结束值。这两个值必须用<code>AND</code>关键字<br>分隔。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> prod_name, prod_price <span class="keyword">FROM</span> products </span><br><span class="line"><span class="keyword">WHERE</span> prod_price <span class="keyword">BETWEEN</span> <span class="number">5</span> <span class="keyword">AND</span> <span class="number">10</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> prod_name, prod_price <span class="keyword">FROM</span> products </span><br><span class="line"><span class="keyword">WHERE</span> prod_price <span class="keyword">BETWEEN</span> <span class="number">5</span> <span class="keyword">AND</span> <span class="number">10</span>;</span><br></pre></td></tr></table></figure>
 <ol>
 <li>空值检查</li>
 </ol>
-<p><code>SELEC</code>T语句有一个特殊的<code>WHERE</code>子句，可用来检查具有<code>NULL</code>值的列。<br>这个<code>WHERE</code>子句就是<code>IS NULL</code>子句。</p>
+<p><code>SELECT</code>语句有一个特殊的<code>WHERE</code>子句，可用来检查具有<code>NULL</code>值的列。这个<code>WHERE</code>子句就是<code>IS NULL</code>子句。</p>
 <p><strong><code>NULL</code>与字段包含0、空字符串或仅仅包含空格不同。</strong></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> prod_name <span class="keyword">FROM</span> products <span class="keyword">WHERE</span> prod_price <span class="keyword">IS</span> <span class="literal">NULL</span>;</span><br></pre></td></tr></table></figure>
 <h3 id="数据过滤"><a href="#数据过滤" class="headerlink" title="数据过滤"></a>数据过滤</h3><h4 id="组合WHERE字句"><a href="#组合WHERE字句" class="headerlink" title="组合WHERE字句"></a>组合WHERE字句</h4><p><code>MySQL</code>允许给出多个<code>WHERE</code>子句。这些子句可以两种方式使用：以<code>AND</code>子句的方式或<code>OR</code>子句的方式使用。</p>
@@ -432,7 +432,7 @@ prod_price</code>，除非指定的两个列都不同，否则所有行都将被
 <p>上述语句检索vend_id为1003且prod_price小于等于10的所有prod_id、prod_price、prod_name。</p>
 <h4 id="OR操作符"><a href="#OR操作符" class="headerlink" title="OR操作符"></a>OR操作符</h4><p><code>OR</code>操作符与<code>AND</code>操作符不同，它指示<code>MySQL</code>检索匹配任一条件的行。</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> prod_name, prod_price <span class="keyword">FROM</span> products </span><br><span class="line"><span class="keyword">WHERE</span> vend_id = <span class="number">1002</span> <span class="keyword">OR</span> vend_id = <span class="number">1003</span>;</span><br></pre></td></tr></table></figure>
-<h4 id="计算次序"><a href="#计算次序" class="headerlink" title="计算次序"></a>计算次序</h4><p><code>WHER</code>E可包含任意数目的<code>AND</code>和<code>OR</code>操作符。允许两者结合以进行复杂<br>和高级的过滤。</p>
+<h4 id="计算次序"><a href="#计算次序" class="headerlink" title="计算次序"></a>计算次序</h4><p><code>WHERE</code>可包含任意数目的<code>AND</code>和<code>OR</code>操作符。允许两者结合以进行复杂和高级的过滤。</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> prod_name, prod_price <span class="keyword">FROM</span> products </span><br><span class="line"><span class="keyword">WHERE</span> vend_id = <span class="number">1002</span> </span><br><span class="line"><span class="keyword">OR</span> vend_id = <span class="number">1003</span> </span><br><span class="line"><span class="keyword">AND</span> prod_price &gt;= <span class="number">10</span>;</span><br></pre></td></tr></table></figure>
 <p>在处理<code>OR</code>操作符前，优先处理<code>AND</code>操作符。上述语句等价于：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> prod_name, prod_price <span class="keyword">FROM</span> products </span><br><span class="line"><span class="keyword">WHERE</span> vend_id = <span class="number">1002</span> </span><br><span class="line"><span class="keyword">OR</span> (vend_id = <span class="number">1003</span> <span class="keyword">AND</span> prod_price &gt;= <span class="number">10</span>);</span><br></pre></td></tr></table></figure>

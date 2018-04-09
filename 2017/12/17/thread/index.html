@@ -86,7 +86,7 @@
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
 <meta property="og:description" content="在多进程并发服务器中：父进程accept一个连接，fork一个子进程，该子进程处理与该连接客户端之间的通信。多进程会存在下面的问题：">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-01-06T03:59:13.000Z">
+<meta property="og:updated_time" content="2018-04-08T23:48:49.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="多线程：并发服务器">
 <meta name="twitter:description" content="在多进程并发服务器中：父进程accept一个连接，fork一个子进程，该子进程处理与该连接客户端之间的通信。多进程会存在下面的问题：">
@@ -306,7 +306,7 @@
 <li><code>fork</code>是昂贵的。<code>fork</code>要把父进程的内存映像复制到子进程，并在子进程中复制所有描述符等。当今的实现使用称为写时复制(copy-on-write)的技术，用以避免在子进程切实需要自己的副本之前把父进程的数据空间复制到子进程。然而即便有这样的优化措施，<code>fork</code>仍然是昂贵的。</li>
 <li><code>fork</code>返回之后父子进程之间信息的传递需要进程间通信(IPC)。调用<code>fork</code>之前父进程向尚未存在的子进程传递信息相当容易，因为子进程将从父进程数据空间及所有描述符的一个副本开始运行。然而从子进程往父进程返回信息却比较费力。</li>
 </ul>
-<h3 id="线程"><a href="#线程" class="headerlink" title="线程"></a>线程</h3><p>线程的创建可能比进程的创建快10~100部。同一进程内的所有线程共享相同的全局内存。这使得线程之间易于共享信息，然而伴随这种简易性而来的却是同步问题。</p>
+<h3 id="线程"><a href="#线程" class="headerlink" title="线程"></a>线程</h3><p>线程的创建可能比进程的创建快10~100倍。同一进程内的所有线程共享相同的全局内存。这使得线程之间易于共享信息，然而伴随这种简易性而来的却是同步问题。</p>
 <p>同一进程内的所有线程除了共享全局变量外还共享：</p>
 <ul>
 <li>进程指令</li>
@@ -345,7 +345,7 @@
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;pthread.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">pthread_exit</span><span class="params">(<span class="keyword">void</span> *status)</span></span>;</span><br></pre></td></tr></table></figure>
 <p>如果本线程未曾脱离，它的线程ID和退出状态将一直留存到调用进程内的某个其他进程对它调用<code>pthread_join</code>。</p>
 <p>指针<code>status</code>不能指向局部于调用线程的对象，因为线程终止时这样的对象也消失。</p>
-<p>让一个进程终止的另外两个方法是：</p>
+<p>让一个线程终止的另外两个方法是：</p>
 <ul>
 <li>启动线程的函数(即<code>pthread_create</code>的第三个参数)可以返回。既然该函数必须返回一个void指针，它的返回值就是相应线程的终止状态。</li>
 <li>如果进程的main函数返回或者任何线程调用了<code>exit</code>，整个进程就终止，其中包括它的任何线程</li>
