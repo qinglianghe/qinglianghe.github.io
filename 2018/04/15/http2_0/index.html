@@ -103,7 +103,7 @@
 <meta property="og:image" content="http://yoursite.com/images/http2/http2_header_priority.png">
 <meta property="og:image" content="http://yoursite.com/images/http2/http2_data.png">
 <meta property="og:image" content="http://yoursite.com/images/http2/http2_data_frame.png">
-<meta property="og:updated_time" content="2018-04-19T22:39:55.000Z">
+<meta property="og:updated_time" content="2018-04-19T22:49:55.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="HTTP&#x2F;2 协议">
 <meta name="twitter:description" content="HTTP/2（HTTP/2.0）即超文本传输协议 2.0，是下一代HTTP协议。相对于HTTP/1.x协议的文本传输格式，HTTP/2以二进制的格式进行数据传输。因此，具有更小的传输体积以及负载，相比于文本解析，二进制解析更加方便、高效。HTTP/2与HTTP/1.x相比具有如下特性：">
@@ -362,10 +362,14 @@ sudo make install
 </code></pre><h4 id="配置运行"><a href="#配置运行" class="headerlink" title="配置运行"></a>配置运行</h4><p>配置nginx伪证书、配置文件中开启https即可</p>
 <p>到需要放置证书的目录(选在nginx的/usr/local/nginx/conf目录下就可以)，建立服务器的私钥(此过程需输入密码短语)：</p>
 <pre><code>openssl genrsa -des3 -out server.key 1024
-</code></pre><p>创建证书签名请求csr：<br>    openssl req -new -key server.key -out server.csr</p>
-<p>生成RSA公钥：<br>    cp server.key server.key.org<br>    openssl rsa -in server.key.org -out server.key</p>
-<p>使用上面的私钥和CSR对证书进行签名：<br>    openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt</p>
-<p>配置nginx：</p>
+</code></pre><p>创建证书签名请求csr：</p>
+<pre><code>openssl req -new -key server.key -out server.csr
+</code></pre><p>生成RSA公钥：</p>
+<pre><code>cp server.key server.key.org
+openssl rsa -in server.key.org -out server.key
+</code></pre><p>使用上面的私钥和CSR对证书进行签名：</p>
+<pre><code>openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+</code></pre><p>配置nginx：</p>
 <pre><code>server {
     listen       443 ssl http2 default_server;
     server_name  www.heqingliang.com;                                                                            
