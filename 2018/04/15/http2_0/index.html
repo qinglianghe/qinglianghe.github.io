@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="HTTP/2（HTTP/2.0）即超文本传输协议 2.0，是下一代HTTP协议。相对于HTTP/1.x协议的文本传输格式，HTTP/2以二进制的格式进行数据传输。因此，具有更小的传输体积以及负载，相比于文本解析，二进制解析更加方便、高效。HTTP/2与HTTP/1.x相比具有如下特性：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTTP&#x2F;2 协议">
+<meta property="og:url" content="http://yoursite.com/2018/04/15/http2_0/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="HTTP/2（HTTP/2.0）即超文本传输协议 2.0，是下一代HTTP协议。相对于HTTP/1.x协议的文本传输格式，HTTP/2以二进制的格式进行数据传输。因此，具有更小的传输体积以及负载，相比于文本解析，二进制解析更加方便、高效。HTTP/2与HTTP/1.x相比具有如下特性：">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/http2/http2.png">
+<meta property="og:image" content="http://yoursite.com/images/http2/header_diff.png">
+<meta property="og:image" content="http://yoursite.com/images/http2/multi_plexing.png">
+<meta property="og:image" content="http://yoursite.com/images/http2/stream.png">
+<meta property="og:image" content="http://yoursite.com/images/http2/request.png">
+<meta property="og:image" content="http://yoursite.com/images/http2/server_push.png">
+<meta property="og:image" content="http://yoursite.com/images/http2/http2_request.png">
+<meta property="og:image" content="http://yoursite.com/images/http2/http2_ssl.png">
+<meta property="og:image" content="http://yoursite.com/images/http2/preface.png">
+<meta property="og:image" content="http://yoursite.com/images/http2/http2_pcap.png">
+<meta property="og:image" content="http://yoursite.com/images/http2/frame_format.png">
+<meta property="og:image" content="http://yoursite.com/images/http2/frame_type.png">
+<meta property="og:image" content="http://yoursite.com/images/http2/http2_request.png">
+<meta property="og:image" content="http://yoursite.com/images/http2/http2_header_not_priority.png">
+<meta property="og:image" content="http://yoursite.com/images/http2/http2_header_priority.png">
+<meta property="og:image" content="http://yoursite.com/images/http2/http2_data.png">
+<meta property="og:image" content="http://yoursite.com/images/http2/http2_data_frame.png">
+<meta property="og:updated_time" content="2018-04-19T18:45:56.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="HTTP&#x2F;2 协议">
+<meta name="twitter:description" content="HTTP/2（HTTP/2.0）即超文本传输协议 2.0，是下一代HTTP协议。相对于HTTP/1.x协议的文本传输格式，HTTP/2以二进制的格式进行数据传输。因此，具有更小的传输体积以及负载，相比于文本解析，二进制解析更加方便、高效。HTTP/2与HTTP/1.x相比具有如下特性：">
+<meta name="twitter:image" content="http://yoursite.com/images/http2/http2.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/04/15/http2_0/"/>
+
+
+
+
+
+  <title>HTTP/2 协议 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/15/http2_0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">HTTP/2 协议</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-15T00:00:00+08:00">
+                2018-04-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<p><a href="https://http2.github.io/" target="_blank" rel="noopener">HTTP/2</a>（HTTP/2.0）即超文本传输协议 2.0，是下一代HTTP协议。相对于<code>HTTP/1.x</code>协议的文本传输格式，<code>HTTP/2</code>以二进制的格式进行数据传输。因此，具有更小的传输体积以及负载，相比于文本解析，二进制解析更加方便、高效。<code>HTTP/2</code>与<code>HTTP/1.x</code>相比具有如下特性：</p>
+<a id="more"></a>
+<h3 id="HTTP-2-帧的特性"><a href="#HTTP-2-帧的特性" class="headerlink" title="HTTP/2 帧的特性"></a>HTTP/2 帧的特性</h3><h4 id="二进制分帧"><a href="#二进制分帧" class="headerlink" title="二进制分帧"></a>二进制分帧</h4><p><code>HTTP/2</code>在应用层跟传输层 之间增加了一个 二进制分帧层，从而能够达到：在不改动HTTP的语义、HTTP方法、状态码、URI及首部字段的情况下，突破<code>HTTP 1.1</code>的性能限制，改进传输性能，实现低延迟和高吞吐量。</p>
+<p><img src="/images/http2/http2.png" alt="http2.png"></p>
+<p>如上图所示，在二进制分帧层上， <code>HTTP 2.0</code>会将所有传输的信息分割为更小的消息和帧，并对它们采用二进制格式的编码，其中<code>HTTP 1.1</code>的首部信息会被封装到<code>Headers</code>帧，而<code>request body</code>被封装到<code>Data</code>帧里面。然后，<code>HTTP 2.0</code> 通信都在一个连接上完成，这个连接可以承载任意数量的双向数据流。相应地，每个数据流以消息的形式发送，而消息由一或多个帧组成，这些帧可以乱序发送，然后再根据每个帧首部的流标识符重新组装。</p>
+<h4 id="header压缩"><a href="#header压缩" class="headerlink" title="header压缩"></a>header压缩</h4><p> <code>HTTP 2.0</code>采用<code>HPACK</code>的压缩算法来压缩头部。并且在客户端和服务器端使用 “首部表” 来跟踪和存储之前发送的键-值对，对于相同的数据，不再通过每次请求和响应发送，通信期间几乎不会改变的通用键-值对(用户代理、可接受的媒体类型，等等)只需发送一次。</p>
+<ul>
+<li>如果请求中不包含首部(例如对同一资源的轮询请求),那么 首部开销就是零字节。此时所有首部都自动使用之前请求发送的首部。<ul>
+<li>如果首部发生变化了，那么只需要发送变化了数据在<code>Headers</code>帧里面，新增或修改的首部帧会被追加到“首部表”。首部表在<code>HTTP 2.0</code>的连接存续期内始终存在，由客户端和服务器共同渐进地更新。</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/http2/header_diff.png" alt="header_diff"></p>
+<h4 id="多路复用"><a href="#多路复用" class="headerlink" title="多路复用"></a>多路复用</h4><p>在<code>HTTP/1.1</code>中，若干个请求排队串行化单线程处理，后面的请求等待前面请求的返回才能获得执行机会，一旦有某请求超时等，后续请求只能被阻塞。<code>HTTP 2.0</code> 多个请求可同时在一个连接上并行执行。某个请求任务耗时严重，不会影响到其它连接的正常执行。</p>
+<p><img src="/images/http2/multi_plexing.png" alt="multi_plexing.png"></p>
+<p><code>HTTP 2.0</code>把HTTP协议通信的基本单位缩小为一个一个的帧，这些帧对应着逻辑流中的消息。并行地在同一个TCP连接上双向交换消息。每一个request都是是用作连接共享机制的。一个request对应一个id，这样一个连接上可以有多个request，每个连接的request可以随机的混杂在一起，接收方可以根据request的id将request再归属到各自不同的服务端请求里面。</p>
+<p><img src="/images/http2/stream.png" alt="stream.png"></p>
+<p>上图中包含了同一个连接上多个传输中的数据流：客户端正在向服务器传输一个<code>DATA</code>帧（<code>stream 5</code>），与此同时，服务器正向客户端乱序发送<code>stream 1</code> 和<code>stream 3</code>的一系列帧。此时，一个连接上有3个请求/响应并行交换。</p>
+<h4 id="服务器推送"><a href="#服务器推送" class="headerlink" title="服务器推送"></a>服务器推送</h4><p><code>HTTP 2.0</code>新增的一个强大的新功能，就是服务器可以对一个客户端请求发送多个响应。服务器向客户端推送资源无需客户端明确地请求。</p>
+<p>服务端推送能把客户端所需要的资源伴随着index.html一起发送到客户端，省去了客户端重复请求的步骤。正因为没有发起请求，建立连接等操作，所以静态资源通过服务端推送的方式可以极大地提升速度。这相当于预加载技术，具体如下：</p>
+<p><strong>普通的客户端请求过程：</strong></p>
+<p><img src="/images/http2/request.png" alt="request.png"></p>
+<p><strong>服务端推送的过程：</strong></p>
+<p><img src="/images/http2/server_push.png" alt="server_push.png"></p>
+<h4 id="更安全的SSL"><a href="#更安全的SSL" class="headerlink" title="更安全的SSL"></a>更安全的SSL</h4><p><code>HTTP2.0</code>使用了<code>TLS</code>的拓展ALPN来做协议升级，除此之外加密这块还有一个改动，<code>HTTP2.0</code>对<code>TLS</code>的安全性做了近一步加强，通过黑名单机制禁用了几百种不再安全的加密算法，一些加密算法可能还在被继续使用。</p>
+<p><strong>虽然<code>HTTP2.0</code>中的<code>TLS</code>是可选的，但是现在主流的浏览器像chrome，firefox都只支持基于<code>TLS</code>部署的<code>HTTP2.0</code>协议。所以要想站点升级为<code>HTTP2.0</code>首先要将站点先升级为<code>HTTPS</code></strong>。</p>
+<h3 id="HTTP-2性能"><a href="#HTTP-2性能" class="headerlink" title="HTTP/2性能"></a>HTTP/2性能</h3><p><code>HTTP 2.0</code>相比于<code>HTTP 1.x</code>，大幅度的提升了<code>web</code>性能。<a href="https://http2.akamai.com/demo" target="_blank" rel="noopener">https://http2.akamai.com/demo</a>这个网站可以看到在<code>HTTP 2.0</code>与<code>HTTP 1.1</code>的环境下的性能比较。</p>
+<h3 id="nginx-HTTP-2-0-配置"><a href="#nginx-HTTP-2-0-配置" class="headerlink" title="nginx HTTP/2.0 配置"></a>nginx HTTP/2.0 配置</h3><h4 id="安装nginx"><a href="#安装nginx" class="headerlink" title="安装nginx"></a>安装nginx</h4><p>首先确认当前openssl版本，最低要求1.0.2，如果不满足要求还要下载openssl，nginx也用最新的稳定版。</p>
+<pre><code>openssl version -a
+wget https://www.openssl.org/source/openssl-1.0.2e.tar.gz
+wget http://nginx.org/download/nginx-1.12.2.tar.gz
+</code></pre><p>解压：</p>
+<pre><code>tar xzf openssl-1.0.2e.tar.gz
+tar xzf nginx-1.12.2.tar.gz
+</code></pre><p>编译安装：</p>
+<pre><code>cd nginx-1.12.2
+
+./configure --prefix=/usr/local/nginx --with-http_stub_status_module --with-http_ssl_module --with-http_realip_module --with-http_v2_module --with-openssl=../openssl-1.0.2e
+
+make 
+sudo make install
+</code></pre><h4 id="配置运行"><a href="#配置运行" class="headerlink" title="配置运行"></a>配置运行</h4><p>配置nginx伪证书、配置文件中开启https即可</p>
+<p>到需要放置证书的目录(选在nginx的/usr/local/nginx/conf目录下就可以)，建立服务器的私钥(此过程需输入密码短语)：</p>
+<pre><code>openssl genrsa -des3 -out server.key 1024
+</code></pre><p>创建证书签名请求csr：<br>    openssl req -new -key server.key -out server.csr</p>
+<p>生成RSA公钥：<br>    cp server.key server.key.org<br>    openssl rsa -in server.key.org -out server.key</p>
+<p>使用上面的私钥和CSR对证书进行签名：<br>    openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt</p>
+<p>配置nginx：</p>
+<pre><code>server {
+    listen       443 ssl http2 default_server;
+    server_name  www.heqingliang.com;                                                                            
+    ssl_certificate      server.crt;
+    ssl_certificate_key  server.key;
+
+    location / { 
+        root   html;
+        index  index.html index.htm;
+    }
+}
+</code></pre><p>启动nginx:</p>
+<pre><code>cd /usr/local/nginx/sbin
+sudo ./nginx
+</code></pre><p>把生成的证书<code>server.crt</code>导入进firxfox浏览器，注意firefox的版本要支持<code>HTTP/2</code>，把浏览器的开发模式打开，输入配置中的域名，看到如下请求，则表示<code>HTTP/2</code>配置成功：</p>
+<p><img src="/images/http2/http2_request.png" alt="http2_request.png"></p>
+<h3 id="HTTP-2-帧格式"><a href="#HTTP-2-帧格式" class="headerlink" title="HTTP/2 帧格式"></a>HTTP/2 帧格式</h3><p>使用<code>wireshark</code>抓包工具，可以看到在<code>TLS</code>请求包中带有<code>h2</code>，这表示请求使用的是<code>HTTP 2.0</code></p>
+<p><img src="/images/http2/http2_ssl.png" alt="http2_ssl.png"></p>
+<p>如果服务器支持<code>HTTP 2.0</code>，则客户端会发送一个24个字节(<code>PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n</code>)开始的连接序言。如果不支持<code>HTTP 2.0</code>，则使用<code>HTTP/1.x</code>。关于<code>HTTP 2.0</code>的请求过程可以参考<a href="http://httpwg.org/specs/rfc7540.html" target="_blank" rel="noopener">RFC</a>。</p>
+<p><img src="/images/http2/preface.png" alt="preface.png"></p>
+<p>要看到HTTP/2 帧格式，首先要把上面<code>wireshark</code>抓的<code>TLS</code>数据包是解开。可以参考这篇文章，<a href="https://ismisepaul.wordpress.com/2015/03/04/http2-traffic-in-wireshark/" target="_blank" rel="noopener">https://ismisepaul.wordpress.com/2015/03/04/http2-traffic-in-wireshark/</a>，解开<code>TLS</code>数据包后，可以看到：</p>
+<p><img src="/images/http2/http2_pcap.png" alt="http2_pcap.png"></p>
+<h4 id="帧头"><a href="#帧头" class="headerlink" title="帧头"></a>帧头</h4><p><img src="/images/http2/frame_format.png" alt="frame_format.png"></p>
+<p>固定的9个字节（(24+8+8+1+31)/8=9）呈现，变化的为帧的<code>Frame Payload</code>，<code>Frame Payload</code>的内容是由帧类型（Type）定义。</p>
+<p><strong>帧长度(Length)：</strong> 无符号的自然数，24个比特表示，仅表示帧的<code>Frame Payload</code>所占用字节数，不包括帧头所占用的9个字节。 默认大小区间为为0~16,384(2^14)，一旦超过默认最大值2^14(16384)，发送方将不再允许发送，除非接收到接收方定义的<code>SETTINGS_MAX_FRAME_SIZE</code>（一般此值区间为2^14 ~ 2^24）值的通知。 </p>
+<p><strong>帧类型(Type):</strong>  8个比特表示，定义了帧负载的具体格式和帧的语义，HTTP/2规范定义了10个帧类型。</p>
+<p><img src="/images/http2/frame_type.png" alt="frame_type.png"></p>
+<p><strong>帧的标志位(Flags):</strong> 8个比特表示，表示具体帧的类型，默认值为0x0。8个比特可以容纳8个不同的标志，比如，<code>PADDED</code>值为0x8，二进制表示为00001000；<code>END_HEADERS</code>值为0x4，二进制表示为00000100；<code>END_STREAM</code>值为0X1，二进制为00000001。可以同时在一个字节中传达三种标志位，二进制表示为00001101，即0x13。因此，后面的帧结构中，标志位一般会使用8个比特表示，若某位不确定，使用问号?替代，表示此处可能会被设置标志位。</p>
+<p><strong>帧保留比特位(R):</strong> HTTP/2语境下为保留的比特位，固定值为0X0。</p>
+<p><strong>流标识符(Stream Identifier):</strong> 无符号的31比特表示无符号自然数。0x0值表示为帧仅作用于连接，不隶属于单独的流。</p>
+<h4 id="HEADERS-帧"><a href="#HEADERS-帧" class="headerlink" title="HEADERS 帧"></a>HEADERS 帧</h4><p>报头(type = 0x1)主要载体，请求头或响应头。</p>
+<p><img src="/images/http2/http2_request.png" alt="http2_request.png"></p>
+<p><strong>Pad Length：</strong> 受制于<code>PADDED</code>标志(<code>flags</code>标志中第3位)控制是否设置，8个比特表示填充的字节数。</p>
+<p><strong>E：</strong> 一个比特表示流依赖是否专用，可选项，只在流优先级<code>PRIORITY</code>(<code>flags</code>标志中第5位)被设置时有效。</p>
+<p><strong>Stream Dependency：</strong> 31个比特表示流依赖，只在流优先级<code>PRIORITY</code>(<code>flags</code>标志中第5位)被设置时有效。</p>
+<p><strong>Weight：</strong> 8个比特（一个字节）表示无符号的自然数流优先级，值范围自然是(1~256)。只在流优先级<code>PRIORITY</code>(<code>flags</code>标志中第5位)被设置时有效。</p>
+<p><strong>Header Block Fragment：</strong> 报头块分片，采用<code>HPACK</code>压缩。</p>
+<p><strong>Padding：</strong> 填充的字节，受制于<code>PADDED</code>标志(<code>flags</code>标志中第3位)标志控制是否设置，长度由<code>Pad Length</code>字段决定。</p>
+<p><strong>标志位END_HEADERS(0X4):</strong> 表示报头块的最后一个帧，否则后面还会跟随<code>CONTINUATION</code>帧。</p>
+<p>如图是未设置流优先级<code>PRIORITY</code>的<code>HEADERS</code>帧:</p>
+<p><img src="/images/http2/http2_header_not_priority.png" alt="http2_header_not_priority.png"></p>
+<p>如图是设置流优先级<code>PRIORITY</code>的<code>HEADERS</code>帧:</p>
+<p><img src="/images/http2/http2_header_priority.png" alt="http2_header_priority.png"></p>
+<h4 id="HPACK"><a href="#HPACK" class="headerlink" title="HPACK"></a>HPACK</h4><p><code>HTTP 2.0</code>的头部使用的是<code>HPACK</code>压缩，关于<code>HPACK</code>可以参考<a href="http://httpwg.org/specs/rfc7541.html" target="_blank" rel="noopener">RFC</a>。</p>
+<p>对于<code>HPACK</code>，可以使用<a href="http://www.nghttp2.org/documentation/tutorial-hpack.html#inflating-decoding-headers" target="_blank" rel="noopener">nghttp2</a>库进行压缩和解压缩。把上面的<code>HEADERS</code>帧的导出字节流，可以使用下面程序进行解压缩。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br><span class="line">310</span><br><span class="line">311</span><br><span class="line">312</span><br><span class="line">313</span><br><span class="line">314</span><br><span class="line">315</span><br><span class="line">316</span><br><span class="line">317</span><br><span class="line">318</span><br><span class="line">319</span><br><span class="line">320</span><br><span class="line">321</span><br><span class="line">322</span><br><span class="line">323</span><br><span class="line">324</span><br><span class="line">325</span><br><span class="line">326</span><br><span class="line">327</span><br><span class="line">328</span><br><span class="line">329</span><br><span class="line">330</span><br><span class="line">331</span><br><span class="line">332</span><br><span class="line">333</span><br><span class="line">334</span><br><span class="line">335</span><br><span class="line">336</span><br><span class="line">337</span><br><span class="line">338</span><br><span class="line">339</span><br><span class="line">340</span><br><span class="line">341</span><br><span class="line">342</span><br><span class="line">343</span><br><span class="line">344</span><br><span class="line">345</span><br><span class="line">346</span><br><span class="line">347</span><br><span class="line">348</span><br><span class="line">349</span><br><span class="line">350</span><br><span class="line">351</span><br><span class="line">352</span><br><span class="line">353</span><br><span class="line">354</span><br><span class="line">355</span><br><span class="line">356</span><br><span class="line">357</span><br><span class="line">358</span><br><span class="line">359</span><br><span class="line">360</span><br><span class="line">361</span><br><span class="line">362</span><br><span class="line">363</span><br><span class="line">364</span><br><span class="line">365</span><br><span class="line">366</span><br><span class="line">367</span><br><span class="line">368</span><br><span class="line">369</span><br><span class="line">370</span><br><span class="line">371</span><br></pre></td><td class="code"><pre><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;assert.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;nghttp2/nghttp2.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"> <span class="meta">#<span class="meta-keyword">define</span> ARRAR_SIZE(a) (sizeof(a) / sizeof(a[0]))</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * 每一种帧，对应一种处理函数</span></span><br><span class="line"><span class="comment"> * type:      帧的类型</span></span><br><span class="line"><span class="comment"> * type_name: 帧的名称</span></span><br><span class="line"><span class="comment"> * flags:     帧的标志</span></span><br><span class="line"><span class="comment"> * length:    帧的长度</span></span><br><span class="line"><span class="comment"> * func:      帧的处理函数</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">frame_info</span> &#123;</span></span><br><span class="line">     <span class="keyword">int</span> type;</span><br><span class="line">     <span class="keyword">const</span> <span class="keyword">char</span>* type_name;</span><br><span class="line">     <span class="keyword">int</span> flags;</span><br><span class="line">     <span class="keyword">int</span> length;</span><br><span class="line">     <span class="keyword">int</span> (*func)(<span class="keyword">uint8_t</span> *buf, struct frame_info* f);</span><br><span class="line"> &#125;;</span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">inflate_header_block</span><span class="params">(nghttp2_hd_inflater *inflater, <span class="keyword">uint8_t</span> *in,</span></span></span><br><span class="line"><span class="function"><span class="params">                         <span class="keyword">size_t</span> in_len, <span class="keyword">int</span> final)</span> </span>&#123;</span><br><span class="line">     <span class="keyword">ssize_t</span> ret;</span><br><span class="line"></span><br><span class="line">     <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">         nghttp2_nv nv;</span><br><span class="line">         <span class="keyword">int</span> inflate_flags = <span class="number">0</span>;</span><br><span class="line">         <span class="keyword">size_t</span> proclen;</span><br><span class="line"></span><br><span class="line">         <span class="keyword">if</span>((ret = nghttp2_hd_inflate_hd(inflater, &amp;nv, &amp;inflate_flags, in, in_len, final)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">             <span class="built_in">printf</span>(<span class="string">"inflate failed with error code %zd"</span>, ret);</span><br><span class="line">             <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">         &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">         proclen = (<span class="keyword">size_t</span>)ret;</span><br><span class="line"></span><br><span class="line">         in += proclen;</span><br><span class="line">         in_len -= proclen;</span><br><span class="line"></span><br><span class="line">         <span class="keyword">if</span>(inflate_flags &amp; NGHTTP2_HD_INFLATE_EMIT) &#123;</span><br><span class="line">             fwrite(nv.name, <span class="number">1</span>, nv.namelen, <span class="built_in">stdout</span>);</span><br><span class="line">             <span class="built_in">fprintf</span>(<span class="built_in">stdout</span>, <span class="string">": "</span>);</span><br><span class="line">             fwrite(nv.value, <span class="number">1</span>, nv.valuelen, <span class="built_in">stdout</span>);</span><br><span class="line">             <span class="built_in">fprintf</span>(<span class="built_in">stdout</span>, <span class="string">"\n"</span>);</span><br><span class="line">         &#125;</span><br><span class="line"></span><br><span class="line">         <span class="keyword">if</span>(inflate_flags &amp; NGHTTP2_HD_INFLATE_FINAL) &#123;</span><br><span class="line">             nghttp2_hd_inflate_end_headers(inflater);</span><br><span class="line">             <span class="keyword">break</span>;</span><br><span class="line">         &#125;</span><br><span class="line"></span><br><span class="line">         <span class="keyword">if</span>((inflate_flags &amp; NGHTTP2_HD_INFLATE_EMIT) == <span class="number">0</span> &amp;&amp; in_len == <span class="number">0</span>) &#123;</span><br><span class="line">             <span class="keyword">break</span>;</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * data_frame:    处理data帧</span></span><br><span class="line"><span class="comment"> * buf：          指向帧数据开始的地方</span></span><br><span class="line"><span class="comment"> * f：            帧信息结构体</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"> </span><br><span class="line"> <span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">data_frame</span><span class="params">(<span class="keyword">uint8_t</span> *buf, struct frame_info* f)</span> </span>&#123;</span><br><span class="line">     assert(buf &amp;&amp; f);</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">int</span> offset = <span class="number">0</span>;</span><br><span class="line">     <span class="keyword">int</span> padded_len = <span class="number">0</span>;</span><br><span class="line">     <span class="keyword">int</span> data_length = <span class="number">0</span>;</span><br><span class="line">     <span class="keyword">int</span> length = f-&gt;length;</span><br><span class="line">     <span class="keyword">int</span> flags  = f-&gt;flags;</span><br><span class="line">     <span class="keyword">uint8_t</span> *data = buf;</span><br><span class="line">     </span><br><span class="line">     <span class="comment">/* PADDED */</span></span><br><span class="line">     <span class="keyword">if</span>((flags &amp; (<span class="number">1</span> &lt;&lt; <span class="number">3</span>)) &amp;&amp; (length &gt; <span class="number">0</span>)) &#123;</span><br><span class="line">         offset += <span class="number">1</span>;</span><br><span class="line">         padded_len = buf[<span class="number">0</span>];</span><br><span class="line">     &#125;</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">if</span>(offset &gt;= length) &#123;</span><br><span class="line">         <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">     &#125;</span><br><span class="line">     </span><br><span class="line">     data += offset;</span><br><span class="line">     data_length = length - offset - padded_len;</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">if</span>(data_length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">         fwrite(data, <span class="number">1</span>, data_length, <span class="built_in">stdout</span>);</span><br><span class="line">     &#125;</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * headers_frame: 处理headers帧</span></span><br><span class="line"><span class="comment"> * buf：          指向帧数据开始的地方</span></span><br><span class="line"><span class="comment"> * f：            帧信息结构体</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">headers_frame</span><span class="params">(<span class="keyword">uint8_t</span> *buf, struct frame_info* f)</span> </span>&#123;</span><br><span class="line">     assert(buf &amp;&amp; f);</span><br><span class="line"></span><br><span class="line">     <span class="keyword">int</span> ret = <span class="number">0</span>;</span><br><span class="line">     <span class="keyword">int</span> offset = <span class="number">0</span>;</span><br><span class="line">     <span class="keyword">int</span> padded_len = <span class="number">0</span>;</span><br><span class="line">     <span class="keyword">int</span> header_len = <span class="number">0</span>;</span><br><span class="line">     <span class="keyword">int</span> length = f-&gt;length;</span><br><span class="line">     <span class="keyword">int</span> flags  = f-&gt;flags;</span><br><span class="line">     <span class="keyword">uint8_t</span> *head_block = buf;</span><br><span class="line">     </span><br><span class="line">     <span class="comment">/* PADDED */</span></span><br><span class="line">     <span class="keyword">if</span>((flags &amp; (<span class="number">1</span> &lt;&lt; <span class="number">3</span>)) &amp;&amp; (length &gt; <span class="number">0</span>)) &#123;</span><br><span class="line">         offset += <span class="number">1</span>;</span><br><span class="line">         padded_len = buf[<span class="number">0</span>];</span><br><span class="line">     &#125;</span><br><span class="line">     </span><br><span class="line">     <span class="comment">/* priority */</span> </span><br><span class="line">     <span class="keyword">if</span>(flags &amp; (<span class="number">1</span> &lt;&lt; <span class="number">5</span>)) &#123;</span><br><span class="line">         offset += <span class="number">5</span>;</span><br><span class="line">     &#125;</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">if</span>(offset &gt;= length) &#123;</span><br><span class="line">         <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">     &#125;</span><br><span class="line">     </span><br><span class="line">     head_block += offset;</span><br><span class="line">     header_len = length - offset - padded_len;</span><br><span class="line">     </span><br><span class="line">     nghttp2_hd_inflater *inflater;</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">do</span> &#123;</span><br><span class="line">         <span class="keyword">if</span>((ret = nghttp2_hd_inflate_new(&amp;inflater)) != <span class="number">0</span>) &#123;</span><br><span class="line">             <span class="built_in">printf</span>(<span class="string">"nghttp2_hd_inflate_init failed with error: %s\n"</span>, nghttp2_strerror(ret));</span><br><span class="line">             <span class="keyword">break</span>;</span><br><span class="line">         &#125;</span><br><span class="line">     </span><br><span class="line">         <span class="keyword">if</span>((ret = inflate_header_block(inflater, head_block, header_len, <span class="number">1</span>)) != <span class="number">0</span>) &#123;</span><br><span class="line">             <span class="built_in">printf</span>(<span class="string">"inflate_header_block error\n"</span>);</span><br><span class="line">             <span class="keyword">break</span>;</span><br><span class="line">         &#125;</span><br><span class="line">     &#125; <span class="keyword">while</span>(<span class="number">0</span>);</span><br><span class="line">     </span><br><span class="line">     nghttp2_hd_inflate_del(inflater);</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">return</span> ret;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">priority_frame</span><span class="params">(<span class="keyword">uint8_t</span> *buf, struct frame_info* f)</span> </span>&#123;</span><br><span class="line">     assert(buf &amp;&amp; f);</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">rst_stream_frame</span><span class="params">(<span class="keyword">uint8_t</span> *buf, struct frame_info* f)</span> </span>&#123;</span><br><span class="line">     assert(buf &amp;&amp; f);</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">settings_frame</span><span class="params">(<span class="keyword">uint8_t</span> *buf, struct frame_info* f)</span> </span>&#123;</span><br><span class="line">     <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">push_promise_frame</span><span class="params">(<span class="keyword">uint8_t</span> *buf, struct frame_info* f)</span> </span>&#123;</span><br><span class="line">     assert(buf &amp;&amp; f);</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">ping_frame</span><span class="params">(<span class="keyword">uint8_t</span> *buf, struct frame_info* f)</span> </span>&#123;</span><br><span class="line">     assert(buf &amp;&amp; f);</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">goaway_frame</span><span class="params">(<span class="keyword">uint8_t</span> *buf, struct frame_info* f)</span> </span>&#123;</span><br><span class="line">     assert(buf &amp;&amp; f);</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">window_update_frame</span><span class="params">(<span class="keyword">uint8_t</span> *buf, struct frame_info* f)</span> </span>&#123;</span><br><span class="line">     assert(buf &amp;&amp; f);</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">continuation_frame</span><span class="params">(<span class="keyword">uint8_t</span> *buf, struct frame_info* f)</span> </span>&#123;</span><br><span class="line">     assert(buf &amp;&amp; f);</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * 每一种帧，对应一种处理函数</span></span><br><span class="line"><span class="comment"> * type:      帧的类型</span></span><br><span class="line"><span class="comment"> * type_name: 帧的名称</span></span><br><span class="line"><span class="comment"> * flags:     帧的标志</span></span><br><span class="line"><span class="comment"> * length:    帧的长度</span></span><br><span class="line"><span class="comment"> * func:      帧的处理函数</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">frame_info</span> <span class="title">frame</span>[] = &#123;</span></span><br><span class="line">     &#123;<span class="number">0x0</span>, <span class="string">"data"</span>,          <span class="number">0</span>, <span class="number">0</span>, data_frame         &#125;,</span><br><span class="line">     &#123;<span class="number">0x1</span>, <span class="string">"headers"</span>,       <span class="number">0</span>, <span class="number">0</span>, headers_frame      &#125;,</span><br><span class="line">     &#123;<span class="number">0x2</span>, <span class="string">"priority"</span>,      <span class="number">0</span>, <span class="number">0</span>, priority_frame     &#125;,</span><br><span class="line">     &#123;<span class="number">0x3</span>, <span class="string">"rst_stream"</span>,    <span class="number">0</span>, <span class="number">0</span>, rst_stream_frame   &#125;,</span><br><span class="line">     &#123;<span class="number">0x4</span>, <span class="string">"settings"</span>,      <span class="number">0</span>, <span class="number">0</span>, settings_frame     &#125;,</span><br><span class="line">     &#123;<span class="number">0x5</span>, <span class="string">"push_promise"</span>,  <span class="number">0</span>, <span class="number">0</span>, push_promise_frame &#125;,</span><br><span class="line">     &#123;<span class="number">0x6</span>, <span class="string">"ping"</span>,          <span class="number">0</span>, <span class="number">0</span>, ping_frame         &#125;,</span><br><span class="line">     &#123;<span class="number">0x7</span>, <span class="string">"goaway"</span>,        <span class="number">0</span>, <span class="number">0</span>, goaway_frame       &#125;,</span><br><span class="line">     &#123;<span class="number">0x8</span>, <span class="string">"window_update"</span>, <span class="number">0</span>, <span class="number">0</span>, window_update_frame&#125;,</span><br><span class="line">     &#123;<span class="number">0x9</span>, <span class="string">"continuation"</span>,  <span class="number">0</span>, <span class="number">0</span>, continuation_frame &#125;</span><br><span class="line"> &#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * get_file_size: 获得输入文件的大小</span></span><br><span class="line"><span class="comment"> * fd：           打开文件的描述符</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">static</span> size_t <span class="title">get_file_size</span><span class="params">(<span class="keyword">int</span> fd)</span> </span>&#123;</span><br><span class="line">     <span class="class"><span class="keyword">struct</span> <span class="title">stat</span> <span class="title">file_stat</span>;</span></span><br><span class="line">     </span><br><span class="line">     <span class="keyword">if</span>(fstat(fd, &amp;file_stat) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">         <span class="built_in">printf</span>(<span class="string">"stat error"</span>);</span><br><span class="line">         <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     <span class="keyword">return</span> file_stat.st_size;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * print_hex: 以十六进制，打印原始文件的内容</span></span><br><span class="line"><span class="comment"> * buf：      文件的内容</span></span><br><span class="line"><span class="comment"> * buf_len：  文件的长度</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">print_hex</span><span class="params">(<span class="keyword">uint8_t</span> *buf, <span class="keyword">size_t</span> buf_len)</span> </span>&#123;</span><br><span class="line">     assert(buf &amp;&amp; buf_len &gt; <span class="number">0</span>);</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">size_t</span> i;</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; buf_len; ++i) &#123;</span><br><span class="line">         <span class="keyword">if</span> ((i &amp; <span class="number">0x0f</span>u) == <span class="number">0</span>) &#123;</span><br><span class="line">             <span class="built_in">printf</span>(<span class="string">"%08zX: "</span>, i);</span><br><span class="line">         &#125;   </span><br><span class="line"></span><br><span class="line">         <span class="built_in">printf</span>(<span class="string">"%02X "</span>, buf[i]);</span><br><span class="line"></span><br><span class="line">         <span class="keyword">if</span> (((i + <span class="number">1</span>) &amp; <span class="number">0x0f</span>u) == <span class="number">0</span>) &#123;</span><br><span class="line">             <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * process_frame: 调用帧类型的处理函数</span></span><br><span class="line"><span class="comment"> * buf：          指向帧数据开始的地方</span></span><br><span class="line"><span class="comment"> * f：            帧信息结构体</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">process_frame</span><span class="params">(<span class="keyword">uint8_t</span> *buf, struct frame_info* f)</span> </span>&#123;  </span><br><span class="line">     assert(buf &amp;&amp; f);</span><br><span class="line">     </span><br><span class="line">     <span class="built_in">printf</span>(<span class="string">"\n------------- %s frame -------------\n"</span>, f-&gt;type_name);</span><br><span class="line">     <span class="keyword">return</span> f-&gt;func(buf, f);</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> <span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">     <span class="keyword">uint8_t</span> *buf;</span><br><span class="line">     <span class="keyword">size_t</span> buf_len;</span><br><span class="line">     FILE *fp;</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">if</span>(argc != <span class="number">2</span>) &#123;</span><br><span class="line">         <span class="built_in">printf</span>(<span class="string">"usage: %s &lt;input_file&gt;\n"</span>, argv[<span class="number">0</span>]);</span><br><span class="line">         <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">     &#125;</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">if</span>((fp = fopen(argv[<span class="number">1</span>], <span class="string">"r"</span>)) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">         <span class="built_in">printf</span>(<span class="string">"fopen error"</span>);</span><br><span class="line">         <span class="keyword">return</span> <span class="number">-1</span>; </span><br><span class="line">     &#125;</span><br><span class="line">     </span><br><span class="line">     buf_len = get_file_size(fileno(fp));  </span><br><span class="line">     <span class="keyword">if</span>((buf = <span class="built_in">malloc</span>(buf_len)) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">         <span class="built_in">printf</span>(<span class="string">"malloc error"</span>);</span><br><span class="line">         <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">     &#125;</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">do</span> &#123;</span><br><span class="line">         <span class="keyword">int</span> data_offset = <span class="number">0</span>;</span><br><span class="line">         <span class="keyword">if</span>(fread(buf, <span class="keyword">sizeof</span>(<span class="keyword">uint8_t</span>), buf_len, fp) != buf_len) &#123;</span><br><span class="line">             <span class="built_in">printf</span>(<span class="string">"fread error"</span>);</span><br><span class="line">             <span class="keyword">break</span>;</span><br><span class="line">         &#125;</span><br><span class="line">     </span><br><span class="line">         print_hex(buf, buf_len);</span><br><span class="line">         </span><br><span class="line">         <span class="keyword">uint8_t</span> *tmp_buf = buf;</span><br><span class="line">         </span><br><span class="line">         <span class="keyword">while</span>(buf_len &gt; <span class="number">0</span>) &#123;</span><br><span class="line">             </span><br><span class="line">             <span class="comment">/* 帧头包含9个字节 */</span></span><br><span class="line">             <span class="keyword">if</span>(!tmp_buf || buf_len &lt;= <span class="number">9</span>) &#123;</span><br><span class="line">                 <span class="built_in">printf</span>(<span class="string">"frame format error\n"</span>);</span><br><span class="line">                 <span class="keyword">break</span>;</span><br><span class="line">             &#125;</span><br><span class="line">             </span><br><span class="line">             <span class="keyword">int</span> length = <span class="number">0</span>;</span><br><span class="line">             <span class="keyword">int</span> type = <span class="number">0</span>;</span><br><span class="line">             <span class="keyword">int</span> flags = <span class="number">0</span>;</span><br><span class="line">             <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">             </span><br><span class="line">             <span class="comment">/* 帧的类型 */</span></span><br><span class="line">             type = tmp_buf[<span class="number">3</span>];</span><br><span class="line">             </span><br><span class="line">             <span class="comment">/* 帧的数据长度 */</span></span><br><span class="line">             length = ((tmp_buf[<span class="number">0</span>] &lt;&lt; <span class="number">16</span>) | (tmp_buf[<span class="number">1</span>] &lt;&lt; <span class="number">8</span>) | tmp_buf[<span class="number">2</span>]);</span><br><span class="line">             </span><br><span class="line">             <span class="comment">/* 帧的标志 */</span></span><br><span class="line">             flags = tmp_buf[<span class="number">4</span>];</span><br><span class="line">             </span><br><span class="line">             <span class="keyword">if</span>(length + <span class="number">9</span> &gt; buf_len) &#123;</span><br><span class="line">                 <span class="built_in">printf</span>(<span class="string">"frame length error\n"</span>);</span><br><span class="line">                 <span class="keyword">break</span>;</span><br><span class="line">             &#125;</span><br><span class="line">             </span><br><span class="line">             tmp_buf += <span class="number">9</span>;</span><br><span class="line">             buf_len -= <span class="number">9</span>;</span><br><span class="line">             </span><br><span class="line">             <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; ARRAR_SIZE(frame); ++i) &#123;</span><br><span class="line">                 <span class="keyword">if</span>(frame[i].type == type) &#123;</span><br><span class="line">                     frame[i].length = length;</span><br><span class="line">                     frame[i].flags  = flags;</span><br><span class="line">                     <span class="keyword">break</span>;</span><br><span class="line">                 &#125;</span><br><span class="line">             &#125;</span><br><span class="line">             </span><br><span class="line">             <span class="keyword">if</span>(i == ARRAR_SIZE(frame)) &#123;</span><br><span class="line">                 <span class="built_in">printf</span>(<span class="string">"frame type error\n"</span>);</span><br><span class="line">                 <span class="keyword">break</span>;</span><br><span class="line">             &#125;</span><br><span class="line">             </span><br><span class="line">             <span class="comment">/* 处理当前帧 */</span></span><br><span class="line">             <span class="keyword">if</span>(process_frame(tmp_buf, &amp;frame[i]) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">                 <span class="keyword">break</span>;</span><br><span class="line">             &#125;</span><br><span class="line">             </span><br><span class="line">             <span class="comment">/* 下一个帧，如：服务器回应的数据包括headers帧和data帧 */</span></span><br><span class="line">             tmp_buf += length;</span><br><span class="line">             buf_len -= length ;</span><br><span class="line">         &#125;</span><br><span class="line">     &#125; <span class="keyword">while</span>(<span class="number">0</span>);</span><br><span class="line">     </span><br><span class="line">     <span class="built_in">free</span>(buf);</span><br><span class="line">     fclose(fp);</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p><strong>编译程序：</strong></p>
+<pre><code>gcc inflate.c -lnghttp2
+</code></pre><p><strong>运行程序：</strong></p>
+<pre><code>./a.out header.bin
+</code></pre><p><strong>输出：</strong></p>
+<pre><code>00000000: 00 00 E3 01 25 00 00 00 0D 00 00 00 0B 1F 82 05 
+00000010: 85 62 72 D1 41 D8 41 8E F1 E3 C2 F3 97 B1 AA 9A 
+00000020: 83 0E A9 97 21 E9 87 7A BA D0 7F 66 A2 81 B0 DA 
+00000030: E0 53 FA FC 08 7E D4 E1 1D B5 26 DF B5 33 9A AB 
+00000040: 7C A9 E5 E7 22 71 AF B5 2C EF 71 B0 2E 0F ED 4C 
+00000050: 45 27 53 B0 20 04 00 08 02 A6 13 58 59 4F E5 86 
+00000060: C0 B8 3F 53 B0 49 7C A5 89 D3 4D 1F 43 AE BA 0C 
+00000070: 41 A4 C7 A9 8F 33 A6 9A 3F DF 9A 68 FA 1D 75 D0 
+00000080: 62 0D 26 3D 4C 79 A6 8F BE D0 01 77 FE BE 58 F9 
+00000090: FB ED 00 17 7B 51 8B 2D 4B 70 DD F4 5A BE FB 40 
+000000A0: 05 DB 50 8D 9B D9 AB FA 52 42 CB 40 D2 5F A5 23 
+000000B0: B3 40 92 B6 B9 AC 1C 85 58 D5 20 A4 B6 C2 AD 61 
+000000C0: 7B 5A 54 25 1F 81 0F 68 96 DF 3D BF 4A 04 4A 43 
+000000D0: 5D 8A 08 01 79 40 BD 71 A6 6E 08 0A 62 D1 BF 69 
+000000E0: 8B FE 5B 19 25 1B C4 79 60 8C 7F CF 00 00 04 08 
+000000F0: 00 00 00 00 0D 00 BE 00 00 
+
+------------- headers frame -------------
+:method: GET
+:path: /hello/
+:authority: www.heqingliang.com
+:scheme: https
+user-agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 Firefox/50.0
+accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+accept-language: en-US,en;q=0.5
+accept-encoding: gzip, deflate, br
+upgrade-insecure-requests: 1
+if-modified-since: Thu, 12 Apr 2018 18:43:20 GMT
+if-none-match: &quot;5acfa8c8-1aa&quot;
+
+------------- window_update frame -------------
+</code></pre><h4 id="DATA帧"><a href="#DATA帧" class="headerlink" title="DATA帧"></a>DATA帧</h4><p>一个或多个DATA帧(type = 0x0)作为请求、响应内容载体:</p>
+<p><img src="/images/http2/http2_data.png" alt="http2_data.png"></p>
+<p><strong>Pad Length：</strong>  一个字节表示填充的字节长度，取决于<code>PADDED</code>(<code>flags</code>标志中第3位)标志是否被设置。</p>
+<p><strong>Data：</strong> 应用数据，真正大小需要减去其他字段（比如填充长度和填充内容）长度。</p>
+<p><strong>Padding:</strong> 填充内容为若干个0x0字节，受<code>PADDED</code>(<code>flags</code>标志中第3位)标志控制是否设置。接收端处理时可忽略验证填充内容。</p>
+<p> <strong>标志位END_STREAM (0x1):</strong> 标志此帧为对应标志流最后一个帧，流进入了半关闭/关闭状态。</p>
+<p>如图是服务器返回的数据：</p>
+<p><img src="/images/http2/http2_data_frame.png" alt="http2_data_frame.png"></p>
+<p>把上面的服务器返回的数据导出字节流，运行上面的程序，输出以下结果：</p>
+<pre><code>00000000: 00 00 6B 01 04 00 00 00 11 88 76 89 AA 63 55 E5 
+00000010: 80 AE 11 2E 2F 61 96 E4 59 3E 94 0B CA 43 5D 8A 
+00000020: 08 01 79 40 0A E3 40 B8 16 94 C5 A3 7F 5F 87 49 
+00000030: 7C A5 89 D3 4D 1F 5C 03 31 31 39 6C 96 DD 6D 5F 
+00000040: 4A 01 E5 21 AE C5 04 00 BC A0 03 70 0F 5C 13 CA 
+00000050: 62 D1 BF 00 83 2A 47 37 8B FE 5B 19 1F 72 37 88 
+00000060: B3 AE FF 3F 00 89 19 08 5A D2 B5 83 AA 62 A3 84 
+00000070: 8F D2 4A 8F 00 00 77 00 01 00 00 00 11 3C 68 74 
+00000080: 6D 6C 3E 0D 0A 3C 68 65 61 64 3E 0D 0A 20 20 20 
+00000090: 20 3C 74 69 74 6C 65 3E 48 6F 6D 65 3C 2F 74 69 
+000000A0: 74 6C 65 3E 0D 0A 3C 2F 68 65 61 64 3E 0D 0A 3C 
+000000B0: 62 6F 64 79 3E 0D 0A 20 20 20 20 3C 68 31 20 73 
+000000C0: 74 79 6C 65 3D 22 66 6F 6E 74 2D 73 74 79 6C 65 
+000000D0: 3A 69 74 61 6C 69 63 22 3E 48 6F 6D 65 3C 2F 68 
+000000E0: 31 3E 0D 0A 3C 2F 62 6F 64 79 3E 0D 0A 3C 2F 68 
+000000F0: 74 6D 6C 3E 
+
+------------- headers frame -------------
+:status: 200
+server: nginx/1.12.2
+date: Wed, 18 Apr 2018 02:40:14 GMT
+content-type: text/html
+content-length: 119
+last-modified: Sun, 08 Apr 2018 01:08:28 GMT
+etag: &quot;5ac96b8c-77&quot;
+accept-ranges: bytes
+
+------------- data frame -------------
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Home&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1 style=&quot;font-style:italic&quot;&gt;Home&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre><p>其他数据帧的格式可以参考<a href="http://httpwg.org/specs/rfc7540.html#HEADERS" target="_blank" rel="noopener">RFC</a>。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/10/database_02/" rel="next" title="MySQL数据库基础(二)">
+                <i class="fa fa-chevron-left"></i> MySQL数据库基础(二)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#HTTP-2-帧的特性"><span class="nav-number">1.</span> <span class="nav-text">HTTP/2 帧的特性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#二进制分帧"><span class="nav-number">1.1.</span> <span class="nav-text">二进制分帧</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#header压缩"><span class="nav-number">1.2.</span> <span class="nav-text">header压缩</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#多路复用"><span class="nav-number">1.3.</span> <span class="nav-text">多路复用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#服务器推送"><span class="nav-number">1.4.</span> <span class="nav-text">服务器推送</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#更安全的SSL"><span class="nav-number">1.5.</span> <span class="nav-text">更安全的SSL</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HTTP-2性能"><span class="nav-number">2.</span> <span class="nav-text">HTTP/2性能</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nginx-HTTP-2-0-配置"><span class="nav-number">3.</span> <span class="nav-text">nginx HTTP/2.0 配置</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#安装nginx"><span class="nav-number">3.1.</span> <span class="nav-text">安装nginx</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置运行"><span class="nav-number">3.2.</span> <span class="nav-text">配置运行</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HTTP-2-帧格式"><span class="nav-number">4.</span> <span class="nav-text">HTTP/2 帧格式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#帧头"><span class="nav-number">4.1.</span> <span class="nav-text">帧头</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HEADERS-帧"><span class="nav-number">4.2.</span> <span class="nav-text">HEADERS 帧</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HPACK"><span class="nav-number">4.3.</span> <span class="nav-text">HPACK</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DATA帧"><span class="nav-number">4.4.</span> <span class="nav-text">DATA帧</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
