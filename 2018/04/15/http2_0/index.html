@@ -98,12 +98,12 @@
 <meta property="og:image" content="http://yoursite.com/images/http2/http2_pcap.png">
 <meta property="og:image" content="http://yoursite.com/images/http2/frame_format.png">
 <meta property="og:image" content="http://yoursite.com/images/http2/frame_type.png">
-<meta property="og:image" content="http://yoursite.com/images/http2/http2_request.png">
+<meta property="og:image" content="http://yoursite.com/images/http2/http2_header.png">
 <meta property="og:image" content="http://yoursite.com/images/http2/http2_header_not_priority.png">
 <meta property="og:image" content="http://yoursite.com/images/http2/http2_header_priority.png">
 <meta property="og:image" content="http://yoursite.com/images/http2/http2_data.png">
 <meta property="og:image" content="http://yoursite.com/images/http2/http2_data_frame.png">
-<meta property="og:updated_time" content="2018-04-19T19:42:08.000Z">
+<meta property="og:updated_time" content="2018-04-19T22:39:55.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="HTTP&#x2F;2 协议">
 <meta name="twitter:description" content="HTTP/2（HTTP/2.0）即超文本传输协议 2.0，是下一代HTTP协议。相对于HTTP/1.x协议的文本传输格式，HTTP/2以二进制的格式进行数据传输。因此，具有更小的传输体积以及负载，相比于文本解析，二进制解析更加方便、高效。HTTP/2与HTTP/1.x相比具有如下特性：">
@@ -397,7 +397,7 @@ sudo ./nginx
 <p><strong>帧保留比特位(R):</strong> HTTP/2语境下为保留的比特位，固定值为0X0。</p>
 <p><strong>流标识符(Stream Identifier):</strong> 无符号的31比特表示无符号自然数。0x0值表示为帧仅作用于连接，不隶属于单独的流。</p>
 <h4 id="HEADERS-帧"><a href="#HEADERS-帧" class="headerlink" title="HEADERS 帧"></a>HEADERS 帧</h4><p>报头(type = 0x1)主要载体，请求头或响应头。</p>
-<p><img src="/images/http2/http2_request.png" alt="http2_request.png"></p>
+<p><img src="/images/http2/http2_header.png" alt="http2_header.png"></p>
 <p><strong>Pad Length：</strong> 受制于<code>PADDED</code>标志(<code>flags</code>标志中第3位)控制是否设置，8个比特表示填充的字节数。</p>
 <p><strong>E：</strong> 一个比特表示流依赖是否专用，可选项，只在流优先级<code>PRIORITY</code>(<code>flags</code>标志中第5位)被设置时有效。</p>
 <p><strong>Stream Dependency：</strong> 31个比特表示流依赖，只在流优先级<code>PRIORITY</code>(<code>flags</code>标志中第5位)被设置时有效。</p>
