@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="buffers/cachefree命令Linux下的free命令是显示当前内存的使用，-m代表用MB字节显示，-g代表用GB字节显示：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux下的buffers&#x2F;cache&#x2F;swap">
+<meta property="og:url" content="http://yoursite.com/2018/04/28/buffer_cache_swap/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="buffers/cachefree命令Linux下的free命令是显示当前内存的使用，-m代表用MB字节显示，-g代表用GB字节显示：">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-05-01T03:41:53.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux下的buffers&#x2F;cache&#x2F;swap">
+<meta name="twitter:description" content="buffers/cachefree命令Linux下的free命令是显示当前内存的使用，-m代表用MB字节显示，-g代表用GB字节显示：">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/04/28/buffer_cache_swap/"/>
+
+
+
+
+
+  <title>Linux下的buffers/cache/swap | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/28/buffer_cache_swap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Linux下的buffers/cache/swap</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-28T00:00:00+08:00">
+                2018-04-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<h2 id="buffers-cache"><a href="#buffers-cache" class="headerlink" title="buffers/cache"></a>buffers/cache</h2><h3 id="free命令"><a href="#free命令" class="headerlink" title="free命令"></a>free命令</h3><p>Linux下的<code>free</code>命令是显示当前内存的使用，<code>-m</code>代表用MB字节显示，<code>-g</code>代表用GB字节显示：</p>
+<a id="more"></a>
+<pre><code># free -m
+             total       used       free     shared    buffers     cached
+Mem:         48258      48008        250          0         30      33333
+-/+ buffers/cache:      14643      33614
+Swap:        24199       6245      17954  
+
+# free -g
+             total       used       free     shared    buffers     cached
+Mem:            47         46          0          0          0         32
+-/+ buffers/cache:         14         32
+Swap:           23          6         17
+</code></pre><h3 id="参数详解"><a href="#参数详解" class="headerlink" title="参数详解"></a>参数详解</h3><h4 id="第一部分Mem行："><a href="#第一部分Mem行：" class="headerlink" title="第一部分Mem行："></a>第一部分Mem行：</h4><ul>
+<li><strong>total：</strong> 内存总数： 48258MB -&gt; 47G</li>
+<li><strong>used：</strong>  已经使用的内存数：  48008 -&gt; 46G</li>
+<li><strong>free：</strong>  空闲的内存数：  250MB -&gt; 0G</li>
+<li><strong>shared：</strong>  当前已经废弃不用，总是0：  0MB -&gt; 0G</li>
+<li><strong>buffers：</strong>  缓存内存数： 30MB -&gt; 0G</li>
+<li><strong>cached：</strong>  缓存内存数： 33333MB -&gt; 32G</li>
+</ul>
+<p>可以看到free(空闲的内存数)的内存数只有250MB，内存大部分被buffers/cache使用了，这只是对 <strong>操作系统</strong> 层面来说的。在Linux系统中有这么一种思想，内存不用白不用，因此它尽可能的cache和buffer一些数据，以便于提高IO性能。<strong>但实际上这些内存应用程序还是可以立刻拿来使用的。</strong></p>
+<h4 id="第二部分-buffers-cache-行："><a href="#第二部分-buffers-cache-行：" class="headerlink" title="第二部分(-/+ buffers/cache)行："></a>第二部分(-/+ buffers/cache)行：</h4><p>在Linux系统中，为了提高文件系统性能，内核利用一部分物理内存分配出缓存，用于缓存系统读写过的数据文件，这样可以提高IO性能。</p>
+<p>上面的 <strong>-/+ buffers/cache</strong> 可以分为： <strong>-buffers/cache</strong>、<strong>+buffers/cache</strong></p>
+<ul>
+<li><strong>-buffers/cache：</strong> used内存数： 14643MB -&gt; 14G</li>
+<li><strong>+buffers/cache：</strong> free内存数： 33614MB -&gt; 32G</li>
+</ul>
+<p>可见<strong>-buffers/cache</strong> 反映的是被程序实实在在吃掉的内存总数(14G)，而 <strong>+buffers/cache：</strong> 反映的是可以使用的内存总数(32G)。</p>
+<p>也就是对<strong>操作系统</strong>来说： <strong>buffers/cache</strong> 都是被使用的，所以它认为 <strong>free</strong> 都只有250MB。但是对 <strong>应用程序</strong> 来说: <strong>free</strong> 和 <strong>buffers/cache</strong> 是可以使用的，如果调用内存分配函数(<code>malloc</code>、<code>new</code>)，这部分内存还是可以分配的。</p>
+<h5 id="测试程序"><a href="#测试程序" class="headerlink" title="测试程序"></a>测试程序</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *buf = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span> count = <span class="number">16</span> * <span class="number">1024</span>;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span> buf_size = <span class="number">1024</span> * <span class="number">1024</span>;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; count; ++i) &#123;</span><br><span class="line">        <span class="keyword">if</span>((buf = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">char</span>) * buf_size)) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"malloc failed\n"</span>);</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">memset</span>(buf, <span class="string">'m'</span>, buf_size);</span><br><span class="line"></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"malloc successful\n"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"waiting stop......\n"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的程序很简单，每次申请 <strong>1024 * 1024(1M)</strong> 的内存，申请 <strong>16 * 1024</strong>次， 也就是总共申请了 <strong>16G</strong> 的内存。在每次申请完内存后调用<code>memset</code>函数， <strong>注意</strong> ，如果在申请完内存后。如果不使用这块内存的话，系统是不会给你的程序分配内存的，也就是说只有你真正使用到了这块内存，系统才会为你的程序分配，这就是上面为什么要使用<code>memset</code>函数的原因。</p>
+<p><strong>编译程序：</strong></p>
+<pre><code>gcc test.c
+</code></pre><p><strong>查看程序运行前的内存使用情况，并运行程序：</strong></p>
+<pre><code># free -g
+             total       used       free     shared    buffers     cached
+Mem:            47         46          0          0          0         32
+-/+ buffers/cache:         14         32
+Swap:           23          6         17
+# 
+# ./a.out
+</code></pre><p><strong>输出结果：</strong></p>
+<pre><code>malloc successful
+malloc successful
+malloc successful
+malloc successful
+malloc successful
+malloc successful
+malloc successful
+malloc successful
+malloc successful
+malloc successful
+malloc successful
+malloc successful
+waiting stop......
+</code></pre><p><strong>使用free查看内存的使用情况：</strong></p>
+<pre><code># free -g
+             total       used       free     shared    buffers     cached
+Mem:            47         46          0          0          0         16
+-/+ buffers/cache:         30         16
+Swap:           23          6         17
+</code></pre><p>可以看到在上面 <strong>free</strong> 只有 <strong>0G</strong> 的情况下，程序依然可以申请成功(<strong>16G内存</strong>), <strong>cached</strong> 由原先的 <strong>32g</strong> 减少到了 <strong>16G</strong> 。 也就是上面所说的，<strong>cached</strong> 对应用程序来说，是可以真实使用内存的。</p>
+<p><strong>终止程序，查看内存的使用情况：</strong></p>
+<pre><code># free -g
+             total       used       free     shared    buffers     cached
+Mem:            47         30         16          0          0         16
+-/+ buffers/cache:         14         32
+Swap:           23          6         17
+</code></pre><p>可以看到在上面 <strong>free</strong> 变成了 <strong>16G</strong>， <strong>由此可见，cached的内存是可以被程序使用的</strong>。</p>
+<h5 id="什么时候会增加cached的使用量？"><a href="#什么时候会增加cached的使用量？" class="headerlink" title="什么时候会增加cached的使用量？"></a>什么时候会增加cached的使用量？</h5><p>上面说了，<strong>cached</strong> 主用于缓存系统读写过的数据文件。下面写个程序，在测试一下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span> count = <span class="number">16</span> * <span class="number">1024</span> * <span class="number">1024</span>;</span><br><span class="line">    <span class="keyword">char</span> buf[<span class="number">1024</span>];</span><br><span class="line">    FILE *fp = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memset</span>(buf, <span class="string">'m'</span>, <span class="number">1024</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>((fp = fopen(<span class="string">"out.bin"</span>, <span class="string">"a+b"</span>)) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"fopen error\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; count; ++i) &#123;</span><br><span class="line">        <span class="keyword">if</span>(fwrite(buf, <span class="number">1</span>, <span class="number">1024</span>, fp) != <span class="number">1024</span>) &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"fwrite error\n"</span>);</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>程序很简单，最后的结果就是创建一个 <strong>16G</strong> 的<code>out.bin</code>文件。</p>
+<p><strong>运行程序前，查看内存使用的情况，程序运行结束后，创建了一个16G的文件：</strong></p>
+<pre><code># free -g
+             total       used       free     shared    buffers     cached
+Mem:            47         30         16          0          0         16
+-/+ buffers/cache:         14         32
+Swap:           23          6         17
+#
+# ./a.out
+#    
+# ll out.bin -h
+-rw-r--r-- 1 root root 16G Apr 27 17:10 out.bin
+</code></pre><p><strong>程序运行结束后，使用free查看内存的使用情况：</strong></p>
+<pre><code># free -g
+                 total       used       free     shared    buffers     cached
+Mem:            47         46          0          0          0         32
+-/+ buffers/cache:         14         32
+Swap:           23          6         17
+# 
+</code></pre><p>可以看到 <strong>free</strong> 由原先的 <strong>16G</strong> 变为了 <strong>0G</strong>， <strong>cached</strong> 从原先的 <strong>16G</strong> 增加到了 <strong>32G</strong>。 <strong>由此可见，在读写文件的时候，内核使用内存作为缓存，这就导致了cached的增加，但是这部分内存，对于应用程序来说还是可以使用的。</strong></p>
+<h5 id="清除cached"><a href="#清除cached" class="headerlink" title="清除cached"></a>清除cached</h5><p><strong>cached</strong> 也是可以手动清除的，但是伴随着 <strong>cached</strong> 的清除， 会使系统的IO飚高、系统的性能会急剧下降。</p>
+<p>下面这个文件可以用来清除 <strong>cached</strong>：</p>
+<pre><code># cat /proc/sys/vm/drop_caches 
+0
+</code></pre><p><strong>使用下面的操作：</strong></p>
+<pre><code>echo 1 &gt; /proc/sys/vm/drop_caches
+</code></pre><ul>
+<li><strong>echo 1 &gt; /proc/sys/vm/drop_caches：</strong>  表示清除pagecache。</li>
+<li><strong>echo 2 &gt; /proc/sys/vm/drop_caches：</strong>  表示清除回收slab分配器中的对象(包括目录项缓存和inode缓存)。slab分配器是内核管理内存的一种机制。</li>
+<li><strong>echo 3 &gt; /proc/sys/vm/drop_caches：</strong> 表示清除pagecache和slab分配器中的对象。</li>
+</ul>
+<p><strong>清除cached：</strong></p>
+<pre><code># echo 3 &gt; /proc/sys/vm/drop_caches 
+# cat /proc/sys/vm/drop_caches 
+3
+# free -g
+             total       used       free     shared    buffers     cached
+Mem:            47         18         29          0          0          4
+-/+ buffers/cache:         13         33
+Swap:           23          6         17
+</code></pre><p> <strong>cached</strong> 从原先的 <strong>32G</strong> 减少到了 <strong>4G</strong>， <strong>free</strong> 增加到了 <strong>29G</strong>。 </p>
+<h4 id="为什么cached没有被完全清除呢？-有哪些cached是不可以被回收呢？"><a href="#为什么cached没有被完全清除呢？-有哪些cached是不可以被回收呢？" class="headerlink" title="为什么cached没有被完全清除呢？ 有哪些cached是不可以被回收呢？"></a>为什么cached没有被完全清除呢？ 有哪些cached是不可以被回收呢？</h4><h5 id="tmpfs"><a href="#tmpfs" class="headerlink" title="tmpfs"></a>tmpfs</h5><p>Linux提供了一种文件系统叫做 <strong>tmpfs</strong>, 它可以将内存的一部分空间拿来当做文件系统使用，使内存空间可以当做文件来用。手工创建一个 <strong>tmpfs</strong> 。</p>
+<pre><code># mkdir /tmp/tmpfs
+# mount -t tmpfs -o size=16G none /tmp/tmpfs
+# df
+Filesystem           1K-blocks      Used Available Use% Mounted on
+/dev/mapper/VolGroup-lv_root
+                      51606140  48358024    626676  99% /
+tmpfs                 24708300   1729180  22979120   7% /dev/shm
+/dev/sda1               495844     38259    431985   9% /boot
+/dev/mapper/VolGroup-lv_home
+                     1045411708 696662912 295644976  71% /home
+/home/iso/rhel-server-6.4-x86_64-dvd.iso
+                       3632776   3632776         0 100% /mnt/redhat-iso
+none                  16777216         0  16777216   0% /tmp/tmpfs
+</code></pre><p>上面创建了一个新的 <strong>tmpfs</strong>，它的空间是 <strong>16G</strong>。 现在可以在<code>/tmp/tmpfs</code>中创建一个 <strong>16G</strong> 以内的文件，看它占用的是哪部分内存？</p>
+<pre><code># free -g
+             total       used       free     shared    buffers     cached
+Mem:            47         19         28          0          0          5
+-/+ buffers/cache:         13         33
+Swap:           23          6         17
+# 
+# 
+# dd if=/dev/zero of=/tmp/tmpfs/testfile bs=1G count=16
+16+0 records in
+16+0 records out
+17179869184 bytes (17 GB) copied, 19.5241 s, 880 MB/s
+#        
+# free -g
+             total       used       free     shared    buffers     cached
+Mem:            47         35         12          0          0         21
+-/+ buffers/cache:         13         33
+Swap:           23          6         17
+</code></pre><p>在<code>tmpfs</code>目录下创建了一个 <strong>16G</strong> 的文件，并通过前后的<code>free</code>命令的对比发现，<strong>cached</strong> 增长了 <strong>16G</strong>。 现在收到清除 <strong>cached</strong>：</p>
+<pre><code># echo 3 &gt; /proc/sys/vm/drop_caches 
+# free -g
+             total       used       free     shared    buffers     cached
+Mem:            47         35         12          0          0         21
+-/+ buffers/cache:         13         33
+Swap:           23          6         17
+</code></pre><p>可以看到， <strong>cached</strong> 占用的空间并没有被释放，其中 <strong>16G</strong> 的空间仍然被<code>/tmp/tmpfs</code>中的文件占用。那么<code>tmpfs</code>占用的空间什么时候会被释放呢？是在文件被删除的时候，如果不删除文件，无论内存耗尽到什么程度，内核都不会自动帮你把<code>tmpfs</code>中文件删除，来释放 <strong>cached</strong> 的空间。</p>
+<pre><code># rm -rf /tmp/tmpfs/testfile 
+# free -g
+             total       used       free     shared    buffers     cached
+Mem:            47         19         28          0          0          5
+-/+ buffers/cache:         13         33
+Swap:           23          6         17
+</code></pre><p><strong>这是cached第一种不能被回收的情况。</strong></p>
+<h5 id="共享内存"><a href="#共享内存" class="headerlink" title="共享内存"></a>共享内存</h5><p>共享内存是系统提供一种常用的进程间通信(IPC)方式。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/ipc.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/shm.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *buf = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">int</span> shmid;</span><br><span class="line">    <span class="keyword">size_t</span> buf_size = <span class="number">2</span> * <span class="number">1024</span> * <span class="number">1024</span> * <span class="number">1024u</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>((shmid = shmget(<span class="number">0x112234</span>, buf_size, IPC_CREAT | <span class="number">0666</span>)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"shmget error\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>((buf = shmat(shmid, <span class="literal">NULL</span>, <span class="number">0</span>)) == (<span class="keyword">void</span> *)<span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"shmat error"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memset</span>(buf, <span class="string">'m'</span>, buf_size);</span><br><span class="line"></span><br><span class="line">    shmdt(buf);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>程序功能很简单，就是申请了一段 <strong>2G</strong> 共享内存，然后退出程序，但是在退出之前并没有删除这段共享内存。</p>
+<pre><code># free -g
+             total       used       free     shared    buffers     cached
+Mem:            47         17         29          0          0          3
+-/+ buffers/cache:         13         33
+Swap:           23          6         17
+# 
+# ./a.out 
+# free -g
+             total       used       free     shared    buffers     cached
+Mem:            47         19         27          0          0          5
+-/+ buffers/cache:         13         33
+Swap:           23          6         17
+</code></pre><p><strong>cached</strong> 空间由 <strong>3G</strong> 增加到了 <strong>5G</strong>。那么这段 <strong>cached</strong> 能被回收吗？</p>
+<pre><code># echo 3 &gt; /proc/sys/vm/drop_caches 
+# free -g
+             total       used       free     shared    buffers     cached
+Mem:            47         19         27          0          0          5
+-/+ buffers/cache:         13         33
+Swap:           23          6         17
+</code></pre><p>结果是仍然不可回收。这段共享内存即使没人使用，仍然会长期存放在 <strong>cached</strong>， 直到其被删除。</p>
+<pre><code># ipcs -m
+
+------ Shared Memory Segments --------
+key        shmid      owner      perms      bytes      nattch     status      
+0x73005aaa 5111808    root       644        4961048    0                       
+0x73005aab 5144577    root       644        6328       0                       
+0x0063a001 11304962   root       666        84399200   4                       
+0x0064a001 20873219   root       666        986174560  19                      
+0x0063a002 11337732   root       666        84399200   3                       
+0x0063a003 11370501   root       666        84399200   6                       
+0x0063a008 11403270   root       666        10998880   2                       
+0x0063a009 11436039   root       666        1561696    2                       
+0x0063a004 11468808   root       666        42456160   4                       
+0x0063a005 11501577   root       666        21484640   3                       
+0x0063a007 11534346   root       666        42456160   4                       
+0x0063a006 11567115   root       666        84399200   4                       
+0x0064a002 20905996   root       666        52941920   18                      
+0x7b5189bc 1277965    oracle     660        1612709888 348                     
+0x01020002 491534     root       600        2048000000 1                       
+0x73020064 19922959   root       644        4961048    1                       
+0x73020063 19955728   root       644        6328       1                       
+0x00112234 20938769   root       666        2147483648 0                       
+# 
+# 
+# ipcrm -m 20938769
+# 
+# free -g
+             total       used       free     shared    buffers     cached
+Mem:            47         17         29          0          0          3
+-/+ buffers/cache:         13         33
+Swap:           23          6         17
+</code></pre><p>删除共享内存后，<strong>cached</strong> 被正常释放了。</p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ul>
+<li>在Linux系统中，内存是用来用的，不是用来看的。<strong>free</strong>空间变少，<strong>cached</strong> 占用很高，并不代表程序的可用内存减少，<strong>cached</strong>  中的大部分内存，是可以给应用程序<code>malloc</code>使用。只有<code>tmpfs</code>、共享内存才会真正占用 <strong>cached</strong> 的内存空间。</li>
+<li><code>tmpfs</code>中存储的文件会占用 <strong>cached</strong>，除非文件删除，否则这个 <strong>cached</strong> 不会自动释放。 </li>
+<li>共享内存会占用 <strong>cached</strong> 空间，除非共享内存被删除，否则这个 <strong>cached</strong> 不会自动释放。 </li>
+<li><strong>cached</strong> 可以手动清除，但是清除后会影响IO，导致系统性能下降。</li>
+</ul>
+<hr>
+<h2 id="swap"><a href="#swap" class="headerlink" title="swap"></a>swap</h2><p><code>swap</code>分区主要是当物理内存不足时，可以将一部分内存页进行<code>swap</code>操作，<code>swap</code>分区由硬盘提供。但是对于需要高并发、高吞吐的应用来说，磁盘IO通常会成为系统瓶颈。 <strong>在Linux中，并不是要等到所有物理内存都使用完才会使用到swap</strong> ，系统参数<code>swppiness</code>会决定操作系统使<code>swap</code>的倾向程度。<code>swappiness</code>的取值范围是0~100，<code>swappiness</code>的值越大，说明操作系统可能使用<code>swap</code>的概率越高，<code>swappiness</code>值越低，表示操作系统更加倾向于使用物理内存。<code>swap</code>的默认值是60。</p>
+<h3 id="swappines的重要值："><a href="#swappines的重要值：" class="headerlink" title="swappines的重要值："></a><code>swappines</code>的重要值：</h3><ul>
+<li><strong>0：</strong> 在<code>Linux3.5</code>以及以上：宁愿用<code>OOM killer</code>也不用<code>swap</code>。在<code>Linux3.4</code>以及更早：宁愿用<code>swap</code>也不用<code>OOM killer</code>。</li>
+<li><strong>1：</strong> 在<code>Linux3.5</code>以及以上：宁愿用<code>swap</code>也不用<code>OOM killer</code>。</li>
+<li><strong>60：</strong> 默认值</li>
+<li><strong>100：</strong> 操作系统会主动会用<code>swap</code>。</li>
+</ul>
+<p><code>OOM（Out Of Memory）killer</code>机制是指<code>Linux</code>操作系统发现可用内存不足时，强制杀死一些用户进程（非内核进程），来保证系统有足够的可用内存进行分配。</p>
+<h3 id="设置方法"><a href="#设置方法" class="headerlink" title="设置方法"></a>设置方法</h3><pre><code>echo {bestvalue} &gt; /proc/sys/vm/swappiness
+</code></pre><p>但是上述方法在系统重启后就会失效，为了让配置在重启<code>Linux</code>操作系统后立即生效，只需要在<code>/etc/sysctl.conf</code>追加<code>vm.swappiness={bestvalue}</code>即<br>可。</p>
+<pre><code>echo vm.swappiness={bestvalue} &gt;&gt; /etc/sysctl.conf
+</code></pre><h3 id="查看swap的总体情况"><a href="#查看swap的总体情况" class="headerlink" title="查看swap的总体情况"></a>查看swap的总体情况</h3><p><code>Linux</code>提供了<code>free</code>命令来查询操作系统的内存使用情况，其中也包含了<code>swap</code>的相关使用情况。</p>
+<p>最后一行的<code>swap</code>统计，从执行结果看，<code>swap</code>一共有2044MB，使用了0MB，空闲2044MB。</p>
+<pre><code>$ free -m
+            total       used       free     shared    buffers     cached
+Mem:          1983        989        994          8         70        374
+-/+ buffers/cache:        544       1438
+Swap:         2044          0       2044
+</code></pre><h3 id="实时查看swap的使用"><a href="#实时查看swap的使用" class="headerlink" title="实时查看swap的使用"></a>实时查看swap的使用</h3><p><code>Linux</code>提供了<code>vmstat</code>命令查询系统的相关性能指标，其中包含负载、CPU、内存、swap、IO的相关属性。但其中和<code>swap</code>有关的指标是si和so，它们分别代表操作系统的<code>swap in</code>和<code>swap out</code>。下面是执行<code>vmstat</code>（每隔一秒输出）的效果，可以看到<code>si</code>和<code>so</code>都为0，代表当前没有使用<code>swap</code>。</p>
+<pre><code>$ vmstat 1
+procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+0  0      0 975644  72376 394948    0    0  1596    34  134  862  7  4 88  0  0
+0  0      0 975684  72376 394948    0    0     0     0  129  388  4  0 96  0  0
+0  0      0 975684  72376 394948    0    0     0     0  152  644  6  1 93  0  0
+0  0      0 975684  72376 394948    0    0     0     0  107  428  8  1 91  0  0
+0  0      0 975684  72376 394948    0    0     0     0  128  701 10  1 89  0  0
+0  0      0 975684  72376 394948    0    0     0     0  334  719  9  1 89  0  0
+0  0      0 975684  72376 394948    0    0     0     0  312  582  4  3 93  0  0
+0  0      0 975684  72376 394948    0    0     0     0  225  437  5  1 94  0  0
+</code></pre><h3 id="查看指定进程的swap使用情况"><a href="#查看指定进程的swap使用情况" class="headerlink" title="查看指定进程的swap使用情况"></a>查看指定进程的swap使用情况</h3><p><code>Linux</code>操作系统中，<code>/proc/{pid}</code>目录是存储指定进程的相关信息，其中<code>/proc/{pid}/smaps</code>记录了当前进程所对应的内存映像信息，可以查询到指定进程的<code>swap</code>使用情况。</p>
+<pre><code>$ cat /proc/2941/smaps | grep -i Swap
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+Swap:                  0 kB
+</code></pre><p>其中<code>Swap</code>字段代表该内存块存在<code>swap</code>分区的数据大小。通过执行如下命令，就可以找到每个内存块镜像信息中，这个进程使用到的<code>swap</code>量，通过求和就可以算出总的<code>swap</code>用量。</p>
+<h3 id="测试程序-1"><a href="#测试程序-1" class="headerlink" title="测试程序"></a>测试程序</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span> count = <span class="number">16</span> * <span class="number">1024</span>;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span> buf_size = <span class="number">1024</span> * <span class="number">1024</span>;</span><br><span class="line">    <span class="keyword">char</span> *buf = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; count; ++i) &#123;</span><br><span class="line">        <span class="keyword">if</span>((buf = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">char</span>) * buf_size)) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>; </span><br><span class="line">        &#125; </span><br><span class="line">        <span class="built_in">memset</span>(buf, <span class="string">'m'</span>, buf_size);</span><br><span class="line"></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"malloc: %d MB\n"</span>, i);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"waiting.......\n"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个程序的功能，主要是每次申请 <strong>1M</strong> 的内存，总共申请 <strong>16G</strong>， 但是系统可以使用的内存如下： <strong>free(994M)、cached（374M），加起来才1G。</strong></p>
+<pre><code>$ free -m
+            total       used       free     shared    buffers     cached
+Mem:          1983        989        994          8         70        374
+-/+ buffers/cache:        544       1438
+Swap:         2044          0       2044
+</code></pre><p><strong>编译运行程序，使用vmstat实时的观察swap分区，可以看到si、so不断的在增大：</strong></p>
+<pre><code>procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+1  0 316892 1538192  19744 139748    8    0     8     0  143 1456  8  3 89  0  0
+2  0 316892 1538192  19744 139748    0    0     0     0  116  897  8  3 89  0  0
+1  0 316884 1538192  19752 139744    4    0     4    64   94  502  4  1 94  1  0
+1  0 316876 1208056  19876 139748   12    0   148     0  174 2956 11 19 69  1  0
+1  0 316868  78116  19876 139752   20    0    20     0  497 9447 38 62  0  0  0
+2 11 654592  13336     88   6960 1604 1385944 50956 1386080 2228 9403 12 84  0  3  0
+3  1 1897088  13676    336  29392 9960 206812 58616 206828 5346 13090  6 86  0  8  0
+3  1 2075384  13584     84  12292  212 176516  7752 176516 2853 4154 16 84  0  0  0
+0  0 331536 1693028    640  29544 1036 17968 39140 18024  948 2009  4 36 41 1
+</code></pre><p><strong>在swap分区使用完后，程序会被Killed：</strong></p>
+<pre><code>malloc: 3355 MB
+malloc: 3356 MB
+malloc: 3357 MB
+malloc: 3358 MB
+malloc: 3359 MB
+malloc: 3360 MB
+malloc: 3361 MB
+malloc: 3362 MB
+malloc: 3363 MB
+Killed
+</code></pre><h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><p><code>swap</code>分区主要是当物理内存不足时，Linux系统可以把部分<code>inactive</code>的内存页置换到<code>swap</code>分区。但是，并不是要等到所有物理内存都使用完才会使用到<code>swap</code>。这取决于内核的<code>LRU</code>调度算法。如果用<code>free</code>命令，看到<code>swap</code>有被使用，可以使用<code>vmstat</code>实时的查看<code>swap</code>，也可以查看指定的进程的是否有用到<code>swap</code>。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/15/http2_0/" rel="next" title="HTTP/2 协议">
+                <i class="fa fa-chevron-left"></i> HTTP/2 协议
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#buffers-cache"><span class="nav-number">1.</span> <span class="nav-text">buffers/cache</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#free命令"><span class="nav-number">1.1.</span> <span class="nav-text">free命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参数详解"><span class="nav-number">1.2.</span> <span class="nav-text">参数详解</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#第一部分Mem行："><span class="nav-number">1.2.1.</span> <span class="nav-text">第一部分Mem行：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#第二部分-buffers-cache-行："><span class="nav-number">1.2.2.</span> <span class="nav-text">第二部分(-/+ buffers/cache)行：</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#测试程序"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">测试程序</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#什么时候会增加cached的使用量？"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">什么时候会增加cached的使用量？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#清除cached"><span class="nav-number">1.2.2.3.</span> <span class="nav-text">清除cached</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#为什么cached没有被完全清除呢？-有哪些cached是不可以被回收呢？"><span class="nav-number">1.2.3.</span> <span class="nav-text">为什么cached没有被完全清除呢？ 有哪些cached是不可以被回收呢？</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#tmpfs"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">tmpfs</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#共享内存"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">共享内存</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#总结"><span class="nav-number">1.2.4.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#swap"><span class="nav-number">2.</span> <span class="nav-text">swap</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#swappines的重要值："><span class="nav-number">2.1.</span> <span class="nav-text">swappines的重要值：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设置方法"><span class="nav-number">2.2.</span> <span class="nav-text">设置方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看swap的总体情况"><span class="nav-number">2.3.</span> <span class="nav-text">查看swap的总体情况</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实时查看swap的使用"><span class="nav-number">2.4.</span> <span class="nav-text">实时查看swap的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看指定进程的swap使用情况"><span class="nav-number">2.5.</span> <span class="nav-text">查看指定进程的swap使用情况</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试程序-1"><span class="nav-number">2.6.</span> <span class="nav-text">测试程序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结-1"><span class="nav-number">2.7.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
