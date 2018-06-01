@@ -79,17 +79,17 @@
 
 
 
-<meta name="description" content="ORM全称“Object Relational Mapping”，即对象-关系映射，就是把关系数据库的一行映射为一个对象，也就是一个类对应一个表，这样，写代码更简单，不用直接操作SQL语句。 要编写一个ORM框架，所有的类都只能动态定义，因为只有使用者才能根据表的结构定义出对应的类来。在Python中类的动态定义可以由">
+<meta name="description" content="ORM全称“Object Relational Mapping”，即对象-关系映射，就是把关系数据库的一行映射为一个对象，也就是一个类对应一个表，这样，写代码更简单，不用直接操作SQL语句。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="编写python ORM框架">
 <meta property="og:url" content="http://yoursite.com/2018/05/27/orm/index.html">
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
-<meta property="og:description" content="ORM全称“Object Relational Mapping”，即对象-关系映射，就是把关系数据库的一行映射为一个对象，也就是一个类对应一个表，这样，写代码更简单，不用直接操作SQL语句。 要编写一个ORM框架，所有的类都只能动态定义，因为只有使用者才能根据表的结构定义出对应的类来。在Python中类的动态定义可以由元类来实现。 元类typetype函数不仅可以查看一个类型或变量的类型，typ">
+<meta property="og:description" content="ORM全称“Object Relational Mapping”，即对象-关系映射，就是把关系数据库的一行映射为一个对象，也就是一个类对应一个表，这样，写代码更简单，不用直接操作SQL语句。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-05-31T18:55:52.000Z">
+<meta property="og:updated_time" content="2018-05-31T18:57:52.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="编写python ORM框架">
-<meta name="twitter:description" content="ORM全称“Object Relational Mapping”，即对象-关系映射，就是把关系数据库的一行映射为一个对象，也就是一个类对应一个表，这样，写代码更简单，不用直接操作SQL语句。 要编写一个ORM框架，所有的类都只能动态定义，因为只有使用者才能根据表的结构定义出对应的类来。在Python中类的动态定义可以由元类来实现。 元类typetype函数不仅可以查看一个类型或变量的类型，typ">
+<meta name="twitter:description" content="ORM全称“Object Relational Mapping”，即对象-关系映射，就是把关系数据库的一行映射为一个对象，也就是一个类对应一个表，这样，写代码更简单，不用直接操作SQL语句。">
 
 
 
@@ -300,8 +300,7 @@
 
       
         <hr>
-<p><code>ORM</code>全称“Object Relational Mapping”，即对象-关系映射，就是把关系数据库的一行映射为一个对象，也就是一个类对应一个表，这样，写代码更简单，不用直接操作<code>SQL</code>语句。</p>
-<p>要编写一个<code>ORM</code>框架，所有的类都只能动态定义，因为只有使用者才能根据表的结构定义出对应的类来。在<code>Python</code>中类的动态定义可以由元类来实现。</p>
+<p><code>ORM</code>全称“Object Relational Mapping”，即对象-关系映射，就是把关系数据库的一行映射为一个对象，也就是一个类对应一个表，这样，写代码更简单，不用直接操作<code>SQL</code>语句。<br><a id="more"></a><br>要编写一个<code>ORM</code>框架，所有的类都只能动态定义，因为只有使用者才能根据表的结构定义出对应的类来。在<code>Python</code>中类的动态定义可以由元类来实现。</p>
 <h3 id="元类"><a href="#元类" class="headerlink" title="元类"></a>元类</h3><h4 id="type"><a href="#type" class="headerlink" title="type"></a>type</h4><p><code>type</code>函数不仅可以查看一个类型或变量的类型，<code>type</code>也能动态的创建类。<code>type</code>可以接受一个类的描述作为参数，然后返回一个类。</p>
 <p><code>type</code>可以像这样工作：</p>
 <pre><code>type(类名, 父类的元组（针对继承的情况，可以为空），包含属性的字典（名称和值）)
