@@ -79,16 +79,17 @@
 
 
 
-<meta name="description" content="曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影">
-<meta property="og:type" content="website">
-<meta property="og:title" content="heqingliang&#39;s Blog">
-<meta property="og:url" content="http://yoursite.com/index.html">
+<meta name="description" content="ORM全称“Object Relational Mapping”，即对象-关系映射，就是把关系数据库的一行映射为一个对象，也就是一个类对应一个表，这样，写代码更简单，不用直接操作SQL语句。 要编写一个ORM框架，所有的类都只能动态定义，因为只有使用者才能根据表的结构定义出对应的类来。在Python中类的动态定义可以由">
+<meta property="og:type" content="article">
+<meta property="og:title" content="编写python ORM框架">
+<meta property="og:url" content="http://yoursite.com/2018/05/27/orm/index.html">
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
-<meta property="og:description" content="曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影">
+<meta property="og:description" content="ORM全称“Object Relational Mapping”，即对象-关系映射，就是把关系数据库的一行映射为一个对象，也就是一个类对应一个表，这样，写代码更简单，不用直接操作SQL语句。 要编写一个ORM框架，所有的类都只能动态定义，因为只有使用者才能根据表的结构定义出对应的类来。在Python中类的动态定义可以由元类来实现。 元类typetype函数不仅可以查看一个类型或变量的类型，typ">
 <meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-05-31T18:55:52.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="heqingliang&#39;s Blog">
-<meta name="twitter:description" content="曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影">
+<meta name="twitter:title" content="编写python ORM框架">
+<meta name="twitter:description" content="ORM全称“Object Relational Mapping”，即对象-关系映射，就是把关系数据库的一行映射为一个对象，也就是一个类对应一个表，这样，写代码更简单，不用直接操作SQL语句。 要编写一个ORM框架，所有的类都只能动态定义，因为只有使用者才能根据表的结构定义出对应的类来。在Python中类的动态定义可以由元类来实现。 元类typetype函数不仅可以查看一个类型或变量的类型，typ">
 
 
 
@@ -118,13 +119,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/05/27/orm/"/>
 
 
 
 
 
-  <title>heqingliang's Blog</title>
+  <title>编写python ORM框架 | heqingliang's Blog</title>
   
 
 
@@ -143,8 +144,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-  page-home">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -217,9 +217,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -249,9 +249,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/27/orm/" itemprop="url">编写python ORM框架</a></h1>
+          <h1 class="post-title" itemprop="name headline">编写python ORM框架</h1>
         
 
         <div class="post-meta">
@@ -301,9 +299,7 @@
       
 
       
-        
-          
-            <hr>
+        <hr>
 <p><code>ORM</code>全称“Object Relational Mapping”，即对象-关系映射，就是把关系数据库的一行映射为一个对象，也就是一个类对应一个表，这样，写代码更简单，不用直接操作<code>SQL</code>语句。</p>
 <p>要编写一个<code>ORM</code>框架，所有的类都只能动态定义，因为只有使用者才能根据表的结构定义出对应的类来。在<code>Python</code>中类的动态定义可以由元类来实现。</p>
 <h3 id="元类"><a href="#元类" class="headerlink" title="元类"></a>元类</h3><h4 id="type"><a href="#type" class="headerlink" title="type"></a>type</h4><p><code>type</code>函数不仅可以查看一个类型或变量的类型，<code>type</code>也能动态的创建类。<code>type</code>可以接受一个类的描述作为参数，然后返回一个类。</p>
@@ -443,8 +439,6 @@ INFO:root:rows returned: 4
 </code></pre><h4 id="其他SQL语句"><a href="#其他SQL语句" class="headerlink" title="其他SQL语句"></a>其他SQL语句</h4><p>上面实现了数据库的<code>insert</code>、<code>select</code>操作，还可以自行定义其他<code>SQL</code>的执行操作，如<code>uptate</code>、<code>delete</code>，代码实现如下：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Model</span><span class="params">(dict, metaclass=ModelMetaClass)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">update</span><span class="params">(self)</span>:</span></span><br><span class="line">        args = list(map(self.getValue, self.__fields__))</span><br><span class="line">        args.append(self.getValue(self.__primary_key__))</span><br><span class="line">        rows = <span class="keyword">await</span> execute(self.__update__, args)</span><br><span class="line">        <span class="keyword">if</span> rows != <span class="number">1</span>:</span><br><span class="line">            logging.warn(<span class="string">'failed to update by primary key: affected rows: %s'</span> % rows)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">remove</span><span class="params">(self)</span>:</span></span><br><span class="line">        args = [self.getValue(self.__primary_key__)]</span><br><span class="line">        rows = <span class="keyword">await</span> execute(self.__delete__, args)</span><br><span class="line">        <span class="keyword">if</span> rows != <span class="number">1</span>:</span><br><span class="line">            logging.warn(<span class="string">'failed to remove by primary key: affected rows: %s'</span> % rows)</span><br></pre></td></tr></table></figure>
 
-          
-        
       
     </div>
     
@@ -461,137 +455,28 @@ INFO:root:rows returned: 4
       
 
       
-
-      
-
       
       
-        <div class="post-eof"></div>
+
       
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/28/buffer_cache_swap/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="heqingliang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/dva.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="heqingliang's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/04/28/buffer_cache_swap/" itemprop="url">Linux下的buffers/cache/swap</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
             
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-28T00:00:00+08:00">
-                2018-04-28
-              </time>
+              <a href="/2018/04/28/buffer_cache_swap/" rel="next" title="Linux下的buffers/cache/swap">
+                <i class="fa fa-chevron-left"></i> Linux下的buffers/cache/swap
+              </a>
             
+          </div>
 
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
             
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
+          </div>
         </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
       
 
       
-        
-          <hr>
-<h2 id="buffers-cache"><a href="#buffers-cache" class="headerlink" title="buffers/cache"></a>buffers/cache</h2><h3 id="free命令"><a href="#free命令" class="headerlink" title="free命令"></a>free命令</h3><p>Linux下的<code>free</code>命令是显示当前内存的使用，<code>-m</code>代表用MB字节显示，<code>-g</code>代表用GB字节显示：</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/04/28/buffer_cache_swap/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
       
     </footer>
   </div>
@@ -601,1014 +486,11 @@ INFO:root:rows returned: 4
   </article>
 
 
-    
-      
 
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/15/http2_0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="heqingliang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/dva.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="heqingliang's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/04/15/http2_0/" itemprop="url">HTTP/2 协议</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-15T00:00:00+08:00">
-                2018-04-15
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <hr>
-<p><a href="https://http2.github.io/" target="_blank" rel="noopener">HTTP/2</a>（HTTP/2.0）即超文本传输协议 2.0，是下一代HTTP协议。相对于<code>HTTP/1.x</code>协议的文本传输格式，<code>HTTP/2</code>以二进制的格式进行数据传输。因此，具有更小的传输体积以及负载，相比于文本解析，二进制解析更加方便、高效。<code>HTTP/2</code>与<code>HTTP/1.x</code>相比具有如下特性：</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/04/15/http2_0/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
+    <div class="post-spread">
       
     </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
   </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/10/database_02/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="heqingliang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/dva.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="heqingliang's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/03/10/database_02/" itemprop="url">MySQL数据库基础(二)</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-10T00:00:00+08:00">
-                2018-03-10
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <hr>
-<h3 id="分组数据"><a href="#分组数据" class="headerlink" title="分组数据"></a>分组数据</h3><h4 id="数据分组"><a href="#数据分组" class="headerlink" title="数据分组"></a>数据分组</h4><p>分组允许把数据分为多个逻辑组，以便能对每个组进行聚集计算。<code>WHERE</code>过滤指定的是行而不是分组。事实<br>上，<code>WHERE</code>没有分组的概念。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/03/10/database_02/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/09/database_01/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="heqingliang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/dva.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="heqingliang's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/03/09/database_01/" itemprop="url">MySQL数据库基础(一)</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-09T00:00:00+08:00">
-                2018-03-09
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <hr>
-<p><strong>数据库：</strong> 是一个以某种有组织的方式存储的数据集合。</p>
-<p><strong>表：</strong> 某种特定类型数据的结构化清单。在相同的数据库中的每个表都有一个名字，用来标识自己，此名字是唯一的。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/03/09/database_01/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/05/iostat_vmstat/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="heqingliang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/dva.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="heqingliang's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/03/05/iostat_vmstat/" itemprop="url">iostat、vmstat</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-05T00:00:00+08:00">
-                2018-03-05
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <hr>
-<h3 id="iostat"><a href="#iostat" class="headerlink" title="iostat"></a>iostat</h3><p><code>iostat</code> 命令用来监视系统输入/输出设备负载，这通过观察与它们的平均传送速率相关的物理磁盘的活动时间来实现。<code>iostat</code> 命令生成的报告可以用来更改系统配置来更好地平衡物理磁盘和适配器之间的输入/输出负载。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/03/05/iostat_vmstat/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/26/service_shenzhou/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="heqingliang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/dva.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="heqingliang's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/01/26/service_shenzhou/" itemprop="url">python 爬虫抓取神州租车的门店信息</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-01-26T00:00:00+08:00">
-                2018-01-26
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <hr>
-<p>打开神州租车的官网 <a href="https://service.zuche.com/" target="_blank" rel="noopener">https://service.zuche.com/</a> ,在地图上选择广东，然后点击广州，可以看到广州市所有门店的服务点，点击客村店。如图：可以看到客村店的门店地址、联系电话等。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/01/26/service_shenzhou/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/06/gtest/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="heqingliang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/dva.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="heqingliang's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/01/06/gtest/" itemprop="url">Google Test单元测试框架的使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-01-06T00:00:00+08:00">
-                2018-01-06
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p><strong>gtest</strong> 是一个google开源的C++单元测试的框架，它是跨平台的，可应用在windows、linux、Mac等OS平台。<a href="https://github.com/google/googletest" target="_blank" rel="noopener">https://github.com/google/googletest</a></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/01/06/gtest/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/28/out-of-band_data/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="heqingliang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/dva.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="heqingliang's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/12/28/out-of-band_data/" itemprop="url">使用带外数据实现心跳包</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-28T00:00:00+08:00">
-                2017-12-28
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <hr>
-<p>许多传输层有 <strong>带外数据</strong> (out-of-band data)的概念，它有时也称为 <strong>经加速数据</strong> (expedited data)。其想法就是一个连接的某端发送了重要的事情，而且该端希望迅速通知对方。这里 “迅速” 意味着这种通知应该在已经排队等待发送的任何普通数据(有时称为 “带内”)之前发送。也就是说，带外数据被认为具有比普通数据更高的优先级。带外数据并不要求在客户和服务器之间再使用一个连接，而是被映射到已有的连接中。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/12/28/out-of-band_data/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/27/nonblocking/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="heqingliang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/dva.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="heqingliang's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/12/27/nonblocking/" itemprop="url">非阻塞式I/O</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-27T00:00:00+08:00">
-                2017-12-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <hr>
-<p>套接字的默认状态是阻塞的。这就意味着当发出一个不能立即完成的套接字调用时，其进程将投入睡眠，等待相应操作完成。可能阻塞的套接字调用可分为以下四类。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/12/27/nonblocking/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-  </section>
-
-  
-  <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
-  </nav>
-
 
 
           </div>
@@ -1616,6 +498,10 @@ INFO:root:rows returned: 4
 
 
           
+
+  
+
+
 
         </div>
         
@@ -1636,8 +522,17 @@ INFO:root:rows returned: 4
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -1685,6 +580,22 @@ INFO:root:rows returned: 4
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#元类"><span class="nav-number">1.</span> <span class="nav-text">元类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#type"><span class="nav-number">1.1.</span> <span class="nav-text">type</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#metaclass"><span class="nav-number">1.2.</span> <span class="nav-text">metaclass</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ORM"><span class="nav-number">2.</span> <span class="nav-text">ORM</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#定义Field类"><span class="nav-number">2.1.</span> <span class="nav-text">定义Field类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#StringField、FloatField"><span class="nav-number">2.2.</span> <span class="nav-text">StringField、FloatField</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ModelMetaclass"><span class="nav-number">2.3.</span> <span class="nav-text">ModelMetaclass</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#定义Model"><span class="nav-number">2.4.</span> <span class="nav-text">定义Model</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#创建连接池"><span class="nav-number">2.5.</span> <span class="nav-text">创建连接池</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#执行INSERT语句"><span class="nav-number">2.6.</span> <span class="nav-text">执行INSERT语句</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#编写Model"><span class="nav-number">2.7.</span> <span class="nav-text">编写Model</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#初始化数据库表"><span class="nav-number">2.8.</span> <span class="nav-text">初始化数据库表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#编写数据访问代码"><span class="nav-number">2.9.</span> <span class="nav-text">编写数据访问代码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SELECT语句"><span class="nav-number">2.10.</span> <span class="nav-text">SELECT语句</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#根据主键查找"><span class="nav-number">2.10.1.</span> <span class="nav-text">根据主键查找</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#select函数"><span class="nav-number">2.10.2.</span> <span class="nav-text">select函数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#根据where、order-by、limit查找"><span class="nav-number">2.10.3.</span> <span class="nav-text">根据where、order by、limit查找</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#其他SQL语句"><span class="nav-number">2.11.</span> <span class="nav-text">其他SQL语句</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -1818,6 +729,10 @@ INFO:root:rows returned: 4
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
 
   
 
