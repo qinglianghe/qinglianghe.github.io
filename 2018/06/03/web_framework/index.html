@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="异步IO异步IO是指当程序需要执行一个耗时的IO操作时，它只发出IO操作指令，并不等待IO结果，然后就去执行其他代码了，当IO返回结果时，再通知CPU进行处理。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="编写python Web框架">
+<meta property="og:url" content="http://yoursite.com/2018/06/03/web_framework/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="异步IO异步IO是指当程序需要执行一个耗时的IO操作时，它只发出IO操作指令，并不等待IO结果，然后就去执行其他代码了，当IO返回结果时，再通知CPU进行处理。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2018/06/03/web_framework/\images\python_web\index.png">
+<meta property="og:image" content="http://yoursite.com/2018/06/03/web_framework/\images\python_web\web.png">
+<meta property="og:image" content="http://yoursite.com/2018/06/03/web_framework/\images\python_web\users.png">
+<meta property="og:updated_time" content="2018-06-06T19:40:47.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="编写python Web框架">
+<meta name="twitter:description" content="异步IO异步IO是指当程序需要执行一个耗时的IO操作时，它只发出IO操作指令，并不等待IO结果，然后就去执行其他代码了，当IO返回结果时，再通知CPU进行处理。">
+<meta name="twitter:image" content="http://yoursite.com/2018/06/03/web_framework/\images\python_web\index.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/06/03/web_framework/"/>
+
+
+
+
+
+  <title>编写python Web框架 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/03/web_framework/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">编写python Web框架</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-03T00:00:00+08:00">
+                2018-06-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<h3 id="异步IO"><a href="#异步IO" class="headerlink" title="异步IO"></a>异步IO</h3><p>异步IO是指当程序需要执行一个耗时的IO操作时，它只发出IO操作指令，并不等待IO结果，然后就去执行其他代码了，当IO返回结果时，再通知CPU进行处理。<br><a id="more"></a></p>
+<p>异步IO模型需要一个消息循环，在消息循环中，主线程不断地重复”读取消息-处理消息”这一过程：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">loop = get_event_loop()</span><br><span class="line"><span class="keyword">while</span> <span class="keyword">True</span>:</span><br><span class="line">    event = loop.get_event()</span><br><span class="line">    process_event(event)</span><br></pre></td></tr></table></figure>
+<p>如果是使用同步IO模型，在”发出IO请求”到收到”IO完成”的这段时间里，主线程只能挂起，但在异步IO模型下，主线程并没有挂起，而是在消息循环中继续处理其他消息。这样，在异步IO模型下，一个线程就可以同时处理多个IO请求，并且没有切换线程的操作。对于大多数IO密集型的应用程序，使用异步IO将大大提升系统的多任务处理能力。</p>
+<h4 id="协程"><a href="#协程" class="headerlink" title="协程"></a>协程</h4><p>协程，又称微线程，纤程。英文名Coroutine。</p>
+<p>协程看上去就像子程序，但执行过程中，在子程序内部可中断，然后转而执行别的子程序，在适当的时候再返回来接着执行。</p>
+<p>注意，在一个子程序中中断，去执行其他子程序，不是函数调用，有点类似CPU的中断。比如子程序A、B：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">A</span><span class="params">()</span>:</span></span><br><span class="line">    print(<span class="string">'1'</span>)</span><br><span class="line">    print(<span class="string">'2'</span>)</span><br><span class="line">    print(<span class="string">'3'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">B</span><span class="params">()</span>:</span></span><br><span class="line">    print(<span class="string">'x'</span>)</span><br><span class="line">    print(<span class="string">'y'</span>)</span><br><span class="line">    print(<span class="string">'z'</span>)</span><br></pre></td></tr></table></figure>
+<p>假设由协程执行，在执行A的过程中，可以随时中断，去执行B，B也可能在执行过程中中断再去执行A，但是在A中是没有调用B的，结果可能是：</p>
+<pre><code>1
+2
+x
+y
+3
+z
+</code></pre><p>在Python中协程是通过generator来实现的。</p>
+<p>下面的代码，使用协程实现生产者-消费者模型：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">consumer</span><span class="params">()</span>:</span></span><br><span class="line">    r = <span class="string">''</span></span><br><span class="line">    <span class="keyword">while</span> <span class="keyword">True</span>:</span><br><span class="line">        n = <span class="keyword">yield</span> r</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> n:</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        print(<span class="string">'[CONSUMER] Consuming %s...'</span> % n)</span><br><span class="line">        r = <span class="string">'200 OK'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">producer</span><span class="params">(c)</span>:</span></span><br><span class="line">    c.send(<span class="keyword">None</span>)</span><br><span class="line"></span><br><span class="line">    n = <span class="number">0</span></span><br><span class="line">    <span class="keyword">while</span> n &lt; <span class="number">5</span>:</span><br><span class="line">        n = n + <span class="number">1</span></span><br><span class="line">        print(<span class="string">'[PRODUCER] Producing %s...'</span> % n)</span><br><span class="line">        r = c.send(n)</span><br><span class="line">        print(<span class="string">'[PRODUCER] Consuming return: %s...'</span> % r)</span><br><span class="line">    c.close()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    c = consumer()</span><br><span class="line">    producer(c)</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<pre><code>[PRODUCER] Producing 1...
+[CONSUMER] Consuming 1...
+[PRODUCER] Consuming return: 200 OK...
+[PRODUCER] Producing 2...
+[CONSUMER] Consuming 2...
+[PRODUCER] Consuming return: 200 OK...
+[PRODUCER] Producing 3...
+[CONSUMER] Consuming 3...
+[PRODUCER] Consuming return: 200 OK...
+[PRODUCER] Producing 4...
+[CONSUMER] Consuming 4...
+[PRODUCER] Consuming return: 200 OK...
+[PRODUCER] Producing 5...
+[CONSUMER] Consuming 5...
+[PRODUCER] Consuming return: 200 OK...
+</code></pre><p><code>consumer</code>函数是一个<code>generator</code>，把一个<code>consumer</code>传入<code>producer</code>后：</p>
+<ol>
+<li><p><code>producer</code>首先调用<code>c.send(None)</code>启动生成器</p>
+</li>
+<li><p>一旦生成了东西，通过<code>c.send(n)</code> 切换到<code>consumer</code>执行</p>
+</li>
+<li><p><code>consumer</code>通过<code>yield</code>拿到消息，处理，又通过<code>yield</code>把结果传回</p>
+</li>
+<li><p><code>producer</code>拿到<code>consumer</code>处理的结果，继续生产下一条消息</p>
+</li>
+<li><p><code>producer</code>决定不生产了，通过<code>c.close()</code>关闭<code>consumer</code>，整个过程结束。</p>
+</li>
+</ol>
+<h4 id="asyncio"><a href="#asyncio" class="headerlink" title="asyncio"></a>asyncio</h4><p><code>asyncio</code>是Python 3.4版本引入的标准库，直接内置了对异步IO的支持。</p>
+<p><code>asyncio</code>的编程模型就是一个消息循环。从<code>asyncio</code>模块中直接获取一个<code>EventLoop</code>的引用，然后把需要执行的协程扔到<code>EventLoop</code>中执行，就实现了异步IO。</p>
+<p>如下代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@asyncio.coroutine</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">()</span>:</span></span><br><span class="line">    print(<span class="string">'Hello world! (%s)'</span> % threading.currentThread())</span><br><span class="line">    <span class="keyword">yield</span> <span class="keyword">from</span> asyncio.sleep(<span class="number">1</span>)</span><br><span class="line">    print(<span class="string">'Hello again! (%s)'</span> % threading.currentThread())</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>  __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    loop = asyncio.get_event_loop()</span><br><span class="line">    tasks = [hello(), hello()]</span><br><span class="line">    loop.run_until_complete(asyncio.wait(tasks))</span><br><span class="line">    loop.close()</span><br></pre></td></tr></table></figure>
+<p><code>@asyncio.coroutine</code>把<code>hello</code>生成器标记为<code>coroutine</code>类型，用<code>tasks</code>封装两个<code>hello</code>协程，把这两个协程扔到<code>EventLoop</code>中执行。<code>asyncio.sleep(1)</code>看成是一个耗时1秒的IO操作，在此期间，主线程并未等待。程序最终输出以下结果：</p>
+<pre><code>Hello world! (&lt;_MainThread(MainThread, started 5476)&gt;)
+Hello world! (&lt;_MainThread(MainThread, started 5476)&gt;)
+(暂停约1秒)
+Hello again! (&lt;_MainThread(MainThread, started 5476)&gt;)
+Hello again! (&lt;_MainThread(MainThread, started 5476)&gt;)
+</code></pre><p>由打印的当前线程名称可以看出，两个<code>coroutine</code>是由同一个线程并发执行的。<br>如果把<code>asyncio.sleep(1)</code>换成真正的IO操作，则多个<code>coroutine</code>就可以由一个线程并发执行。</p>
+<h4 id="async-await"><a href="#async-await" class="headerlink" title="async/await"></a>async/await</h4><p>为了简化并更好地标识异步IO，从Python 3.5开始引入了新的语法<code>async</code>和<code>await</code>，可以让<code>coroutine</code>的代码更简洁易读。</p>
+<p>请注意，<code>async</code>和<code>await</code>是针对<code>coroutine</code>的新语法，要使用新的语法，只需要做两步简单的替换：</p>
+<ol>
+<li>把<code>@asyncio.coroutine</code>替换为<code>async</code></li>
+<li>把<code>yield from</code>替换为<code>await</code></li>
+</ol>
+<p>使用<code>async/await</code>替换上面<code>hello</code>协程：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">()</span>:</span></span><br><span class="line">    print(<span class="string">'Hello world! (%s)'</span> % threading.currentThread())</span><br><span class="line">    <span class="keyword">await</span> asyncio.sleep(<span class="number">1</span>)</span><br><span class="line">    print(<span class="string">'Hello again! (%s)'</span> % threading.currentThread())</span><br></pre></td></tr></table></figure>
+<h3 id="aiohttp"><a href="#aiohttp" class="headerlink" title="aiohttp"></a>aiohttp</h3><p><code>asyncio</code>实现了TCP、UDP、SSL等协议，<code>aiohttp</code>则是基于<code>asyncio</code>实现的HTTP框架。</p>
+<p><strong>安装aiohttp：</strong></p>
+<pre><code>pip install aiohttp
+</code></pre><p>编写一个HTTP服务器，分别处理以下URL：</p>
+<ul>
+<li><code>/</code>- 首页返回<code>b&#39;&lt;h1&gt;Index&lt;/h1&gt;&#39;</code></li>
+<li><code>/hello/{name}</code> - 根据URL参数返回文本<code>hello, %s!</code></li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> asyncio</span><br><span class="line"><span class="keyword">from</span> aiohttp <span class="keyword">import</span> web</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">index</span><span class="params">(request)</span>:</span></span><br><span class="line">    resp = web.Response(body=<span class="string">b'&lt;h1&gt;Index&lt;/h1&gt;'</span>)</span><br><span class="line">    resp.content_type = <span class="string">'text/html;charset=utf-8'</span></span><br><span class="line">    <span class="keyword">return</span> resp</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">(request)</span>:</span></span><br><span class="line">    text = <span class="string">'&lt;h1&gt;hello, %s&lt;/h1&gt;'</span> % request.match_info[<span class="string">'name'</span>]</span><br><span class="line">    resp = web.Response(body=text.encode(<span class="string">'utf-8'</span>))</span><br><span class="line">    resp.content_type = <span class="string">'text/html;charset=utf-8'</span></span><br><span class="line">    <span class="keyword">return</span> resp</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">init</span><span class="params">(loop)</span>:</span></span><br><span class="line">    app = web.Application(loop=loop)</span><br><span class="line">    app.router.add_route(<span class="string">'GET'</span>, <span class="string">'/'</span>, index)</span><br><span class="line">    app.router.add_route(<span class="string">'GET'</span>, <span class="string">'/hello/&#123;name&#125;'</span>, hello)</span><br><span class="line">    srv = <span class="keyword">await</span> loop.create_server(app.make_handler(), <span class="string">'127.0.0.1'</span>, <span class="number">8000</span>)</span><br><span class="line">    print(<span class="string">'Server started at http://127.0.0.1:8000...'</span>)</span><br><span class="line">    <span class="keyword">return</span> srv</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    loop = asyncio.get_event_loop()</span><br><span class="line">    loop.run_until_complete(init(loop))</span><br><span class="line">    loop.run_forever()</span><br></pre></td></tr></table></figure>
+<ol>
+<li><p><code>index</code>协程，当访问首页<code>/</code>时被调用，返回一个<code>&lt;h1&gt;Index&lt;/h1&gt;</code>的<code>html</code>文档。</p>
+</li>
+<li><p><code>hello</code>协程，当访问<code>/hello/{name}</code>时被调用，从<code>request.match_info[&#39;name&#39;]</code>取出对应的参数，然后再返回对应的<code>html</code>文档。</p>
+</li>
+<li><p><code>init</code>协程，添加访问的<code>url</code>，创建一个<code>http</code>服务。</p>
+</li>
+</ol>
+<p><strong>运行程序，在浏览器中输入<code>http://127.0.0.1:8000/</code>，可以看到如下结果：</strong></p>
+<p><img src="\images\python_web\index.png" alt="index.png"></p>
+<p>在浏览器中输入<code>http://127.0.0.1:8000/hello/web</code>，可以看到如下结果：**</p>
+<p><img src="\images\python_web\web.png" alt="web.png"></p>
+<p><code>aiohttp</code>已经是一个Web框架了，但是对于使用者来说，还是相对比较底层，编写一个URL的处理函数需要这么几步：</p>
+<ol>
+<li><p>编写一个协程的处理函数，如上面的<code>index</code>、<code>hello</code>。</p>
+</li>
+<li><p>从<code>request</code>中获取传入的参数，如上面的<code>hello</code>函数的<code>request.match_info[&#39;name&#39;]</code>。</p>
+</li>
+<li><p>返回一个<code>Response</code>对象。</p>
+</li>
+</ol>
+<p>对于这些重复的工作可以由框架完成。</p>
+<h3 id="Web框架"><a href="#Web框架" class="headerlink" title="Web框架"></a>Web框架</h3><h4 id="get和post装饰器"><a href="#get和post装饰器" class="headerlink" title="get和post装饰器"></a>get和post装饰器</h4><p>在<code>coroweb.py</code>模块中，定义<code>get</code>、<code>post</code>装饰器，把一个函数映射为一个URL处理函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get</span><span class="params">(path)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">        定义一个装饰器 @get('/path')</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">decorator</span><span class="params">(func)</span>:</span></span><br><span class="line"><span class="meta">        @functools.wraps(func)</span></span><br><span class="line">        <span class="function"><span class="keyword">def</span> <span class="title">wrapper</span><span class="params">(*args, **kw)</span>:</span></span><br><span class="line">            <span class="keyword">return</span> func(*args, **kw)</span><br><span class="line">        wrapper.__method__ = <span class="string">'GET'</span></span><br><span class="line">        wrapper.__route__ = path</span><br><span class="line">        <span class="keyword">return</span> wrapper</span><br><span class="line">    <span class="keyword">return</span> decorator</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">post</span><span class="params">(path)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">        定义一个装饰器 @post('/path')</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">decorator</span><span class="params">(func)</span>:</span></span><br><span class="line"><span class="meta">        @functools.wraps(func)</span></span><br><span class="line">        <span class="function"><span class="keyword">def</span> <span class="title">wrapper</span><span class="params">(*args, **kw)</span>:</span></span><br><span class="line">            <span class="keyword">return</span> func(args, kw)</span><br><span class="line">        wrapper.__method__ = <span class="string">'POST'</span></span><br><span class="line">        wrapper.__route__ = path</span><br><span class="line">        <span class="keyword">return</span> wrapper</span><br><span class="line">    <span class="keyword">return</span> decorator</span><br></pre></td></tr></table></figure>
+<p><code>@get</code>、或<code>@post</code>装饰器添加了<code>__method__</code>属性，表示http的<code>GET</code>或<code>POST</code>请求，<code>__route__</code>属性，表示http请求的<code>URI</code>资源地址，一个函数通过<code>@get</code>、或<code>@post</code>的装饰就附带了URL信息，例如上面的<code>index</code>、<code>hello</code>可以写成：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@get('/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index</span><span class="params">(request)</span>:</span></span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@get('/hello/&#123;name&#125;')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">(request, name)</span>:</span></span><br><span class="line">    <span class="keyword">pass</span></span><br></pre></td></tr></table></figure>
+<h4 id="add-routes"><a href="#add-routes" class="headerlink" title="add_routes"></a>add_routes</h4><p>例如在<code>handlers.py</code>模块定义了使用<code>@get</code>或<code>@post</code>装饰器的URL处理函数，通过调用<code>add_routes</code>函数进行注册。<code>add_routes</code>函数的定义如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add_route</span><span class="params">(app, fn)</span>:</span></span><br><span class="line">    method = getattr(fn, <span class="string">'__method__'</span>, <span class="keyword">None</span>)</span><br><span class="line">    path = getattr(fn, <span class="string">'__route__'</span>, <span class="keyword">None</span>)</span><br><span class="line">    <span class="keyword">if</span> path <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">or</span> method <span class="keyword">is</span> <span class="keyword">None</span>:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">'@get or @post not defined in %s.'</span> % str(fn))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> asyncio.iscoroutinefunction(fn) <span class="keyword">and</span> <span class="keyword">not</span> inspect.isgeneratorfunction(fn):</span><br><span class="line">        fn = asyncio.coroutine(fn)</span><br><span class="line">    logging.info(<span class="string">'add route %s %s =&gt; %s(%s)'</span> %(method, path, fn.__name__, <span class="string">', '</span>.join(inspect.signature(fn).parameters.keys())))</span><br><span class="line">    app.router.add_route(method, path, fn)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add_routes</span><span class="params">(app, module_name)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">        注册模块中含有__method__、__route__属性的函数</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    n = module_name.rfind(<span class="string">'.'</span>)</span><br><span class="line">    <span class="keyword">if</span> n == (<span class="number">-1</span>):</span><br><span class="line">        mod = __import__(module_name, globals(), locals())</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        name = module_name[n+<span class="number">1</span>:]</span><br><span class="line">        mod = getattr(__import__(module_name[:n], globals(), locals(), [name]), name)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> attr <span class="keyword">in</span> dir(mod):</span><br><span class="line">        <span class="keyword">if</span> attr.startswith(<span class="string">'_'</span>):</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line">        fn = getattr(mod, attr)</span><br><span class="line">        <span class="keyword">if</span> callable(fn):</span><br><span class="line">            method = getattr(fn, <span class="string">'__method__'</span>, <span class="keyword">None</span>)</span><br><span class="line">            path = getattr(fn, <span class="string">'__route__'</span>, <span class="keyword">None</span>)</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> method <span class="keyword">and</span> path:</span><br><span class="line">                add_route(app, fn)</span><br></pre></td></tr></table></figure>
+<p>在<code>handlers.py</code>模块中添加如下函数，这样当调用<code>add_routes(app, &#39;handlers&#39;)</code>就会自动注册<code>handlers.py</code>模块含有<code>@get</code>或<code>@post</code>装饰器的URL处理函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> coroweb <span class="keyword">import</span> get</span><br><span class="line"><span class="keyword">from</span> aiohttp <span class="keyword">import</span> web</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@get('/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index</span><span class="params">(request)</span>:</span></span><br><span class="line">    resp = web.Response(body=<span class="string">b'&lt;h1&gt;Index&lt;/h1&gt;'</span>)</span><br><span class="line">    resp.content_type = <span class="string">'text/html;charset=utf-8'</span></span><br><span class="line">    <span class="keyword">return</span> resp</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@get('/hello/&#123;name&#125;')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">(request)</span>:</span></span><br><span class="line">    text = <span class="string">'&lt;h1&gt;hello, %s&lt;/h1&gt;'</span> % request.match_info[<span class="string">'name'</span>]</span><br><span class="line">    resp = web.Response(body=text.encode(<span class="string">'utf-8'</span>))</span><br><span class="line">    resp.content_type = <span class="string">'text/html;charset=utf-8'</span></span><br><span class="line">    <span class="keyword">return</span> resp</span><br></pre></td></tr></table></figure>
+<p>在<code>apps.py</code>模块中定义如下的测试代码，运行程序，在浏览器中输入<code>http://127.0.0.1:8000/</code>、<code>http://127.0.0.1:8000/hello/web</code>可以看到和上面一样的效果。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">init</span><span class="params">(loop)</span>:</span></span><br><span class="line">    app = web.Application(loop=loop)</span><br><span class="line">    add_routes(app, <span class="string">'handlers'</span>)</span><br><span class="line">    srv = <span class="keyword">await</span> loop.create_server(app.make_handler(), <span class="string">'127.0.0.1'</span>, <span class="number">8000</span>)</span><br><span class="line">    print(<span class="string">'Server started at http://127.0.0.1:8000...'</span>)</span><br><span class="line">    <span class="keyword">return</span> srv</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    loop = asyncio.get_event_loop()</span><br><span class="line">    loop.run_until_complete(init(loop))</span><br><span class="line">    loop.run_forever()</span><br></pre></td></tr></table></figure>
+<h4 id="RequestHandler"><a href="#RequestHandler" class="headerlink" title="RequestHandler"></a>RequestHandler</h4><p>通过上面的<code>@get</code>和<code>@post</code>装饰器，我们就可以把一个URL请求和对应的处理函数关联起来了。但是我们在处理函数中还是要从<code>request</code>获取参数，进行分析，对于这个步骤，可以使用下面的<code>RequestHandler</code>类来实现。</p>
+<p><code>RequestHandler</code> 定义如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_required_kw_args</span><span class="params">(fn)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">        获取fn函数中的没有默认值的命名关键字参数</span></span><br><span class="line"><span class="string">        如：foo(a, b, *, c, d=10, **kw) 则返回 ('c',)</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    args = []</span><br><span class="line">    params = inspect.signature(fn).parameters</span><br><span class="line">    <span class="keyword">for</span> name, param <span class="keyword">in</span> params.items():</span><br><span class="line">        <span class="keyword">if</span> param.kind == inspect.Parameter.KEYWORD_ONLY <span class="keyword">and</span> param.default == inspect.Parameter.empty:</span><br><span class="line">            args.append(name)</span><br><span class="line">    <span class="keyword">return</span> tuple(args)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_named_kw_args</span><span class="params">(fn)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">        获取fn函数中的命名关键字参数</span></span><br><span class="line"><span class="string">        如：foo(a, b, *, c, d=10, **kw) 则返回 ('c', 'd')</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    args = []</span><br><span class="line">    params = inspect.signature(fn).parameters</span><br><span class="line">    <span class="keyword">for</span> name, param <span class="keyword">in</span> params.items():</span><br><span class="line">        <span class="keyword">if</span> param.kind == inspect.Parameter.KEYWORD_ONLY:</span><br><span class="line">            args.append(name)</span><br><span class="line">    <span class="keyword">return</span> tuple(args)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">has_named_kw_args</span><span class="params">(fn)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">        判断fn函数中的是否含有命名关键字参数</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    params = inspect.signature(fn).parameters</span><br><span class="line">    <span class="keyword">for</span> param <span class="keyword">in</span> params.values():</span><br><span class="line">        <span class="keyword">if</span> param.kind == inspect.Parameter.KEYWORD_ONLY:</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">True</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">has_var_kw_args</span><span class="params">(fn)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">        判断fn函数中的是否含有关键字参数</span></span><br><span class="line"><span class="string">        如：foo(a, b, *, c, d=10, **kw) 的**kw参数</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    params = inspect.signature(fn).parameters</span><br><span class="line">    <span class="keyword">for</span> param <span class="keyword">in</span> params.values():</span><br><span class="line">        <span class="keyword">if</span> param.kind == inspect.Parameter.VAR_KEYWORD:</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">True</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">has_request_arg</span><span class="params">(fn)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">        request参数后面的参数必须是可变位置参数、命名关键字参数、关键字参数、</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    sig = inspect.signature(fn)</span><br><span class="line">    params = sig.parameters</span><br><span class="line">    found = <span class="keyword">False</span></span><br><span class="line">    <span class="keyword">for</span> name, param <span class="keyword">in</span> params.items():</span><br><span class="line">        <span class="keyword">if</span> name == <span class="string">'request'</span>:</span><br><span class="line">            found = <span class="keyword">True</span></span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">        <span class="keyword">if</span> found <span class="keyword">and</span> (param.kind != inspect.Parameter.VAR_POSITIONAL</span><br><span class="line">                    <span class="keyword">and</span> param.kind != inspect.Parameter.KEYWORD_ONLY</span><br><span class="line">                    <span class="keyword">and</span> param.kind != inspect.Parameter.VAR_KEYWORD):</span><br><span class="line">            <span class="keyword">raise</span> ValueError(<span class="string">'request parameter must be the last named parameter in function: %s%s'</span> % (fn.__name__, str(sig)))</span><br><span class="line">    <span class="keyword">return</span> found</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RequestHandler</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">        从URL函数中分析其需要接收的参数，从request中获取必要的参数，调用URL函数</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, app, fn)</span>:</span></span><br><span class="line">        self._app = app</span><br><span class="line">        self._func = fn</span><br><span class="line">        self._has_request_arg = has_request_arg(fn)</span><br><span class="line">        self._has_var_kw_args = has_var_kw_args(fn)</span><br><span class="line">        self._has_named_kw_args = has_named_kw_args(fn)</span><br><span class="line">        self._named_kw_args = get_named_kw_args(fn)</span><br><span class="line">        self._required_kw_args = get_required_kw_args(fn)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">__call__</span><span class="params">(self, request)</span>:</span></span><br><span class="line">        kw = <span class="keyword">None</span></span><br><span class="line">        <span class="keyword">if</span> self._has_var_kw_args <span class="keyword">or</span> self._has_named_kw_args <span class="keyword">or</span> self._required_kw_args:</span><br><span class="line">            <span class="comment"># POST请求</span></span><br><span class="line">            <span class="keyword">if</span> request.method == <span class="string">'POST'</span>:</span><br><span class="line">                <span class="keyword">if</span> <span class="keyword">not</span> request.content_type:</span><br><span class="line">                    <span class="keyword">return</span> web.HTTPBadRequest(<span class="string">'Missing Content-Type.'</span>)</span><br><span class="line">                ct = request.content_type.lower()</span><br><span class="line"></span><br><span class="line">                <span class="comment"># 数据类型是json</span></span><br><span class="line">                <span class="keyword">if</span> ct.startswith(<span class="string">'application/json'</span>):</span><br><span class="line">                    params = <span class="keyword">await</span> request.json()</span><br><span class="line">                    <span class="keyword">if</span> <span class="keyword">not</span> isinstance(params, dict):</span><br><span class="line">                        <span class="keyword">return</span> web.HTTPBadRequest(<span class="string">'JSON body must be object.'</span>)</span><br><span class="line">                    kw = params</span><br><span class="line"></span><br><span class="line">                <span class="comment"># 数据类型是url编码</span></span><br><span class="line">                <span class="keyword">elif</span> ct.startwith(<span class="string">'application/x-www-form-urlencoded'</span>) <span class="keyword">or</span> ct.startswith(<span class="string">'multipart/form-data'</span>):</span><br><span class="line">                    params = <span class="keyword">await</span> request.post()</span><br><span class="line">                    kw = dict(**params)</span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    <span class="keyword">return</span> web.HTTPBadRequest(<span class="string">'Unsupported Content-Type: %s'</span> % request.content_type)</span><br><span class="line">            <span class="comment"># GET 请求</span></span><br><span class="line">            <span class="keyword">if</span> request.method == <span class="string">'GET'</span>:</span><br><span class="line">                <span class="comment"># 解析URL参数</span></span><br><span class="line">                qs = request.query_string</span><br><span class="line">                <span class="keyword">if</span> qs:</span><br><span class="line">                    kw = dict()</span><br><span class="line">                    <span class="keyword">for</span> k, v <span class="keyword">in</span> parse.parse_qs(qs, <span class="keyword">True</span>).items():</span><br><span class="line">                        kw[k] = v[<span class="number">0</span>]</span><br><span class="line">        <span class="keyword">if</span> kw <span class="keyword">is</span> <span class="keyword">None</span>:</span><br><span class="line">            kw = dict(**request.match_info)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> self._has_var_kw_args <span class="keyword">and</span> self._named_kw_args:</span><br><span class="line">                copy = dict()</span><br><span class="line">                <span class="keyword">for</span> name <span class="keyword">in</span> self._named_kw_args:</span><br><span class="line">                    <span class="keyword">if</span> name <span class="keyword">in</span> kw:</span><br><span class="line">                        copy[name] = kw[name]</span><br><span class="line">                kw = copy</span><br><span class="line">            <span class="keyword">for</span> k, v <span class="keyword">in</span> request.match_info.items():</span><br><span class="line">                <span class="keyword">if</span> k <span class="keyword">in</span> kw:</span><br><span class="line">                    logging.warning(<span class="string">'Duplicate arg name in named arg and kw args: %s'</span> % k)</span><br><span class="line">                kw[k] = v</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 含有request参数</span></span><br><span class="line">        <span class="keyword">if</span> self._has_request_arg:</span><br><span class="line">            kw[<span class="string">'request'</span>] = request</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> self._required_kw_args:</span><br><span class="line">            <span class="comment"># 请求中传入的参数是否含有函数的命令关键字参数</span></span><br><span class="line">            <span class="keyword">for</span> name <span class="keyword">in</span> self._required_kw_args:</span><br><span class="line">                <span class="keyword">if</span> <span class="keyword">not</span> name <span class="keyword">in</span> kw:</span><br><span class="line">                    <span class="keyword">return</span> web.HTTPBadRequest(<span class="string">'Missing argument: %s'</span> % name)</span><br><span class="line">        logging.info(<span class="string">'call with args: %s'</span> % str(kw))</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            r = <span class="keyword">await</span> self._func(**kw)</span><br><span class="line">            <span class="keyword">return</span> r</span><br><span class="line">        <span class="keyword">except</span> APIError <span class="keyword">as</span> e:</span><br><span class="line">            <span class="keyword">return</span> dict(error=e.error, data=e.data, message=e.message)</span><br></pre></td></tr></table></figure>
+<p>上面的<code>RequestHandler</code>实现了<code>__call__</code>函数，所以可以想使用函数那样调用，无需创建实例后调用。</p>
+<p><code>RequestHandler</code>从URL函数中分析其需要接收的参数，从<code>request</code>中获取必要的参数，调用URL函数，有了<code>RequestHandler</code>定义，我们就可以在<code>handlers.py</code>的模块中使用各种参数的URL，例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@get('/blog/&#123;id&#125;')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_blog</span><span class="params">(id)</span>:</span></span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@get('/api/users')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">api_get_users</span><span class="params">(*, page=<span class="string">'1'</span>)</span>:</span></span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@post('/api/authenticate')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">authenticate</span><span class="params">(*, email, passwd)</span>:</span></span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@post('/api/blogs/&#123;id&#125;/delete')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">api_delete_blog</span><span class="params">(request, *, id)</span>:</span></span><br><span class="line">    <span class="keyword">pass</span></span><br></pre></td></tr></table></figure>
+<p>将上面的<code>add_route</code>函数中下面的语句：</p>
+<pre><code>app.router.add_route(method, path, fn)
+</code></pre><p>修改为：</p>
+<pre><code>app.router.add_route(method, path, RequestHandler(app, fn))
+</code></pre><p>把<code>handlers.py</code>定义的<code>index</code>、<code>hello</code>函数修改为下面的定义：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@get('/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index</span><span class="params">()</span>:</span></span><br><span class="line">    resp = web.Response(body=<span class="string">b'&lt;h1&gt;Index&lt;/h1&gt;'</span>)</span><br><span class="line">    resp.content_type = <span class="string">'text/html;charset=utf-8'</span></span><br><span class="line">    <span class="keyword">return</span> resp</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@get('/hello/&#123;name&#125;')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">(name)</span>:</span></span><br><span class="line">    text = <span class="string">'&lt;h1&gt;hello, %s&lt;/h1&gt;'</span> % name</span><br><span class="line">    resp = web.Response(body=text.encode(<span class="string">'utf-8'</span>))</span><br><span class="line">    resp.content_type = <span class="string">'text/html;charset=utf-8'</span></span><br><span class="line">    <span class="keyword">return</span> resp</span><br></pre></td></tr></table></figure>
+<p>运行<code>apps.py</code>模块中的测试程序，在浏览器中输入<code>http://127.0.0.1:8000/</code>、<code>http://127.0.0.1:8000/hello/web</code>可以看到和上面一样的效果。</p>
+<h4 id="middleware"><a href="#middleware" class="headerlink" title="middleware"></a>middleware</h4><p><code>middleware</code>是一种拦截器，一个URL在被某个函数处理前，可以改变URL的输入、输出。<code>middleware</code>的用处就在于把通用的功能从每个URL处理函数中拿出来，集中放到一个地方。例如，一个记录URL日志的<code>logger</code>可以简单定义如下：</p>
+<p>在<code>app.py</code>中定义如下的<code>logger_factory</code>函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">logger_factory</span><span class="params">(app, handler)</span>:</span></span><br><span class="line">    <span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">logger</span><span class="params">(request)</span>:</span></span><br><span class="line">        logging.info(<span class="string">'Request: %s %s'</span> % (request.method, request.path))</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">await</span> handler(request))</span><br><span class="line">    <span class="keyword">return</span> logger</span><br></pre></td></tr></table></figure>
+<p>对于上面的<code>index</code>、<code>hello</code>的URL处理函数返回的<code>web.Response</code>对象，我们可以定义一个<code>response_factory</code>拦截器进行处理：</p>
+<p>在<code>app.py</code>中定义如下的<code>response_factory</code>函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">response_factory</span><span class="params">(app, handler)</span>:</span></span><br><span class="line">    <span class="string">""""</span></span><br><span class="line"><span class="string">        根据URL函数返回值的类型，构造相应的web.Response对象</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    <span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">response</span><span class="params">(request)</span>:</span></span><br><span class="line">        <span class="comment"># 调用URL处理函数</span></span><br><span class="line">        r = <span class="keyword">await</span> handler(request)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> isinstance(r, web.StreamResponse):</span><br><span class="line">            <span class="keyword">return</span> r</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> isinstance(r, bytes):</span><br><span class="line">            resp = web.Response(body=r)</span><br><span class="line">            resp.content_type = <span class="string">'application/octet-stream'</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> isinstance(r, str):</span><br><span class="line">            <span class="keyword">if</span> r.startswith(<span class="string">'redirect:'</span>):</span><br><span class="line">                <span class="keyword">return</span> web.HTTPFound(r[<span class="number">9</span>:])</span><br><span class="line">            resp = web.Response(body=r.encode(<span class="string">'utf-8'</span>))</span><br><span class="line">            resp.content_type = <span class="string">'text/html;charset=utf-8'</span></span><br><span class="line">            <span class="keyword">return</span> resp</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> isinstance(r, dict):</span><br><span class="line">            resp = web.Response(body=json.dumps(r, ensure_ascii=<span class="keyword">False</span>, default=<span class="keyword">lambda</span> obj: obj.__dict__).encode(<span class="string">'utf-8'</span>))</span><br><span class="line">            resp.content_type = <span class="string">'application/json;charset=utf-8'</span></span><br><span class="line">            <span class="keyword">return</span> resp</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> isinstance(r, int) <span class="keyword">and</span> <span class="number">100</span> &lt;= r &lt; <span class="number">600</span>:</span><br><span class="line">            <span class="keyword">return</span> web.Response(r)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> isinstance(r, tuple) <span class="keyword">and</span> len(r) == <span class="number">2</span>:</span><br><span class="line">            t, m = r</span><br><span class="line">            <span class="keyword">if</span> isinstance(t, int) <span class="keyword">and</span> <span class="number">100</span> &lt;= r &lt; <span class="number">600</span>:</span><br><span class="line">                <span class="keyword">return</span> web.Response(t, str(m))</span><br><span class="line"></span><br><span class="line">        resp = web.Response(body=str(r).encode(<span class="string">'utf-8'</span>))</span><br><span class="line">        resp.content_type = <span class="string">'text/plain;charset=utf-8'</span></span><br><span class="line">        <span class="keyword">return</span> resp</span><br><span class="line">    <span class="keyword">return</span> response</span><br></pre></td></tr></table></figure>
+<p><code>response_factory</code>函数，在调用URL处理函数后，对其返回值的类型，进行判断，并返回相应的<code>web.Response</code>的对象，如返回的类型是<code>str</code>，对应的是<code>html</code>文档，返回的类型是<code>dict</code>，对应的是<code>json</code>对象。</p>
+<p>有了上面的<code>response_factory</code>拦截器，<code>handlers.py</code>的<code>index</code>、<code>hello</code>的URL处理函数，可以修改为如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@get('/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">'&lt;h1&gt;Index&lt;/h1&gt;'</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@get('/hello/&#123;name&#125;')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">(name)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">'&lt;h1&gt;hello, %s&lt;/h1&gt;'</span> % name</span><br></pre></td></tr></table></figure>
+<p>在<code>app.py</code>的<code>init</code>函数中添加<code>logger_factory</code>、<code>response_factory</code>拦截器，代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">init</span><span class="params">(loop)</span>:</span></span><br><span class="line">    app = web.Application(loop=loop, middlewares=[</span><br><span class="line">        logger_factory, response_factory])</span><br><span class="line">    add_routes(app, <span class="string">'handlers'</span>)</span><br><span class="line">    srv = <span class="keyword">await</span> loop.create_server(app.make_handler(), <span class="string">'127.0.0.1'</span>, <span class="number">8000</span>)</span><br><span class="line">    print(<span class="string">'Server started at http://127.0.0.1:8000...'</span>)</span><br><span class="line">    <span class="keyword">return</span> srv</span><br></pre></td></tr></table></figure>
+<p>运行<code>apps.py</code>模块中的测试程序，在浏览器中输入<code>http://127.0.0.1:8000/</code>、<code>http://127.0.0.1:8000/hello/web</code>可以看到和上面一样的效果。</p>
+<h4 id="使用Web框架和ORM框架"><a href="#使用Web框架和ORM框架" class="headerlink" title="使用Web框架和ORM框架"></a>使用Web框架和ORM框架</h4><p>有了上面的Web框架，对于使用者来说，就非常方便了。如果要处理一个URL，只需要在<code>handlers.py</code>模块中添加相应的处理函数即可。</p>
+<p>现在我们可以<a href="https://qinglianghe.github.io/2018/05/27/orm/" target="_blank" rel="noopener">上文</a>中的ORM框架结合起来使用，例如，下面的<code>get_users</code>函数用于访问数据库中<code>user</code>表的数据。</p>
+<p>在<code>handlers.py</code>模块中定义<code>get_users</code>函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@get('/users')</span></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">get_users</span><span class="params">()</span>:</span></span><br><span class="line">    users = <span class="keyword">await</span> User.find_all()</span><br><span class="line">    <span class="keyword">for</span> user <span class="keyword">in</span> users:</span><br><span class="line">        user.passwd = <span class="string">'*******'</span></span><br><span class="line">    <span class="keyword">return</span> users</span><br></pre></td></tr></table></figure>
+<p>在<code>app.py</code>的<code>init</code>函数中，创建数据库的连接池：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">init</span><span class="params">(loop)</span>:</span></span><br><span class="line">    <span class="keyword">await</span> orm.create_pool(user=<span class="string">'heqingliang'</span>, password=<span class="string">'heqingliang'</span>, db=<span class="string">'test'</span>, loop=loop)</span><br><span class="line">    app = web.Application(loop=loop, middlewares=[</span><br><span class="line">        logger_factory, response_factory])</span><br><span class="line">    add_routes(app, <span class="string">'handlers'</span>)</span><br><span class="line">    srv = <span class="keyword">await</span> loop.create_server(app.make_handler(), <span class="string">'127.0.0.1'</span>, <span class="number">8000</span>)</span><br><span class="line">    print(<span class="string">'Server started at http://127.0.0.1:8000...'</span>)</span><br><span class="line">    <span class="keyword">return</span> srv</span><br></pre></td></tr></table></figure>
+<p>运行<code>app.py</code>测试程序，在浏览器中输入<code>http://127.0.0.1:8000/users</code>，可以看到数据库中<code>user</code>表的数据，以<code>json</code>形式返回：</p>
+<p><img src="\images\python_web\users.png" alt="users.png"></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/05/27/orm/" rel="next" title="编写python ORM框架">
+                <i class="fa fa-chevron-left"></i> 编写python ORM框架
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">23</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#异步IO"><span class="nav-number">1.</span> <span class="nav-text">异步IO</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#协程"><span class="nav-number">1.1.</span> <span class="nav-text">协程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#asyncio"><span class="nav-number">1.2.</span> <span class="nav-text">asyncio</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#async-await"><span class="nav-number">1.3.</span> <span class="nav-text">async/await</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#aiohttp"><span class="nav-number">2.</span> <span class="nav-text">aiohttp</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Web框架"><span class="nav-number">3.</span> <span class="nav-text">Web框架</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#get和post装饰器"><span class="nav-number">3.1.</span> <span class="nav-text">get和post装饰器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#add-routes"><span class="nav-number">3.2.</span> <span class="nav-text">add_routes</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RequestHandler"><span class="nav-number">3.3.</span> <span class="nav-text">RequestHandler</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#middleware"><span class="nav-number">3.4.</span> <span class="nav-text">middleware</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用Web框架和ORM框架"><span class="nav-number">3.5.</span> <span class="nav-text">使用Web框架和ORM框架</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
