@@ -87,8 +87,8 @@
 <meta property="og:description" content="Redis支持RDB和AOF两种持久化机制，持久化功能有效地避免因进程退出造成的数据丢失问题，当下次重启时利用之前持久化的文件即可实现数据恢复。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/images/redis/bgsave.png">
-<meta property="og:image" content="http://yoursite.com/2018/06/12/redis_04/images/redis/bgrewriteaof.png">
-<meta property="og:updated_time" content="2018-06-27T23:54:17.000Z">
+<meta property="og:image" content="http://yoursite.com/images/redis/bgrewriteaof.png">
+<meta property="og:updated_time" content="2018-06-28T00:01:20.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis持久化">
 <meta name="twitter:description" content="Redis支持RDB和AOF两种持久化机制，持久化功能有效地避免因进程退出造成的数据丢失问题，当下次重启时利用之前持久化的文件即可实现数据恢复。">
@@ -420,7 +420,7 @@ dbfilename{newFileName}</code>运行期动态执行，当下次运行时RDB文�
 </ul>
 <p><code>auto-aof-rewrite-min-size</code>：表示运行AOF重写时文件最小体积，默认为64MB。</p>
 <p><code>auto-aof-rewrite-percentage</code>：代表当前AOF文件空间（aof_current_size）和上一次重写后AOF文件空间（aof_base_size）的比值。</p>
-<h6 id="AOF重写运作流程"><a href="#AOF重写运作流程" class="headerlink" title="AOF重写运作流程"></a>AOF重写运作流程</h6><p><img src="images/redis/bgrewriteaof.png" alt="bgrewriteaof.png"></p>
+<h6 id="AOF重写运作流程"><a href="#AOF重写运作流程" class="headerlink" title="AOF重写运作流程"></a>AOF重写运作流程</h6><p><img src="/images/redis/bgrewriteaof.png" alt="bgrewriteaof.png"></p>
 <ol>
 <li><p>如果当前进程正在执行<code>bgsave</code>操作，重写命令延迟到<code>bgsave</code>完成之后再执行。</p>
 </li>
