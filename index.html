@@ -232,6 +232,191 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/19/zookeeper_01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/19/zookeeper_01/" itemprop="url">分布式服务协调框架ZooKeeper</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-19T00:00:00+08:00">
+                2018-06-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <hr>
+<p>ZooKeeper是一种为分布式应用所设计的高可用、高性能且一致的开源协调服务框架，它可以实现同步服务，配置维护、命名服务、分布式锁等分布式基础服务。</p>
+<h3 id="ZooKeeper数据模型"><a href="#ZooKeeper数据模型" class="headerlink" title="ZooKeeper数据模型"></a>ZooKeeper数据模型</h3><p>Zookeeper提供基于类似于文件系统的目录节点树方式的数据存储，但是Zookeeper并不是用来专门存储数据的，它的作用主要是用来维护和监控你存储的数据的状态变化。通过监控这些数据状态的变化，从而可以达到基于数据的集群管理。</p>
+<h4 id="数据模型"><a href="#数据模型" class="headerlink" title="数据模型"></a>数据模型</h4><p>Zookeeper会维护一个具有层次关系的数据结构，它非常类似于一个标准的文件系统，如图：</p>
+<p><img src="/images/zookeeper/znode.png" alt="znode.png"></p>
+<p>与Linux文件系统不同的是，Zookeeper的数据节点称为znode，znode是Zookeeper中数据的最小单元，每个znode都可以保存数据，同时还可以挂载子节点，因此构成了一个层次化的命名空间，称为树。</p>
+<h5 id="znode结构"><a href="#znode结构" class="headerlink" title="znode结构"></a>znode结构</h5><p>每个znode节点既像文件一样维护着数据、元信息、ACL、时间戳等数据结构，又像目录一样可以作为路径标识的一部分。每个znode由3部分组成:</p>
+<ul>
+<li>stat：状态信息, 描述该Znode的版本, 权限等信息</li>
+<li>data：与该znode关联的数据</li>
+<li>children：该znode下的子节点</li>
+</ul>
+<h5 id="节点类型"><a href="#节点类型" class="headerlink" title="节点类型"></a>节点类型</h5><p>Zookeeper中znode的节点创建时候是可以指定类型的，主要有下面几种类型:</p>
+<p><strong>PERSISTENT：</strong> 持久化znode节点，一旦创建这个znode点存储的数据不会主动消失，除非是客户端主动的delete。</p>
+<p><strong>EPHEMERAL：</strong> 临时znode节点，Client连接到Zookeeper Service的时候会建立一个Session，之后用这个Zookeeper连接实例创建该类型的znode，一旦Client关闭了Zookeeper的连接，服务器就会清除Session，然后这个Session建立的ZNode节点都会从命名空间消失。临时节点不允许拥有子节点。</p>
+<p><strong>PERSISTENT_SEQUENTIAL：</strong> 顺序自动编号的znoe节点，这种znoe节点会根据当前已近存在的znode节点编号自动加1。</p>
+<p><strong>EPEMERAL_SEQUENTIAL：</strong> 临时自动编号节点，znode节点编号会自动增加。</p>
+<h5 id="Watcher数据变更通知"><a href="#Watcher数据变更通知" class="headerlink" title="Watcher数据变更通知"></a>Watcher数据变更通知</h5><p>znode可以被监控，包括这个目录节点中存储的数据的修改，子节点目录的变化等，一旦发生变化可以通知设置监控的客户端，这个是 Zookeeper 的核心特性，Zookeeper的很多功能都是基于这个特性实现的。</p>
+<h5 id="ACL权限控制"><a href="#ACL权限控制" class="headerlink" title="ACL权限控制"></a>ACL权限控制</h5><p>Zookeeper利用ACL策略控制节点的访问权限，如节点数据读写、节点创建、节点删除、读取子节点列表、设置节点权限等。</p>
+<p>每个znode的权限都是独立控制的，只有客户端满足znode设置的权限要求时，才能完成相应的操作。Zookeeper的ACL，分为三个维度：scheme、id、permission，通常表示为：scheme:id:permission，schema代表授权策略，id代表用户，permission代表权限。</p>
+<h5 id="内存数据"><a href="#内存数据" class="headerlink" title="内存数据"></a>内存数据</h5><p>Zookeeper的内存数据库，管理Zookeeper的所有会话、DataTree存储和事务日志。ZKDatabase会定时向磁盘dump快照数据，同时在Zookeeper启动时，会通过磁盘的事务日志和快照文件恢复成一个完整的内存数据库。</p>
+<h4 id="Zookeeper-service网络结构"><a href="#Zookeeper-service网络结构" class="headerlink" title="Zookeeper service网络结构"></a>Zookeeper service网络结构</h4><p>Zookeeper的工作集群可以简单分成两类，一个是Leader，唯一一个，其余的都是follower，如何确定Leader是通过内部选举确定的。</p>
+<p><img src="/images/zookeeper/zk_service.png" alt="zk_service.png"></p>
+<p>Leader和各个follower是互相通信的，对于Zookeeper系统的数据都是保存在内存里面的，同样也会备份一份在磁盘上。对于每个Zookeeper节点而言，可以看做每个Zookeeper节点的命名空间是一样的，也就是有同样的数据。</p>
+<p>如果Leader挂了，Zookeeper集群会重新选举，在毫秒级别就会重新选举出一个Leaer。</p>
+<p>集群中除非有一半以上的Zookeeper节点挂了，Zookeeper service才不可用。</p>
+<h5 id="Zookeeper读写数据"><a href="#Zookeeper读写数据" class="headerlink" title="Zookeeper读写数据"></a>Zookeeper读写数据</h5><p>写数据，一个客户端进行写数据请求时，如果是follower接收到写请求，就会把请求转发给Leader，Leader通过内部的Zab协议进行原子广播，直到所有Zookeeper节点都成功写了数据后（内存同步以及磁盘更新），这次写请求算是完成，然后Zookeeper Service就会给Client发回响应。</p>
+<p>读数据，因为集群中所有的Zookeeper节点都呈现一个同样的命名空间视图（就是结构数据），上面的写请求已经保证了写一次数据必须保证集群所有的Zookeeper节点都是同步命名空间的，所以读的时候可以在任意一台Zookeeper节点上。</p>
+<h4 id="Zab协议"><a href="#Zab协议" class="headerlink" title="Zab协议"></a>Zab协议</h4><p>ZAB协议是专门为Zookeeper实现分布式协调功能而设计。Zookeeper主要是根据ZAB协议是实现分布式系统数据一致性。</p>
+<p>Zab协议核心如下：</p>
+<p>所有的事务请求必须一个全局唯一的服务器（Leader）来协调处理，集群其余的服务器称为follower服务器。Leader服务器负责将一个客户端请求转化为事务提议（Proposal），并将该proposal分发给集群所有的follower服务器。之后Leader服务器需要等待所有的follower服务器的反馈，一旦超过了半数的follower服务器进行了正确反馈后，那么Leader服务器就会再次向所有的follower服务器分发commit消息，要求其将前一个proposal进行提交。</p>
+<h5 id="Zab模式"><a href="#Zab模式" class="headerlink" title="Zab模式"></a>Zab模式</h5><p>Zab协议包括两种基本的模式：崩溃恢复和消息广播。</p>
+<p>当整个服务框架启动过程中或Leader服务器出现网络中断、崩溃退出与重启等异常情况时，Zab协议就会进入恢复模式并选举产生新的Leader服务器。</p>
+<p>当选举产生了新的Leader服务器，同时集群中已经有过半的机器与该Leader服务器完成了状态同步之后，Zab协议就会退出恢复模式，状态同步是指数据同步，用来保证集群在过半的机器能够和Leader服务器的数据状态保持一致。</p>
+<p>当集群中已经有过半的Follower服务器完成了和Leader服务器的状态同步，那么整个服务框架就可以进入消息广播模式。</p>
+<p>当一台同样遵守Zab协议的服务器启动后加入到集群中，如果此时集群中已经存在一个Leader服务器在负责进行消息广播，那么加入的服务器就会自觉地进入数据恢复模式：找到Leader所在的服务器，并与其进行数据同步，然后一起参与到消息广播流程中去。</p>
+<p>Zookeeper只允许唯一的一个Leader服务器来进行事务请求的处理，Leader服务器在接收到客户端的事务请求后，会生成对应的事务提议并发起一轮广播协议，而如果集群中的其他机器收到客户端的事务请求后，那么这些非Leader服务器会首先将这个事务请求转发给Leader服务器。</p>
+<h5 id="消息广播模式"><a href="#消息广播模式" class="headerlink" title="消息广播模式"></a>消息广播模式</h5><ol>
+<li>客户端发起一个写操作请求 </li>
+<li>Leader服务器将客户端的request请求转化为事物proposql提案，同时为每个proposal分配一个全局唯一的ID，即ZXID</li>
+<li>leader服务器与每个follower之间都有一个队列，leader将消息发送到该队列 </li>
+<li>follower机器从队列中取出消息处理完(写入本地事物日志中)毕后，向leader服务器发送ACK确认</li>
+<li>leader服务器收到半数以上的follower的ACK后，即认为可以发送commit </li>
+<li>leader向所有的follower服务器发送commit消息</li>
+</ol>
+<h5 id="崩溃恢复模式"><a href="#崩溃恢复模式" class="headerlink" title="崩溃恢复模式"></a>崩溃恢复模式</h5><p>leader服务器发生崩溃，则zab协议要求zookeeper集群进行崩溃恢复和leader服务器选举。</p>
+<p>ZAB协议崩溃恢复要求满足如下2个要求：</p>
+<ul>
+<li>确保已经被leader提交的proposal必须最终被所有的follower服务器提交。</li>
+<li>确保丢弃已经被leader出的但是没有被提交的proposal。</li>
+</ul>
+<p>leader服务器发生崩溃时分为如下场景： </p>
+<ul>
+<li>leader在提出proposal时未提交之前崩溃。</li>
+<li>leader在发送commit消息之后崩溃。即消息已经发送到队列中。经过崩溃恢复之后，参与选举的follower服务器中有的节点已经是消费了队列中所有的commit消息。即该follower节点将会被选举为最新的leader。</li>
+</ul>
+<h5 id="数据同步"><a href="#数据同步" class="headerlink" title="数据同步"></a>数据同步</h5><p>在zookeeper集群中新的leader选举成功之后，leader会将自身的提交的最大proposal的事物ZXID发送给其他的follower节点。follower节点会根据leader的消息进行回退或者是数据同步操作。最终目的要保证集群中所有节点的数据副本保持一致。</p>
+<h4 id="ZooKeeper典型的应用场景"><a href="#ZooKeeper典型的应用场景" class="headerlink" title="ZooKeeper典型的应用场景"></a>ZooKeeper典型的应用场景</h4><h5 id="统一命名服务"><a href="#统一命名服务" class="headerlink" title="统一命名服务"></a>统一命名服务</h5><p>分布式应用中，通常需要有一套完整的命名规则，既能够产生唯一的名称又便于人识别和记住，通常情况下用树形的名称结构是一个理想的选择，树形的名称结构是一个有层次的目录结构，既对人友好又不会重复。Name Service已经是Zookeeper内置的功能，只要调用 Zookeeper 的 API 就能实现。如调用 create 接口就可以很容易创建一个目录节点。</p>
+<h5 id="配置管理"><a href="#配置管理" class="headerlink" title="配置管理"></a>配置管理</h5><p>配置的管理在分布式应用环境中很常见，例如同一个应用系统需要多台 PC Server 运行，但是它们运行的应用系统的某些配置项是相同的，如果要修改这些相同的配置项，那么就必须同时修改每台运行这个应用系统的 PC Server，这样非常麻烦而且容易出错。</p>
+<p>像这样的配置信息完全可以交给 Zookeeper 来管理，将配置信息保存在 Zookeeper 的某个目录节点中，然后将所有需要修改的应用机器监控配置信息的状态，一旦配置信息发生变化，每台应用机器就会收到 Zookeeper 的通知，然后从 Zookeeper 获取新的配置信息应用到系统中。</p>
+<p><img src="/images/zookeeper/conf_manager.png" alt="conf_manager.png"></p>
+<h5 id="集群管理"><a href="#集群管理" class="headerlink" title="集群管理"></a>集群管理</h5><p>如有多台 Server 组成一个服务集群，那么必须要一个“总管”知道当前集群中每台机器的服务状态，一旦有机器不能提供服务，集群中其它集群必须知道，从而做出调整重新分配服务策略。同样当增加集群的服务能力时，就会增加一台或多台 Server，同样也必须让“总管”知道。</p>
+<p>Zookeeper 不仅能够帮你维护当前的集群中机器的服务状态，而且能够帮你选出一个“总管”，让这个总管来管理集群，这就是Zookeeper的另一个功能Leader 选择。</p>
+<p>它们的实现方式都是在Zookeeper上创建一个EPHEMERAL类型的目录节点，然后每个Server在它们创建目录节点的父目录节点上调用watch这个节点，当创建它的 Server宕机了，这个目录节点也随之被删除，Watch将会被调用。</p>
+<p><img src="/images/zookeeper/group_membership.png" alt="group_membership.png"></p>
+<h5 id="分布式锁"><a href="#分布式锁" class="headerlink" title="分布式锁"></a>分布式锁</h5><p>锁在同一个进程中很容易实现，但是在跨进程或者在不同Server之间就不好实现了。Zookeeper却很容易实现这个功能。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/17/redis_06/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1344,131 +1529,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/15/http2_0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="heqingliang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/dva.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="heqingliang's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/04/15/http2_0/" itemprop="url">HTTP/2 协议</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-15T00:00:00+08:00">
-                2018-04-15
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <hr>
-<p><a href="https://http2.github.io/" target="_blank" rel="noopener">HTTP/2</a>（HTTP/2.0）即超文本传输协议 2.0，是下一代HTTP协议。相对于<code>HTTP/1.x</code>协议的文本传输格式，<code>HTTP/2</code>以二进制的格式进行数据传输。因此，具有更小的传输体积以及负载，相比于文本解析，二进制解析更加方便、高效。<code>HTTP/2</code>与<code>HTTP/1.x</code>相比具有如下特性：</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/04/15/http2_0/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1523,7 +1583,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">29</span>
+                  <span class="site-state-item-count">30</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
