@@ -79,21 +79,21 @@
 
 
 
-<meta name="description" content="ZooKeeper是一种为分布式应用所设计的高可用、高性能且一致的开源协调服务框架，它可以实现同步服务，配置维护、命名服务、分布式锁等分布式基础服务。 ZooKeeper数据模型Zookeeper提供基于类似于文件系统的目录节点树方式的数据存储，但是Zookeeper并不是用来专门存储数据的，它的作用主要是用来维护和监">
+<meta name="description" content="ZooKeeper是一种为分布式应用所设计的高可用、高性能且一致的开源协调服务框架，它可以实现同步服务，配置维护、命名服务、分布式锁等分布式基础服务。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="分布式服务协调框架ZooKeeper">
 <meta property="og:url" content="http://yoursite.com/2018/06/19/zookeeper_01/index.html">
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
-<meta property="og:description" content="ZooKeeper是一种为分布式应用所设计的高可用、高性能且一致的开源协调服务框架，它可以实现同步服务，配置维护、命名服务、分布式锁等分布式基础服务。 ZooKeeper数据模型Zookeeper提供基于类似于文件系统的目录节点树方式的数据存储，但是Zookeeper并不是用来专门存储数据的，它的作用主要是用来维护和监控你存储的数据的状态变化。通过监控这些数据状态的变化，从而可以达到基于数据的集">
+<meta property="og:description" content="ZooKeeper是一种为分布式应用所设计的高可用、高性能且一致的开源协调服务框架，它可以实现同步服务，配置维护、命名服务、分布式锁等分布式基础服务。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/images/zookeeper/znode.png">
 <meta property="og:image" content="http://yoursite.com/images/zookeeper/zk_service.png">
 <meta property="og:image" content="http://yoursite.com/images/zookeeper/conf_manager.png">
 <meta property="og:image" content="http://yoursite.com/images/zookeeper/group_membership.png">
-<meta property="og:updated_time" content="2018-07-05T01:23:55.000Z">
+<meta property="og:updated_time" content="2018-07-06T03:50:14.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="分布式服务协调框架ZooKeeper">
-<meta name="twitter:description" content="ZooKeeper是一种为分布式应用所设计的高可用、高性能且一致的开源协调服务框架，它可以实现同步服务，配置维护、命名服务、分布式锁等分布式基础服务。 ZooKeeper数据模型Zookeeper提供基于类似于文件系统的目录节点树方式的数据存储，但是Zookeeper并不是用来专门存储数据的，它的作用主要是用来维护和监控你存储的数据的状态变化。通过监控这些数据状态的变化，从而可以达到基于数据的集">
+<meta name="twitter:description" content="ZooKeeper是一种为分布式应用所设计的高可用、高性能且一致的开源协调服务框架，它可以实现同步服务，配置维护、命名服务、分布式锁等分布式基础服务。">
 <meta name="twitter:image" content="http://yoursite.com/images/zookeeper/znode.png">
 
 
@@ -306,6 +306,7 @@
       
         <hr>
 <p>ZooKeeper是一种为分布式应用所设计的高可用、高性能且一致的开源协调服务框架，它可以实现同步服务，配置维护、命名服务、分布式锁等分布式基础服务。</p>
+<a id="more"></a>
 <h3 id="ZooKeeper数据模型"><a href="#ZooKeeper数据模型" class="headerlink" title="ZooKeeper数据模型"></a>ZooKeeper数据模型</h3><p>Zookeeper提供基于类似于文件系统的目录节点树方式的数据存储，但是Zookeeper并不是用来专门存储数据的，它的作用主要是用来维护和监控你存储的数据的状态变化。通过监控这些数据状态的变化，从而可以达到基于数据的集群管理。</p>
 <h4 id="数据模型"><a href="#数据模型" class="headerlink" title="数据模型"></a>数据模型</h4><p>Zookeeper会维护一个具有层次关系的数据结构，它非常类似于一个标准的文件系统，如图：</p>
 <p><img src="/images/zookeeper/znode.png" alt="znode.png"></p>
