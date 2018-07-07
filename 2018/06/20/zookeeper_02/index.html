@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Zookeeper搭建方式可以分为单机模式、集群模式、伪集群模式。在集群模式下，节点的个数建议为奇数个，且至少为3个节点。因为Zookeeper的leader选取至少要有半数以上的节点。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ZooKeeper集群搭建、命令操作">
+<meta property="og:url" content="http://yoursite.com/2018/06/20/zookeeper_02/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="Zookeeper搭建方式可以分为单机模式、集群模式、伪集群模式。在集群模式下，节点的个数建议为奇数个，且至少为3个节点。因为Zookeeper的leader选取至少要有半数以上的节点。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-07-07T04:56:34.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ZooKeeper集群搭建、命令操作">
+<meta name="twitter:description" content="Zookeeper搭建方式可以分为单机模式、集群模式、伪集群模式。在集群模式下，节点的个数建议为奇数个，且至少为3个节点。因为Zookeeper的leader选取至少要有半数以上的节点。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/06/20/zookeeper_02/"/>
+
+
+
+
+
+  <title>ZooKeeper集群搭建、命令操作 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/20/zookeeper_02/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ZooKeeper集群搭建、命令操作</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-20T00:00:00+08:00">
+                2018-06-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<p>Zookeeper搭建方式可以分为单机模式、集群模式、伪集群模式。在集群模式下，节点的个数建议为奇数个，且至少为3个节点。因为Zookeeper的leader选取至少要有半数以上的节点。</p>
+<a id="more"></a>
+<h3 id="Zookeeper的搭建方式"><a href="#Zookeeper的搭建方式" class="headerlink" title="Zookeeper的搭建方式"></a>Zookeeper的搭建方式</h3><ul>
+<li><strong>单机模式：</strong> Zookeeper只运行在一台服务器上，适合测试环境</li>
+<li><strong>伪集群模式：</strong> 在一台物理机上运行多个Zookeeper实例</li>
+<li><strong>集群模式：</strong> Zookeeper运行于一个集群上，适合生产环境</li>
+</ul>
+<h4 id="单机模式搭建"><a href="#单机模式搭建" class="headerlink" title="单机模式搭建"></a>单机模式搭建</h4><p>要搭建Zookeeper环境，首先要先安装JAVA开发环境。</p>
+<p><strong>下载ZooKeeper:</strong> </p>
+<p><a href="https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/stable/" target="_blank" rel="noopener">https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/stable/</a></p>
+<p><strong>解压：</strong></p>
+<pre><code>tar xzf zookeeper-3.4.12.tar.gz
+</code></pre><p>在conf目录下创建一个配置文件zoo.cfg：</p>
+<pre><code>cd zookeeper-3.4.12
+[heql@ubuntu zookeeper-3.4.12]$ cp conf/zoo_sample.cfg conf/zoo.cfg
+</code></pre><h5 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h5><p>配置文件zoo.c的内容</p>
+<pre><code># The number of milliseconds of each tick
+tickTime=2000
+# The number of ticks that the initial 
+# synchronization phase can take
+initLimit=10
+# The number of ticks that can pass between 
+# sending a request and getting an acknowledgement
+syncLimit=5
+# the directory where the snapshot is stored.
+# do not use /tmp for storage, /tmp here is just 
+# example sakes.
+dataDir=/tmp/zookeeper
+# the port at which the clients will connect
+clientPort=2181
+# the maximum number of client connections.
+# increase this if you need to handle more clients
+#maxClientCnxns=60
+#
+# Be sure to read the maintenance section of the 
+# administrator guide before turning on autopurge.
+#
+# http://zookeeper.apache.org/doc/current/zookeeperAdmin.html#sc_maintenance
+#
+# The number of snapshots to retain in dataDir
+#autopurge.snapRetainCount=3
+# Purge task interval in hours
+# Set to &quot;0&quot; to disable auto purge feature
+#autopurge.purgeInterval=1
+</code></pre><table>
+<thead>
+<tr>
+<th>配置项</th>
+<th style="text-align:left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tickTime</td>
+<td style="text-align:left">Zookeeper服务器之间或客户端与服务器之间维持心跳的时间间隔，每隔tickTime时间就会发送一个心跳</td>
+</tr>
+<tr>
+<td>initLimit</td>
+<td style="text-align:left">允许follower连接并同步到Leader的初始化连接时间，以tickTime为单位。当初始化连接时间超过该值，则表示连接失败</td>
+</tr>
+<tr>
+<td>syncLimit</td>
+<td style="text-align:left">表示Leader与follower之间发送消息时，请求和应答时间长度。如果follower在设置时间内不能与leader通信，那么此follower将会被丢弃。</td>
+</tr>
+<tr>
+<td>dataDir</td>
+<td style="text-align:left">存储内存中数据库快照的位置</td>
+</tr>
+<tr>
+<td>clientPort</td>
+<td style="text-align:left">Zookeeper的端口号</td>
+</tr>
+<tr>
+<td>maxClientCnxns</td>
+<td style="text-align:left">限制连接到Zookeeper的客户端数量</td>
+</tr>
+</tbody>
+</table>
+<p><strong>运行：</strong></p>
+<pre><code>[heql@ubuntu zookeeper-3.4.12]$ bin/zkServer.sh start
+</code></pre><p><strong>查看运行状态：</strong></p>
+<pre><code>[heql@ubuntu zookeeper-3.4.12]$ jps
+7309 QuorumPeerMain
+7887 Jps
+</code></pre><h4 id="伪集群模式搭建"><a href="#伪集群模式搭建" class="headerlink" title="伪集群模式搭建"></a>伪集群模式搭建</h4><p>在一台物理机上运行多个Zookeeper实例，这些Zookeeper实例可以组成伪集群模式。在集群为分布式模式下，必须保证每个zoo.conf的各个端口号不能冲突，除了clientPort不同之外，dataDir也不同。另外，还要在dataDir所对应的目录中创建myid文件来指定对应的Zookeeper服务器实例。</p>
+<p>在本机上运行3个Zookeeper实例，它们对应的配置文件分别为<code>zoo_2181.cfg</code>、<code>zoo_2182.cfg</code>、<code>zoo_2183.cfg</code>。</p>
+<p>如下为<code>zoo_2181.cfg</code>配置文件的内容：</p>
+<pre><code># The number of milliseconds of each tick
+tickTime=2000
+# The number of ticks that the initial 
+# synchronization phase can take
+initLimit=10
+# The number of ticks that can pass between 
+# sending a request and getting an acknowledgement
+syncLimit=5
+# the directory where the snapshot is stored.
+# do not use /tmp for storage, /tmp here is just 
+# example sakes.
+dataDir=/opt/zookeeper/data_2181
+# the port at which the clients will connect
+clientPort=2181
+# the maximum number of client connections.
+# increase this if you need to handle more clients
+#maxClientCnxns=60
+#
+# Be sure to read the maintenance section of the 
+# administrator guide before turning on autopurge.
+#
+# http://zookeeper.apache.org/doc/current/zookeeperAdmin.html#sc_maintenance
+#
+# The number of snapshots to retain in dataDir
+#autopurge.snapRetainCount=3
+# Purge task interval in hours
+# Set to &quot;0&quot; to disable auto purge feature
+#autopurge.purgeInterval=1
+
+server.0=127.0.0.1:2287:3387
+server.1=127.0.0.1:2288:3388
+server.2=127.0.0.1:2289:3389
+</code></pre><p>server.A=B：C：D</p>
+<ul>
+<li>A：其中A是一个数字，表示这个是服务器的编号，对应不同服务器的myid文件内容</li>
+<li>B：是这个服务器的 ip 地址</li>
+<li>C：Leader选举的端口</li>
+<li>D：Zookeeper服务器之间的通信端口</li>
+</ul>
+<p><code>zoo_2182.cfg</code>和<code>zoo_2183.cfg</code>与<code>zoo_2181.cfg</code>配置文件与上面类似，只是<code>clientPort</code>、<code>dataDir</code>不同。</p>
+<p><code>zoo_2182.cfg</code>的<code>clientPort</code>、<code>dataDir</code>为：</p>
+<pre><code>dataDir=/opt/zookeeper/data_2182
+clientPort=2182
+</code></pre><p><code>zoo_2183.cfg</code>的<code>clientPort</code>、<code>dataDir</code>为：</p>
+<pre><code>dataDir=/opt/zookeeper/data_2183
+clientPort=2183
+</code></pre><p>在<code>/opt/zookeeper/</code>目录下创建<code>data_2181</code>、<code>data_2182</code>、<code>data_2183</code>。在<code>data_2181</code>目录创建一个<code>data_2181</code>、<code>data_2182</code>、<code>data_2183</code>分别创建一个<code>myid</code>文件，内容分别为0、1、2。</p>
+<p><strong>启动Zookeeper服务：</strong></p>
+<pre><code>[heql@ubuntu zookeeper-3.4.12]$ bin/zkServer.sh start conf/zoo_2181.cfg 
+ZooKeeper JMX enabled by default
+Using config: conf/zoo_2181.cfg
+Starting zookeeper ... STARTED
+[heql@ubuntu zookeeper-3.4.12]$ bin/zkServer.sh start conf/zoo_2182.cfg 
+ZooKeeper JMX enabled by default
+Using config: conf/zoo_2182.cfg
+Starting zookeeper ... STARTED
+[heql@ubuntu zookeeper-3.4.12]$ bin/zkServer.sh start conf/zoo_2183.cfg 
+ZooKeeper JMX enabled by default
+Using config: conf/zoo_2183.cfg
+</code></pre><p><strong>查看启动结果：</strong></p>
+<pre><code>[heql@ubuntu zookeeper-3.4.12]$ jps
+3232 QuorumPeerMain
+3331 Jps
+3300 QuorumPeerMain
+3259 QuorumPeerMain
+</code></pre><p><strong>Zookeeper服务的运行状态：</strong></p>
+<pre><code>[heql@ubuntu zookeeper-3.4.12]$ bin/zkServer.sh status conf/zoo_2181.cfg 
+ZooKeeper JMX enabled by default
+Using config: conf/zoo_2181.cfg
+Mode: follower
+[heql@ubuntu zookeeper-3.4.12]$ bin/zkServer.sh status conf/zoo_2182.cfg 
+ZooKeeper JMX enabled by default
+Using config: conf/zoo_2182.cfg
+Mode: leader
+[heql@ubuntu zookeeper-3.4.12]$ bin/zkServer.sh status conf/zoo_2183.cfg 
+ZooKeeper JMX enabled by default
+Using config: conf/zoo_2183.cfg
+Mode: follower
+</code></pre><h3 id="Zookeeper命令操作"><a href="#Zookeeper命令操作" class="headerlink" title="Zookeeper命令操作"></a>Zookeeper命令操作</h3><p>启动Zookeeper服务之后，可以使用Zookeeper自带的客户端<code>zkCli.sh</code>，连接到Zookeeper服务，进行相应的操作。</p>
+<pre><code>[heql@ubuntu zookeeper-3.4.12]$ bin/zkCli.sh -server 127.0.0.1:2181
+</code></pre><h4 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h4><p>连上服务器后，可以执行<code>help</code>命令，查看Zookeeper支持的命令操作：</p>
+<pre><code>[zk: 127.0.0.1:2181(CONNECTED) 1] help
+ZooKeeper -server host:port cmd args
+    stat path [watch]
+    set path data [version]
+    ls path [watch]
+    delquota [-n|-b] path
+    ls2 path [watch]
+    setAcl path acl
+    setquota -n|-b val path
+    history 
+    redo cmdno
+    printwatches on|off
+    delete path [version]
+    sync path
+    listquota path
+    rmr path
+    get path [watch]
+    create [-s] [-e] path data acl
+    addauth scheme auth
+    quit 
+    getAcl path
+    close 
+    connect host:port
+</code></pre><ol>
+<li><p>使用ls命令查看当前Zookeeper节点中所包含的内容：</p>
+<pre><code>[zk: 127.0.0.1:2181(CONNECTED) 2] ls /
+[zookeeper]
+</code></pre></li>
+<li><p>创建一个新的Znode节点<code>app</code>，数据为<code>test</code></p>
+</li>
+</ol>
+<pre><code>[zk: 127.0.0.1:2181(CONNECTED) 3] create /app test
+Created /app
+[zk: 127.0.0.1:2181(CONNECTED) 4] ls /
+[app, zookeeper]
+</code></pre><ol>
+<li><p>使用get命令，查看节点的信息：</p>
+<pre><code>[zk: 127.0.0.1:2181(CONNECTED) 5] get /app
+test
+cZxid = 0x100000002
+ctime = Wed Jun 20 20:15:00 CST 2018
+mZxid = 0x100000002
+mtime = Wed Jun 20 20:15:00 CST 2018
+pZxid = 0x100000002
+cversion = 0
+dataVersion = 0
+aclVersion = 0
+ephemeralOwner = 0x0
+dataLength = 4
+numChildren = 0
+</code></pre></li>
+<li><p>set命令来可以更新节点的数据：</p>
+<pre><code>[zk: 127.0.0.1:2181(CONNECTED) 6] set /app update_test
+cZxid = 0x100000002
+ctime = Wed Jun 20 20:15:00 CST 2018
+mZxid = 0x100000003
+mtime = Wed Jun 20 20:17:53 CST 2018
+pZxid = 0x100000002
+cversion = 0
+dataVersion = 1
+aclVersion = 0
+ephemeralOwner = 0x0
+dataLength = 11
+numChildren = 0
+[zk: 127.0.0.1:2181(CONNECTED) 7] get /app
+update_test
+cZxid = 0x100000002
+ctime = Wed Jun 20 20:15:00 CST 2018
+mZxid = 0x100000003
+mtime = Wed Jun 20 20:17:53 CST 2018
+pZxid = 0x100000002
+cversion = 0
+dataVersion = 1
+aclVersion = 0
+ephemeralOwner = 0x0
+dataLength = 11
+numChildren = 0
+[zk: 127.0.0.1:2181(CONNECTED) 8] 
+</code></pre></li>
+<li><p>删除节点：</p>
+<pre><code>[zk: 127.0.0.1:2181(CONNECTED) 8] delete /app
+[zk: 127.0.0.1:2181(CONNECTED) 9] ls /
+[zookeeper]
+</code></pre></li>
+</ol>
+<h5 id="ACL权限控制"><a href="#ACL权限控制" class="headerlink" title="ACL权限控制"></a>ACL权限控制</h5><p>Zookeeper的ACL，分为三个维度：scheme、id、permission，通常表示为：<code>scheme:id:permission</code>，schema代表授权策略，id代表用户，permission代表权限。</p>
+<h5 id="scheme"><a href="#scheme" class="headerlink" title="scheme"></a>scheme</h5><p>scheme即采取的授权策略，每种授权策略对应不同的权限校验方式。下面是Zookeeper常用的几种scheme：</p>
+<h6 id="digest"><a href="#digest" class="headerlink" title="digest"></a>digest</h6><p>语法：<code>digest:username:BASE64(SHA1(password)):cdrwa</code></p>
+<ul>
+<li>digest：是授权方式 </li>
+<li>username:BASE64(SHA1(password))：是id部分 </li>
+<li>cdrwa：权限部份 </li>
+</ul>
+<p>用户名+密码授权访问方式，是常用的一种授权策略。id部份是用户名和密码做sha1加密再做BASE64加密后的组合，比如设置一个节点的用户名为heql，密码为123456，则表示方式为：<code>heql:BASE64(SHA1(123456)) ⇒ heql:W+qVWaUSzd7VWFNOpAVhryXr8xI=</code><br>。密码加密需要用到Zookeeper的一个工具类来生成，如下所示：</p>
+<pre><code>[heql@ubuntu zookeeper-3.4.12]$ java -Djava.ext.dirs=./lib -cp zookeeper-3.4.12.jar org.apache.zookeeper.server.auth.DigestAuthenticationProvider heql:123456
+heql:123456-&gt;heql:W+qVWaUSzd7VWFNOpAVhryXr8xI=
+</code></pre><p>下面是演示创建节点，并添加授权信息操作节点的示例：</p>
+<p>创建节点：</p>
+<pre><code>[zk: 127.0.0.1:2181(CONNECTED) 6] create /node data
+Created /node
+</code></pre><p>设置权限:</p>
+<pre><code>[zk: 127.0.0.1:2181(CONNECTED) 7] setAcl /node digest:heql:W+qVWaUSzd7VWFNOpAVhryXr8xI=:cdrwa
+cZxid = 0x100000008
+ctime = Wed Jun 20 20:34:02 CST 2018
+mZxid = 0x100000008
+mtime = Wed Jun 20 20:34:02 CST 2018
+pZxid = 0x100000008
+cversion = 0
+dataVersion = 0
+aclVersion = 1
+ephemeralOwner = 0x0
+dataLength = 4
+numChildren = 0
+</code></pre><p>获取节点设置的权限:</p>
+<pre><code>[zk: 127.0.0.1:2181(CONNECTED) 8] getAcl /node
+&apos;digest,&apos;heql:W+qVWaUSzd7VWFNOpAVhryXr8xI=
+: cdrwa
+</code></pre><p>没有授权，创建节点失败：</p>
+<pre><code>[zk: 127.0.0.1:2181(CONNECTED) 9] create /node/node_01 data
+Authentication is not valid : /node/node_01
+</code></pre><p>添加授权信息，就可以正常操作：</p>
+<pre><code>[zk: 127.0.0.1:2181(CONNECTED) 10] addauth digest heql:123456
+[zk: 127.0.0.1:2181(CONNECTED) 11] create /node/node_01 data 
+Created /node/node_01
+[zk: 127.0.0.1:2181(CONNECTED) 12] ls /node
+[node_01]
+</code></pre><h6 id="ip"><a href="#ip" class="headerlink" title="ip"></a>ip</h6><p>基于客户端IP地址校验，限制只允许指定的客户端能操作znode。</p>
+<p>比如，设置某个节点只允许IP为<code>192.168.1.100</code>的客户端能读写该写节点的数据：<code>ip:192.168.1.100:rw</code></p>
+<pre><code>setAcl /node_08 ip:192.168.1.100:rw
+</code></pre><h6 id="world"><a href="#world" class="headerlink" title="world"></a>world</h6><p>语法：<code>world:anyone:cdrwa</code></p>
+<p>创建节点默认的scheme，所有人都可以访问。</p>
+<pre><code>zk: 127.0.0.1:2181(CONNECTED) 24] create /node_02 data
+Created /node_02
+[zk: 127.0.0.1:2181(CONNECTED) 25] getAcl /node_02     
+&apos;world,&apos;anyone
+: cdrwa
+</code></pre><h5 id="id"><a href="#id" class="headerlink" title="id"></a>id</h5><p>id是验证模式，不同的scheme，id的值也不一样。scheme为digest时，id的值为：<code>username:BASE64(SHA1(password))</code>，scheme为ip时，id的值为客户端的ip地址。scheme为world时，id的值为anyone。</p>
+<h5 id="permission"><a href="#permission" class="headerlink" title="permission"></a>permission</h5><p><code>digest:username:BASE64(SHA1(password)):cdrwa</code>中的<code>cdrwa</code>即是permission</p>
+<ul>
+<li>CREATE(r)：创建子节点的权限 </li>
+<li>DELETE(d)：删除节点的权限</li>
+<li>READ(r)：读取节点数据的权限 </li>
+<li>WRITE(w)：修改节点数据的权限 </li>
+<li>ADMIN(a)：设置子节点权限的权限</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/06/19/zookeeper_01/" rel="next" title="分布式服务协调框架ZooKeeper">
+                <i class="fa fa-chevron-left"></i> 分布式服务协调框架ZooKeeper
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Zookeeper的搭建方式"><span class="nav-number">1.</span> <span class="nav-text">Zookeeper的搭建方式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#单机模式搭建"><span class="nav-number">1.1.</span> <span class="nav-text">单机模式搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#配置文件"><span class="nav-number">1.1.1.</span> <span class="nav-text">配置文件</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#伪集群模式搭建"><span class="nav-number">1.2.</span> <span class="nav-text">伪集群模式搭建</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Zookeeper命令操作"><span class="nav-number">2.</span> <span class="nav-text">Zookeeper命令操作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基本操作"><span class="nav-number">2.1.</span> <span class="nav-text">基本操作</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#ACL权限控制"><span class="nav-number">2.1.1.</span> <span class="nav-text">ACL权限控制</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#scheme"><span class="nav-number">2.1.2.</span> <span class="nav-text">scheme</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#digest"><span class="nav-number">2.1.2.1.</span> <span class="nav-text">digest</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#ip"><span class="nav-number">2.1.2.2.</span> <span class="nav-text">ip</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#world"><span class="nav-number">2.1.2.3.</span> <span class="nav-text">world</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#id"><span class="nav-number">2.1.3.</span> <span class="nav-text">id</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#permission"><span class="nav-number">2.1.4.</span> <span class="nav-text">permission</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
