@@ -86,7 +86,7 @@
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
 <meta property="og:description" content="Zookeeper搭建方式可以分为单机模式、集群模式、伪集群模式。在集群模式下，节点的个数建议为奇数个，且至少为3个节点。因为Zookeeper的leader选取至少要有半数以上的节点。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-07-07T04:56:34.000Z">
+<meta property="og:updated_time" content="2018-07-07T05:05:05.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ZooKeeper集群搭建、命令操作">
 <meta name="twitter:description" content="Zookeeper搭建方式可以分为单机模式、集群模式、伪集群模式。在集群模式下，节点的个数建议为奇数个，且至少为3个节点。因为Zookeeper的leader选取至少要有半数以上的节点。">
@@ -497,13 +497,11 @@ ZooKeeper -server host:port cmd args
 [zookeeper]
 </code></pre></li>
 <li><p>创建一个新的Znode节点<code>app</code>，数据为<code>test</code></p>
-</li>
-</ol>
 <pre><code>[zk: 127.0.0.1:2181(CONNECTED) 3] create /app test
 Created /app
 [zk: 127.0.0.1:2181(CONNECTED) 4] ls /
 [app, zookeeper]
-</code></pre><ol>
+</code></pre></li>
 <li><p>使用get命令，查看节点的信息：</p>
 <pre><code>[zk: 127.0.0.1:2181(CONNECTED) 5] get /app
 test
