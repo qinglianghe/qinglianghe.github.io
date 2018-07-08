@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="使用ZooKeeper可以实现命名服务、集群管理、配置管理、分布式锁功能。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ZooKeeper实现配置管理、分布式锁">
+<meta property="og:url" content="http://yoursite.com/2018/06/22/zookeeper_03/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="使用ZooKeeper可以实现命名服务、集群管理、配置管理、分布式锁功能。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/zookeeper/conf_manager.png">
+<meta property="og:image" content="http://yoursite.com/images/zookeeper/zookeeper_lock.png">
+<meta property="og:updated_time" content="2018-07-08T05:32:26.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ZooKeeper实现配置管理、分布式锁">
+<meta name="twitter:description" content="使用ZooKeeper可以实现命名服务、集群管理、配置管理、分布式锁功能。">
+<meta name="twitter:image" content="http://yoursite.com/images/zookeeper/conf_manager.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/06/22/zookeeper_03/"/>
+
+
+
+
+
+  <title>ZooKeeper实现配置管理、分布式锁 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/22/zookeeper_03/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ZooKeeper实现配置管理、分布式锁</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-22T00:00:00+08:00">
+                2018-06-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<p>使用ZooKeeper可以实现命名服务、集群管理、配置管理、分布式锁功能。</p>
+<a id="more"></a>
+<h3 id="配置管理"><a href="#配置管理" class="headerlink" title="配置管理"></a>配置管理</h3><p>对于配置的修改在项目中是非常常见的，如果是一两台机器，可以直接手动进行修改。但是对于集群环境，如果要修改这些相同的配置项，那么就必须同时修改每台运行机器，像这样的配置信息完全可以交给Zookeeper来管理。</p>
+<h4 id="ZooKeeper实现配置管理"><a href="#ZooKeeper实现配置管理" class="headerlink" title="ZooKeeper实现配置管理"></a>ZooKeeper实现配置管理</h4><p>对于需要修改的配置信息，可以保存在Zookeeper的某个目录节点中，然后将所有需要修改的应用机器监控配置信息的状态，一旦配置信息发生变化，每台应用机器就会收到Zookeeper的通知，然后从Zookeeper获取新的配置信息应用到系统中。如图：</p>
+<p><img src="/images/zookeeper/conf_manager.png" alt="conf_manager.png"></p>
+<h5 id="代码如下："><a href="#代码如下：" class="headerlink" title="代码如下："></a>代码如下：</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.zookeeper.config.manager;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Config</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Zookeeper节点</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">static</span> String CONFIG_NODE = <span class="string">"/config"</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">static</span> String HOST_NODE = <span class="string">"/config/host"</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">static</span> String USERNAME_NODE = <span class="string">"/config/username"</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">static</span> String PASSWD_NODE = <span class="string">"/config/passwd"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Zookeeper节点对应的数据</span></span><br><span class="line">    <span class="keyword">private</span> String host;</span><br><span class="line">    <span class="keyword">private</span> String username;</span><br><span class="line">    <span class="keyword">private</span> String passwd;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Config</span><span class="params">(String host, String username, String passwd)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.host = host;</span><br><span class="line">        <span class="keyword">this</span>.username = username;</span><br><span class="line">        <span class="keyword">this</span>.passwd = passwd;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getHost</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> host;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setHost</span><span class="params">(String host)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.host = host;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getUsername</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> username;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setUsername</span><span class="params">(String username)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.username = username;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getPasswd</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> passwd;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setPasswd</span><span class="params">(String passwd)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.passwd = passwd;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> username + <span class="string">":"</span> + passwd + <span class="string">"@"</span> + host;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上代码，定义一个<code>Config</code>配置类，<code>Config</code>类中<code>host</code>、<code>username</code>、<code>passwd</code>分别对应于Zookeeper中<code>/config/host</code>、<code>/config/username</code>、<code>/config/passwd</code>节点中数据，当这几个节点中数据发生变化时，如果客户端对这些节点设置了watch，则会收到相应的通知。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.zookeeper.config.manager;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.CountDownLatch;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.CreateMode;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.KeeperException;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.WatchedEvent;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.Watcher;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.Watcher.Event.KeeperState;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.ZooDefs.Ids;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.ZooKeeper;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ZookeeperConfig</span> <span class="keyword">implements</span> <span class="title">Watcher</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> CountDownLatch countDownLatch = <span class="keyword">new</span> CountDownLatch(<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">private</span> ZooKeeper zooKeeper = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">connect</span><span class="params">(String connectString, <span class="keyword">int</span> sessionTimeout)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> InterruptedException, IOException </span>&#123;</span><br><span class="line">        zooKeeper = <span class="keyword">new</span> ZooKeeper(connectString, sessionTimeout, <span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 等待Zookeeper服务器连接成功</span></span><br><span class="line">        countDownLatch.await();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">createNode</span><span class="params">(String path, String data)</span> <span class="keyword">throws</span> KeeperException,</span></span><br><span class="line"><span class="function">            InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (zooKeeper != <span class="keyword">null</span> &amp;&amp; zooKeeper.exists(path, <span class="keyword">false</span>) == <span class="keyword">null</span>) &#123;</span><br><span class="line">            zooKeeper.create(path, data.getBytes(), Ids.OPEN_ACL_UNSAFE,</span><br><span class="line">                    CreateMode.PERSISTENT);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (zooKeeper != <span class="keyword">null</span>) &#123;</span><br><span class="line">            zooKeeper.close();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String connectString = <span class="string">"192.168.1.128:2181"</span>;</span><br><span class="line">        <span class="keyword">int</span> sessionTimeout = <span class="number">5000</span>;</span><br><span class="line">        ZookeeperConfig zookeeperConfig = <span class="keyword">new</span> ZookeeperConfig();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Config config = <span class="keyword">new</span> Config(<span class="string">"192.168.1.128:3306"</span>, <span class="string">"test"</span>, <span class="string">"123456"</span>);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 连接Zookeeper服务器</span></span><br><span class="line">            zookeeperConfig.connect(connectString, sessionTimeout);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 创建节点</span></span><br><span class="line">            zookeeperConfig.createNode(Config.CONFIG_NODE, <span class="string">""</span>);</span><br><span class="line">            zookeeperConfig.createNode(Config.HOST_NODE, config.getHost());</span><br><span class="line">            zookeeperConfig.createNode(Config.USERNAME_NODE,</span><br><span class="line">                    config.getUsername());</span><br><span class="line">            zookeeperConfig.createNode(Config.PASSWD_NODE, config.getPasswd());</span><br><span class="line"></span><br><span class="line">            zookeeperConfig.close();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(WatchedEvent event)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (event.getState() == KeeperState.SyncConnected) &#123;</span><br><span class="line">            <span class="comment">// 连接上服务器</span></span><br><span class="line">            countDownLatch.countDown();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>ZookeeperConfig</code>负责创建<code>Config</code>配置类中的节点，并为节点设置相应的默认值。</p>
+<p>运行<code>ZookeeperConfig</code>，可以看到Zookeeper服务器创建了上述节点，并设置了相应的默认值：</p>
+<pre><code>[zk: 127.0.0.1:2181(CONNECTED) 7] ls /config
+[host, passwd, username]
+[zk: 127.0.0.1:2181(CONNECTED) 8] get /config/host
+192.168.1.128:3306
+cZxid = 0x697
+ctime = Wed Jun 27 21:00:32 CST 2018
+mZxid = 0x697
+mtime = Wed Jun 27 21:00:32 CST 2018
+pZxid = 0x697
+cversion = 0
+dataVersion = 0
+aclVersion = 0
+ephemeralOwner = 0x0
+dataLength = 18
+numChildren = 0
+</code></pre><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.zookeeper.config.manager;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.CountDownLatch;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.KeeperException;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.WatchedEvent;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.Watcher;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.Watcher.Event.EventType;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.ZooKeeper;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.Watcher.Event.KeeperState;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> <span class="keyword">implements</span> <span class="title">Watcher</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> CountDownLatch countDownLatch = <span class="keyword">new</span> CountDownLatch(<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">private</span> ZooKeeper zooKeeper = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Config config;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">connect</span><span class="params">(String connectString, <span class="keyword">int</span> sessionTimeout)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> InterruptedException, IOException </span>&#123;</span><br><span class="line">        zooKeeper = <span class="keyword">new</span> ZooKeeper(connectString, sessionTimeout, <span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 等待Zookeeper服务器连接成功</span></span><br><span class="line">        countDownLatch.await();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getData</span><span class="params">(String path)</span> <span class="keyword">throws</span> KeeperException,</span></span><br><span class="line"><span class="function">            InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (zooKeeper != <span class="keyword">null</span> &amp;&amp; zooKeeper.exists(path, <span class="keyword">true</span>) != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> String(zooKeeper.getData(path, <span class="keyword">true</span>, <span class="keyword">null</span>));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">""</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (zooKeeper != <span class="keyword">null</span>) &#123;</span><br><span class="line">            zooKeeper.close();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">updateConfig</span><span class="params">()</span> <span class="keyword">throws</span> KeeperException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="comment">// 更新配置项</span></span><br><span class="line">        config.setHost(getData(Config.HOST_NODE));</span><br><span class="line">        config.setUsername(getData(Config.USERNAME_NODE));</span><br><span class="line">        config.setPasswd(getData(Config.PASSWD_NODE));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String connectString = <span class="string">"192.168.1.129:2181"</span>;</span><br><span class="line">        <span class="keyword">int</span> sessionTimeout = <span class="number">5000</span>;</span><br><span class="line">        Client client = <span class="keyword">new</span> Client();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            client.connect(connectString, sessionTimeout);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 获得节点的数据</span></span><br><span class="line">            String host = client.getData(Config.HOST_NODE);</span><br><span class="line">            String username = client.getData(Config.USERNAME_NODE);</span><br><span class="line">            String passwd = client.getData(Config.PASSWD_NODE);</span><br><span class="line"></span><br><span class="line">            config = <span class="keyword">new</span> Config(host, username, passwd);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">                System.out.println(config.toString());</span><br><span class="line">                Thread.sleep(<span class="number">5000</span>);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// client.close();</span></span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(WatchedEvent event)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (event.getState() == KeeperState.SyncConnected) &#123;</span><br><span class="line">            <span class="comment">// 连接上服务器</span></span><br><span class="line">            countDownLatch.countDown();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (event.getType() == EventType.NodeDataChanged) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                updateConfig();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>客户端Client设置了对节点的<code>Watcher</code>，当节点的数据发生变化时，则会更新配置项。</p>
+<p>运行Client程序，输出如下：</p>
+<pre><code>test:123456@192.168.1.128:3306
+</code></pre><p>修改<code>host</code>节点的值：</p>
+<pre><code>[zk: 127.0.0.1:2181(CONNECTED) 12] set /config/host 127.0.0.1:2379
+cZxid = 0x697
+ctime = Wed Jun 27 21:00:32 CST 2018
+mZxid = 0x69e
+mtime = Wed Jun 27 21:09:36 CST 2018
+pZxid = 0x697
+cversion = 0
+dataVersion = 1
+aclVersion = 0
+ephemeralOwner = 0x0
+dataLength = 14
+numChildren = 0
+</code></pre><p>程序输出如下：</p>
+<pre><code>test:123456@127.0.0.1:2379
+</code></pre><p>修改<code>username</code>节点的值：</p>
+<pre><code>[zk: 127.0.0.1:2181(CONNECTED) 13] set /config/username heql
+</code></pre><p>程序输出如下：</p>
+<pre><code>heql:123456@127.0.0.1:2379
+</code></pre><h3 id="分布式锁"><a href="#分布式锁" class="headerlink" title="分布式锁"></a>分布式锁</h3><p>在分布式系统中的多个进程竞争同一资源，为了保证分布式系统中多个进程能够有序的访问该临界资源，这就要使用分布式锁，互斥锁在同一个进程中很容易实现，但是在跨进程或者在不同Server之间就不好实现。但是使用Zookeeper却很容易实现这个功能。</p>
+<h4 id="ZooKeeper实现分布式锁"><a href="#ZooKeeper实现分布式锁" class="headerlink" title="ZooKeeper实现分布式锁"></a>ZooKeeper实现分布式锁</h4><p>ZooKeeper分布式锁的流程：</p>
+<ol>
+<li>在zookeeper指定节点（lock）下创建临时顺序节点（EPHEMERAL_SEQUENTIAL）</li>
+<li>获取locks下所有子节点children</li>
+<li>对子节点按节点自增序号从小到大排序</li>
+<li>判断本节点是不是第一个子节点，若是，则获取锁；若不是，则监听比该节点小的那个节点的删除事件</li>
+<li>若监听事件生效，则回到第二步重新进行判断，直到获取到锁</li>
+</ol>
+<p>如图：</p>
+<p><img src="/images/zookeeper/zookeeper_lock.png" alt="zookeeper_lock.png"></p>
+<h5 id="代码如下：-1"><a href="#代码如下：-1" class="headerlink" title="代码如下："></a>代码如下：</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.zookeeper.distribute.lock;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.TimeUnit;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Lock</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * 阻塞式获得锁</span></span><br><span class="line"><span class="comment">    * </span></span><br><span class="line"><span class="comment">    * <span class="doctag">@throws</span> Exception</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">lock</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * 阻塞式获得锁，在规定时间内未获得锁，则直接返回</span></span><br><span class="line"><span class="comment">    * </span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> time</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> unit</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@throws</span> Exception</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">lock</span><span class="params">(<span class="keyword">long</span> time, TimeUnit unit)</span> <span class="keyword">throws</span> Exception</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * 释放锁</span></span><br><span class="line"><span class="comment">    * </span></span><br><span class="line"><span class="comment">    * <span class="doctag">@throws</span> Exception</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">unLock</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>Lock</code>是一个接口，<code>lock()</code>表示使用阻塞式获得锁、<code>lock(long time, TimeUnit unit)</code>表示在指定时间内未获得锁，则直接返回、<code>unLock</code>用于释放锁。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.zookeeper.distribute.lock;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Collections;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.CountDownLatch;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.TimeUnit;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.CreateMode;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.KeeperException;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.WatchedEvent;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.Watcher;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.Watcher.Event.EventType;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.ZooKeeper;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.ZooDefs.Ids;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.Logger;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.LoggerFactory;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ZkDistributeLock</span> <span class="keyword">implements</span> <span class="title">Lock</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Logger logger = LoggerFactory</span><br><span class="line">            .getLogger(ZkDistributeLock.class);</span><br><span class="line">    <span class="keyword">private</span> ZooKeeper zooKeeper;</span><br><span class="line">    <span class="keyword">private</span> String lockPath; <span class="comment">// 节点的路径</span></span><br><span class="line">    <span class="keyword">private</span> String lockName; <span class="comment">// 锁的前缀</span></span><br><span class="line">    <span class="keyword">private</span> String currentLockPath; <span class="comment">// 用于保存当前客户端创建成功的顺序节点</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">int</span> MAX_RETRY_COUNT = <span class="number">3</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ZkDistributeLock</span><span class="params">(ZooKeeper zooKeeper, String lockPath,</span></span></span><br><span class="line"><span class="function"><span class="params">            String lockName)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.zooKeeper = zooKeeper;</span><br><span class="line">        <span class="keyword">this</span>.lockPath = lockPath;</span><br><span class="line">        <span class="keyword">this</span>.lockName = lockName;</span><br><span class="line">        init();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (zooKeeper.exists(lockPath, <span class="keyword">false</span>) == <span class="keyword">null</span>) &#123;</span><br><span class="line">                zooKeeper.create(lockPath, <span class="keyword">null</span>, Ids.OPEN_ACL_UNSAFE,</span><br><span class="line">                        CreateMode.PERSISTENT);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> String <span class="title">createLockNode</span><span class="params">(String path)</span> <span class="keyword">throws</span> KeeperException,</span></span><br><span class="line"><span class="function">            InterruptedException </span>&#123;</span><br><span class="line">        <span class="comment">// 创建临时顺序节点</span></span><br><span class="line">        <span class="keyword">return</span> zooKeeper.create(path, <span class="keyword">null</span>, Ids.OPEN_ACL_UNSAFE,</span><br><span class="line">                CreateMode.EPHEMERAL_SEQUENTIAL);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> List&lt;String&gt; <span class="title">getSortedChildren</span><span class="params">()</span> <span class="keyword">throws</span> KeeperException,</span></span><br><span class="line"><span class="function">            InterruptedException </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 获得lockPath节点下的所有子节点，并排序</span></span><br><span class="line">        List&lt;String&gt; children = zooKeeper.getChildren(lockPath, <span class="keyword">false</span>);</span><br><span class="line">        <span class="keyword">if</span> (children != <span class="keyword">null</span> &amp;&amp; !children.isEmpty()) &#123;</span><br><span class="line">            Collections.sort(children);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        logger.info(<span class="string">"children:&#123;&#125;"</span>, children);</span><br><span class="line">        <span class="keyword">return</span> children;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">waitForLock</span><span class="params">(<span class="keyword">long</span> startMillis, <span class="keyword">long</span> millisToWait)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">boolean</span> hasLock = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">boolean</span> deleteNode = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">while</span> (!hasLock) &#123;</span><br><span class="line"></span><br><span class="line">                <span class="comment">// 获取locker节点下的所有节点，并按从小到大排序</span></span><br><span class="line">                List&lt;String&gt; children = getSortedChildren();</span><br><span class="line">                String lockNodeName = currentLockPath.substring(lockPath</span><br><span class="line">                        .length() + <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">                <span class="comment">// 查看当前客户端创建的节点在所有节点排序后的位置，如果是位置为0，则表示获取到了锁</span></span><br><span class="line">                <span class="keyword">int</span> currentIndex = children.indexOf(lockNodeName);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (currentIndex &lt; <span class="number">0</span>) &#123;</span><br><span class="line">                    <span class="comment">// 如果网络断开，创建的临时顺序节点将会被删除</span></span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> Exception(<span class="string">"not find the node: "</span> + lockNodeName);</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (currentIndex == <span class="number">0</span>) &#123;</span><br><span class="line">                    logger.info(<span class="string">"get the lock, currentLockPath:&#123;&#125;"</span>,</span><br><span class="line">                            currentLockPath);</span><br><span class="line">                    hasLock = <span class="keyword">true</span>;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="comment">// 其他客户端已经获取了锁 ，需要等待其他客户端释放锁</span></span><br><span class="line">                    <span class="comment">// 从节点列表中获取到比自己次小的那个节点，并对其建立监听</span></span><br><span class="line">                    String beforePath = lockPath.concat(<span class="string">"/"</span>).concat(</span><br><span class="line">                            children.get(currentIndex - <span class="number">1</span>));</span><br><span class="line"></span><br><span class="line">                    <span class="comment">// 如果次小的节点被删除了，则表示当前客户端的节点应该是最小</span></span><br><span class="line">                    <span class="comment">// 使用CountDownLatch来实现等待</span></span><br><span class="line">                    <span class="keyword">final</span> CountDownLatch latch = <span class="keyword">new</span> CountDownLatch(<span class="number">1</span>);</span><br><span class="line">                    Watcher beforePathListener = <span class="keyword">new</span> Watcher() &#123;</span><br><span class="line"></span><br><span class="line">                        <span class="meta">@Override</span></span><br><span class="line">                        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(WatchedEvent event)</span> </span>&#123;</span><br><span class="line">                            <span class="comment">// 节点被删除，唤醒应用程序</span></span><br><span class="line">                            <span class="keyword">if</span> (event.getType() == EventType.NodeDeleted) &#123;</span><br><span class="line">                                latch.countDown();</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;;</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">if</span> (zooKeeper.exists(beforePath, beforePathListener) == <span class="keyword">null</span>) &#123;</span><br><span class="line">                        <span class="comment">// 节点不存在</span></span><br><span class="line">                        <span class="keyword">continue</span>;</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">if</span> (millisToWait != -<span class="number">1</span>) &#123;</span><br><span class="line">                        millisToWait -= (System.currentTimeMillis() - startMillis);</span><br><span class="line">                        <span class="keyword">if</span> (millisToWait &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">                            deleteNode = <span class="keyword">true</span>;</span><br><span class="line">                            <span class="keyword">break</span>;</span><br><span class="line">                        &#125;</span><br><span class="line">                        <span class="keyword">if</span> (!latch.await(millisToWait, TimeUnit.MILLISECONDS)) &#123;</span><br><span class="line">                            <span class="comment">// 超时， 删除节点</span></span><br><span class="line">                            deleteNode = <span class="keyword">true</span>;</span><br><span class="line">                            <span class="keyword">break</span>;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        <span class="comment">// 未设置超时时间，则一直阻塞</span></span><br><span class="line">                        latch.await();</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="comment">// 发生异常需要删除节点</span></span><br><span class="line">            logger.error(<span class="string">"waitForLock exception"</span>, e);</span><br><span class="line">            deleteNode = <span class="keyword">true</span>;</span><br><span class="line">            <span class="keyword">throw</span> e;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (deleteNode) &#123;</span><br><span class="line">                unLock();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        logger.info(<span class="string">"end for waitForLock , hasLock = "</span> + hasLock);</span><br><span class="line">        <span class="keyword">return</span> hasLock;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">attemptLock</span><span class="params">(<span class="keyword">long</span> time, TimeUnit unit)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">long</span> startMillis = System.currentTimeMillis();</span><br><span class="line">        <span class="keyword">long</span> millisToWait = (unit != <span class="keyword">null</span>) ? unit.toMillis(time) : -<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">boolean</span> hasLock = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 网络出现问题，进行重试</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; MAX_RETRY_COUNT; i++) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                currentLockPath = createLockNode(lockPath.concat(<span class="string">"/"</span>).concat(</span><br><span class="line">                        lockName));</span><br><span class="line">                hasLock = waitForLock(startMillis, millisToWait);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                <span class="keyword">if</span> (i == MAX_RETRY_COUNT - <span class="number">1</span>) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> e;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> hasLock;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">lock</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        attemptLock(-<span class="number">1</span>, <span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">lock</span><span class="params">(<span class="keyword">long</span> time, TimeUnit unit)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (time &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> Exception(<span class="string">"Lock wait for time must be greater than 0"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (unit == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> Exception(<span class="string">"TimeUnit can not be null"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> attemptLock(time, unit);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">unLock</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        zooKeeper.delete(currentLockPath, -<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>ZkDistributeLock</code>实现了<code>Lock</code>接口，在调用<code>attemptLock</code>获得锁时，实现了上述流程。假设有3个客户端分别创建了<code>/lock/lock-0000000000</code>、<code>/lock/lock-0000000001</code>、<code>/lock/lock-0000000002</code>三个节点。那么当前能获得锁是<code>/lock/lock-0000000000</code>对应的客户端、当<code>/lock/lock-0000000000</code>被删除时，<code>/lock/lock-0000000001</code>节点将会得到通知。</p>
+<p><strong>测试程序如下：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.zookeeper.distribute.lock;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.CountDownLatch;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.WatchedEvent;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.Watcher;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.ZooKeeper;</span><br><span class="line"><span class="keyword">import</span> org.apache.zookeeper.Watcher.Event.KeeperState;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.Logger;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.LoggerFactory;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ZkDistributeLockTest</span> <span class="keyword">implements</span> <span class="title">Watcher</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> THREAD_NUM = <span class="number">10</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> CountDownLatch countDownLatch = <span class="keyword">new</span> CountDownLatch(<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Logger logger = LoggerFactory</span><br><span class="line">            .getLogger(ZkDistributeLock.class);</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; THREAD_NUM; i++) &#123;</span><br><span class="line">            <span class="keyword">new</span> Thread() &#123;</span><br><span class="line">                <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                    <span class="keyword">try</span> &#123;</span><br><span class="line">                        ZooKeeper zooKeeper = <span class="keyword">new</span> ZooKeeper(<span class="string">"192.168.1.129:2181"</span>, <span class="number">5000</span>, <span class="keyword">new</span> ZkDistributeLockTest());</span><br><span class="line">                        countDownLatch.await();</span><br><span class="line">                        </span><br><span class="line">                        ZkDistributeLock zkDistributeLock  = <span class="keyword">new</span> ZkDistributeLock(zooKeeper, <span class="string">"/lock"</span>, <span class="string">"lock-"</span>);</span><br><span class="line">                        zkDistributeLock.lock();</span><br><span class="line">                        logger.info(<span class="string">"&#123;&#125;: 正在处理逻辑......"</span>, Thread.currentThread().getName());</span><br><span class="line">                        zkDistributeLock.unLock();</span><br><span class="line">                    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                        e.printStackTrace();</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;;</span><br><span class="line">            &#125;.start();</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">while</span>(<span class="keyword">true</span>) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                Thread.sleep(<span class="number">5000</span>);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(WatchedEvent event)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (event.getState() == KeeperState.SyncConnected) &#123;</span><br><span class="line">            <span class="comment">// 连接上服务器</span></span><br><span class="line">            countDownLatch.countDown();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的测试程序，开启了10个线程，进行测试。</p>
+<p><strong>运行程序，输出如下：</strong></p>
+<pre><code> INFO - children:[lock-0000000030, lock-0000000031, lock-0000000032, lock-0000000033, lock-0000000034, lock-0000000035, lock-0000000036, lock-0000000037, lock-0000000038, lock-0000000039]
+INFO - children:[lock-0000000030, lock-0000000031, lock-0000000032, lock-0000000033, lock-0000000034, lock-0000000035, lock-0000000036, lock-0000000037, lock-0000000038, lock-0000000039]
+INFO - get the lock, currentLockPath:/lock/lock-0000000030
+INFO - end for waitForLock , hasLock = true
+INFO - Thread-6: 正在处理逻辑......
+INFO - children:[lock-0000000030, lock-0000000031, lock-0000000032, lock-0000000033, lock-0000000034, lock-0000000035, lock-0000000036, lock-0000000037, lock-0000000038, lock-0000000039]
+INFO - children:[lock-0000000030, lock-0000000031, lock-0000000032, lock-0000000033, lock-0000000034, lock-0000000035, lock-0000000036, lock-0000000037, lock-0000000038, lock-0000000039]
+INFO - children:[lock-0000000030, lock-0000000031, lock-0000000032, lock-0000000033, lock-0000000034, lock-0000000035, lock-0000000036, lock-0000000037, lock-0000000038, lock-0000000039]
+INFO - children:[lock-0000000030, lock-0000000031, lock-0000000032, lock-0000000033, lock-0000000034, lock-0000000035, lock-0000000036, lock-0000000037, lock-0000000038, lock-0000000039]
+INFO - children:[lock-0000000030, lock-0000000031, lock-0000000032, lock-0000000033, lock-0000000034, lock-0000000035, lock-0000000036, lock-0000000037, lock-0000000038, lock-0000000039]
+INFO - children:[lock-0000000030, lock-0000000031, lock-0000000032, lock-0000000033, lock-0000000034, lock-0000000035, lock-0000000036, lock-0000000037, lock-0000000038, lock-0000000039]
+INFO - children:[lock-0000000030, lock-0000000031, lock-0000000032, lock-0000000033, lock-0000000034, lock-0000000035, lock-0000000036, lock-0000000037, lock-0000000038, lock-0000000039]
+INFO - children:[lock-0000000030, lock-0000000031, lock-0000000032, lock-0000000033, lock-0000000034, lock-0000000035, lock-0000000036, lock-0000000037, lock-0000000038, lock-0000000039]
+INFO - children:[lock-0000000031, lock-0000000032, lock-0000000033, lock-0000000034, lock-0000000035, lock-0000000036, lock-0000000037, lock-0000000038, lock-0000000039]
+INFO - get the lock, currentLockPath:/lock/lock-0000000031
+INFO - end for waitForLock , hasLock = true
+INFO - Thread-0: 正在处理逻辑......
+INFO - children:[lock-0000000032, lock-0000000033, lock-0000000034, lock-0000000035, lock-0000000036, lock-0000000037, lock-0000000038, lock-0000000039]
+INFO - get the lock, currentLockPath:/lock/lock-0000000032
+INFO - end for waitForLock , hasLock = true
+INFO - Thread-8: 正在处理逻辑......
+INFO - children:[lock-0000000033, lock-0000000034, lock-0000000035, lock-0000000036, lock-0000000037, lock-0000000038, lock-0000000039]
+INFO - get the lock, currentLockPath:/lock/lock-0000000033
+INFO - end for waitForLock , hasLock = true
+INFO - Thread-4: 正在处理逻辑......
+INFO - children:[lock-0000000034, lock-0000000035, lock-0000000036, lock-0000000037, lock-0000000038, lock-0000000039]
+INFO - get the lock, currentLockPath:/lock/lock-0000000034
+INFO - end for waitForLock , hasLock = true
+INFO - Thread-7: 正在处理逻辑......
+INFO - children:[lock-0000000035, lock-0000000036, lock-0000000037, lock-0000000038, lock-0000000039]
+INFO - get the lock, currentLockPath:/lock/lock-0000000035
+INFO - end for waitForLock , hasLock = true
+INFO - Thread-3: 正在处理逻辑......
+INFO - children:[lock-0000000036, lock-0000000037, lock-0000000038, lock-0000000039]
+INFO - get the lock, currentLockPath:/lock/lock-0000000036
+INFO - end for waitForLock , hasLock = true
+INFO - Thread-1: 正在处理逻辑......
+INFO - children:[lock-0000000037, lock-0000000038, lock-0000000039]
+INFO - get the lock, currentLockPath:/lock/lock-0000000037
+INFO - end for waitForLock , hasLock = true
+INFO - Thread-2: 正在处理逻辑......
+INFO - children:[lock-0000000038, lock-0000000039]
+INFO - get the lock, currentLockPath:/lock/lock-0000000038
+INFO - end for waitForLock , hasLock = true
+INFO - Thread-5: 正在处理逻辑......
+INFO - children:[lock-0000000039]
+INFO - get the lock, currentLockPath:/lock/lock-0000000039
+INFO - end for waitForLock , hasLock = true
+INFO - Thread-9: 正在处理逻辑......
+</code></pre>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/06/20/zookeeper_02/" rel="next" title="ZooKeeper集群搭建、命令操作">
+                <i class="fa fa-chevron-left"></i> ZooKeeper集群搭建、命令操作
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">32</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置管理"><span class="nav-number">1.</span> <span class="nav-text">配置管理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ZooKeeper实现配置管理"><span class="nav-number">1.1.</span> <span class="nav-text">ZooKeeper实现配置管理</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#代码如下："><span class="nav-number">1.1.1.</span> <span class="nav-text">代码如下：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分布式锁"><span class="nav-number">2.</span> <span class="nav-text">分布式锁</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ZooKeeper实现分布式锁"><span class="nav-number">2.1.</span> <span class="nav-text">ZooKeeper实现分布式锁</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#代码如下：-1"><span class="nav-number">2.1.1.</span> <span class="nav-text">代码如下：</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
