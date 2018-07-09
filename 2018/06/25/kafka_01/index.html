@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Kafka是一个分布式、分区的、多副本的、多订阅者，基于zookeeper协调的分布式消息系统。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kafka">
+<meta property="og:url" content="http://yoursite.com/2018/06/25/kafka_01/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="Kafka是一个分布式、分区的、多副本的、多订阅者，基于zookeeper协调的分布式消息系统。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/kafka/kafka_01.png">
+<meta property="og:image" content="http://yoursite.com/images/kafka/kafka_partition.png">
+<meta property="og:image" content="http://yoursite.com/images/kafka/kafka_conusmer_group.png">
+<meta property="og:image" content="http://yoursite.com/images/kafka/kafka_segment.png">
+<meta property="og:image" content="http://yoursite.com/images/kafka/kafka_index_file.png">
+<meta property="og:updated_time" content="2018-07-08T17:47:04.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kafka">
+<meta name="twitter:description" content="Kafka是一个分布式、分区的、多副本的、多订阅者，基于zookeeper协调的分布式消息系统。">
+<meta name="twitter:image" content="http://yoursite.com/images/kafka/kafka_01.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/06/25/kafka_01/"/>
+
+
+
+
+
+  <title>Kafka | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/25/kafka_01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Kafka</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-25T00:00:00+08:00">
+                2018-06-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<p>Kafka是一个分布式、分区的、多副本的、多订阅者，基于zookeeper协调的分布式消息系统。</p>
+<a id="more"></a>
+<h3 id="Kafka"><a href="#Kafka" class="headerlink" title="Kafka"></a>Kafka</h3><p>Kafka对消息保存是根据<code>Topic</code>进行归类，发送消息者称为<code>Producer</code>，消息接受者称为<code>Consumer</code>，多个Kafka节点可以组成集群，每个节点成为<code>Broker</code>。</p>
+<p><img src="/images/kafka/kafka_01.png" alt="kafka_01.png"></p>
+<h4 id="Broker"><a href="#Broker" class="headerlink" title="Broker"></a>Broker</h4><p>一个Kafka节点就是一个Broker，多个Broker可以组成一个Kafka集群。Broker的主要工作就是接收生产者发送来的消息，分配offset，然后将数据保存到磁盘上，消费者会并从Broker拉数据。</p>
+<p>每个Kafka集群会选出一个Broker来担任<code>Controller</code>，<code>Controller</code>是Kafka集群的指挥中心，其他的Broker则听从<code>Controller</code>指挥实现相应的功能。<code>Controller</code>负责管理分区的状态、管理每个分区的副本状态、监听<code>zookeeper</code>中数据的变化等。当<code>Controller</code>出现了故障的时候就重新选举新的<code>Controller</code>。</p>
+<h4 id="Topic"><a href="#Topic" class="headerlink" title="Topic"></a>Topic</h4><p>Topic是用于存储消息的逻辑概念,Topic可以看做是一个消息的集合。每个Topic可以有多个生产者向其中<code>push</code>消息,也可以有多个消费者向其中<code>pull</code>消息。</p>
+<h4 id="Partition"><a href="#Partition" class="headerlink" title="Partition"></a>Partition</h4><p>每一个Topic都可以划分成多个分区(每一个Topic都至少有一个分区)，kafka将尽量把不同的分区会分配在不同的Broker上，以对Kafka进行水平扩展从而增加Kafka的并行处理能力。</p>
+<p>Kafka会根据分区规则选择把消息存储到哪个分区中，如果分区规则设置的合理，那么所有的消息将会被均匀的分布到不同的分区中，这样就实现了负载均衡和水平扩展。</p>
+<p>每个Partition为一个目录，Partition命名的规则为<code>topic名称+有序序号</code>，序号从0开始，序号最大值为Partition数量减1。</p>
+<p>每一个分区都是一个顺序的、不可变的消息队列， 并且可以持续的添加。分区中的消息都被分了一个序列号，称之为偏移量(offset)，在每个分区中此偏移量都是唯一的。</p>
+<p><img src="/images/kafka/kafka_partition.png" alt="kafka_partition.png"></p>
+<h4 id="Producer"><a href="#Producer" class="headerlink" title="Producer"></a>Producer</h4><p>生产者主要是生产消息，并将消息按照一定的规则推送到Topic的分区中。</p>
+<h4 id="Consumer"><a href="#Consumer" class="headerlink" title="Consumer"></a>Consumer</h4><p>消费者主要是从Topic中拉取消息，并对消息进行消费。Consumer维护着上一次读到哪里的offset信息。</p>
+<h5 id="Consumer-Group"><a href="#Consumer-Group" class="headerlink" title="Consumer Group"></a>Consumer Group</h5><p>在Kafka中，多个Consumer可以组成一个<code>Consumer Group</code>。</p>
+<ul>
+<li>Partition中的每个消息只能被<code>Consumer group</code>中的一个consumer消费。</li>
+<li>如果一个消息可以被多个consumer消费的话，那么这些consumer必须在不同的<code>Consumer group</code>，相当于发布-订阅式模式。</li>
+<li>如果一个消费者故障。分配给它的分区将重新分配给同一个分组中其他的消费者。</li>
+</ul>
+<h5 id="Consumer和Partition的关系"><a href="#Consumer和Partition的关系" class="headerlink" title="Consumer和Partition的关系"></a>Consumer和Partition的关系</h5><p>在一个<code>Consumer group</code>下，无论有多少个consumer，这个<code>Consumer group</code>一定会把这个topic下所有的Partition都消费。</p>
+<ul>
+<li><p>一个conusmer消费多个Partition：如下图Group A、Group B， 当<code>Consumer group</code>里面的consumer数量小于这个Topic下的Partition数量。</p>
+</li>
+<li><p>conusmer消费等于Partition的个数：如下图Group C，此时效率是最高的，每个Partition都有一个consumer。</p>
+</li>
+<li><p>consumer数量大于Partition的个数：如下图Group D，会出现有一个consumer空闲。</p>
+</li>
+</ul>
+<p><img src="/images/kafka/kafka_conusmer_group.png" alt="kafka_conusmer_group.png"></p>
+<h4 id="Log"><a href="#Log" class="headerlink" title="Log"></a>Log</h4><p>分区在逻辑上对应着一个Log，当生产者将消息写入分区的时候，实际上就是写入到了一个Log中。Log是一个逻辑概念，对应的是一个磁盘上的文件夹。Log由多个Segment组成，每一个Segment又对应着一个log为后缀的数据文件和一个index为后缀的索引文件。</p>
+<h5 id="Segment-file"><a href="#Segment-file" class="headerlink" title="Segment file"></a>Segment file</h5><p>每一个log文件和一个index文件相对应，这一对文件就是一个segment file。</p>
+<p>Segment文件命名的规则：第一个segment从0（20个0）开始，后续的每一个segment文件名是上一个segment文件中最后一条消息的offset值。</p>
+<p><img src="/images/kafka/kafka_segment.png" alt="kafka_segment.png"></p>
+<p>index文件是对log文件的索引，里面存储了对应log文件里的数据条数和其对应的文件偏移量的映射关系。</p>
+<p>index并不是对每一个数据都记录的文件偏移，而是采用了稀疏存储的方式，每隔一定字节的数据建立一条索引。这样避免了索引文件占用过多的空间，从而可以将索引文件保留在内存中。</p>
+<p><img src="/images/kafka/kafka_index_file.png" alt="kafka_index_file.png"></p>
+<p>如上图左半部分是index索引文件，里面存储的是一对一对的key-value，4Bytes的offset相对偏移（key），4Bytes的物理文件偏移（value）。</p>
+<p>以索引文件6，1407为例，6代表该文件的第6条数据，就是该Partition内offset为（368769+6）的这条数据，可以从该log文件的1407位置开始读。</p>
+<h4 id="Log保存的时机和删除策略"><a href="#Log保存的时机和删除策略" class="headerlink" title="Log保存的时机和删除策略"></a>Log保存的时机和删除策略</h4><p>日志会串行的追加消息到最后的一个文件。当它达到配置文件中设置的大小（默认为1GB），就会生成新的文件。</p>
+<p>Kafka会将数据写入文件系统的PageCache（页缓存），并支持将数据从操作系统缓存刷新到磁盘上。日志的刷新策略可以采用2个配置参数：M，它定义了强制OS刷新文件到磁盘之前主动写入的消息数量。S，它定义了几秒后强制刷新。这样提供了耐久性的保障。当系统崩溃时候，丢失最多M消息，或S秒的数据。</p>
+<p>使用应用程序级别刷新设置的缺点是它的磁盘使用模式效率较低（它给操作系统减少了重新排序写操作的余地），并且可能引入延迟，因为fsync在大多数Linux文件系统中阻塞写入文件。Kafka默认的配置，完全禁用fsync应用。这意味着依赖操作系统和Kafka自己的后台刷新，数据的保障可以通过副本来保证。</p>
+<p>Kafka会启动一个后台线程定期扫描日志列表，把过期的日志删除。删除策略是删除修改时间在N天之前的日志（按时间删除），也可以使用另外一个策略：保留最后的N GB数据的策略(按大小删除)。</p>
+<h4 id="replication"><a href="#replication" class="headerlink" title="replication"></a>replication</h4><p>Kafka可以为每个Topic分区设置副本的个数，从而可以备份消息。Kafka的副本具有一定的同步机制,在每个副本集合中，都会选举出一个副本作为Leader副本。</p>
+<p>Kafka中所有的读写请求都由选举出的Leader副本处理,其他的都作为Follower副本，Follower副本仅仅是从Leader副本中把数据拉取到本地之后，同步更新到自己的Log中。</p>
+<p>当Leader发生故障时，会在这些Follower中选取出新的Leader，在任何时候，只要至少有一个同步Follower副本活着，就能保障在故障时消息仍然可用。</p>
+<p>Kafka的节点活着的判定：</p>
+<ol>
+<li><p>一个节点必须能维持与zookeeper的会话（通过zookeeper的心跳机制）</p>
+</li>
+<li><p>如果它是一个Follower，它必须复制Leader并且不能落后”太多”。</p>
+</li>
+</ol>
+<h4 id="消息传递保障"><a href="#消息传递保障" class="headerlink" title="消息传递保障"></a>消息传递保障</h4><p>Producer发送消息时，会发送到生产者的缓存中，缓存的大小是可以通过配置设定。默认缓存是立即发送的，即使缓存空间还没有满。如果想减少请求的数量，可以配置生产者在发送消息且缓冲区还没有满时，等待一段时间再发送，这样可以一次传输多条消息，从而可以提高消息的传输效率，这相当于TCP的Nagle算法。如果这期间，Producer发生异常，缓存的消息将会丢失。</p>
+<p>当Producer发送消息到Leader后，可以通过配置<code>request.required.acks</code>来设置消息的应答机制：</p>
+<ul>
+<li><p>acks=0，那么生产者将不等待任何消息确认。在这种情况下不能保障消息被服务器接收到。并且重试机制不会生效（因为客户端不知道故障了没有）。每个消息返回的offset始终设置为-1。</p>
+</li>
+<li><p>acks=1，这意味着Leader写入消息到本地日志就立即响应，而不等待所有Follower应答。在这种情况下，如果响应消息之后但Follower还未复制之前Leader立即故障，那么消息将会丢失。</p>
+</li>
+<li><p>acks=all 这意味着Leader将等待所有副本同步后应答消息。此配置保障消息不会丢失（只要至少有一个同步的副本或者）。这是最强壮的可用性保障。等价于acks=-1。</p>
+</li>
+</ul>
+<p>Consumer从分区中消费消息时，会维护着上一次消费到哪里的offset信息。offset的提交可以自动或手动提交：</p>
+<p>自动提交offset的频率可以由Consumer设置，例如设置每100ms提交一次，但是如果在这100ms中消息未被处理完成，Consumer发生异常，offset已经提交了，则消息会发生丢失。</p>
+<p>手动提交offset有可能会出现消息重复，例如：当Consumer获得消息，将消息写进数据库之后，但还未提交offset，这时出现Consumer出现故障，则会出现最后一批数据重复，这种方式就是所谓的“至少一次”保证，在故障情况下，可以重复。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/06/22/zookeeper_03/" rel="next" title="ZooKeeper实现配置管理、分布式锁">
+                <i class="fa fa-chevron-left"></i> ZooKeeper实现配置管理、分布式锁
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">33</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Kafka"><span class="nav-number">1.</span> <span class="nav-text">Kafka</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Broker"><span class="nav-number">1.1.</span> <span class="nav-text">Broker</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Topic"><span class="nav-number">1.2.</span> <span class="nav-text">Topic</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Partition"><span class="nav-number">1.3.</span> <span class="nav-text">Partition</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Producer"><span class="nav-number">1.4.</span> <span class="nav-text">Producer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Consumer"><span class="nav-number">1.5.</span> <span class="nav-text">Consumer</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Consumer-Group"><span class="nav-number">1.5.1.</span> <span class="nav-text">Consumer Group</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Consumer和Partition的关系"><span class="nav-number">1.5.2.</span> <span class="nav-text">Consumer和Partition的关系</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Log"><span class="nav-number">1.6.</span> <span class="nav-text">Log</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Segment-file"><span class="nav-number">1.6.1.</span> <span class="nav-text">Segment file</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Log保存的时机和删除策略"><span class="nav-number">1.7.</span> <span class="nav-text">Log保存的时机和删除策略</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#replication"><span class="nav-number">1.8.</span> <span class="nav-text">replication</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#消息传递保障"><span class="nav-number">1.9.</span> <span class="nav-text">消息传递保障</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
