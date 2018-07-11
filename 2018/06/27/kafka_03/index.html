@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Kafka为不同的编程语言提供了Producer和Consumer编程的API，下面以JAVA语言为例。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kafka Producer和Consumer客户端">
+<meta property="og:url" content="http://yoursite.com/2018/06/27/kafka_03/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="Kafka为不同的编程语言提供了Producer和Consumer编程的API，下面以JAVA语言为例。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-07-08T05:30:43.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kafka Producer和Consumer客户端">
+<meta name="twitter:description" content="Kafka为不同的编程语言提供了Producer和Consumer编程的API，下面以JAVA语言为例。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/06/27/kafka_03/"/>
+
+
+
+
+
+  <title>Kafka Producer和Consumer客户端 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/27/kafka_03/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Kafka Producer和Consumer客户端</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-27T00:00:00+08:00">
+                2018-06-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<p>Kafka为不同的编程语言提供了Producer和Consumer编程的API，下面以JAVA语言为例。</p>
+<a id="more"></a>
+<h4 id="Producer客户端"><a href="#Producer客户端" class="headerlink" title="Producer客户端"></a>Producer客户端</h4><p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.test.kafka;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Properties;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.kafka.clients.producer.KafkaProducer;</span><br><span class="line"><span class="keyword">import</span> org.apache.kafka.clients.producer.Producer;</span><br><span class="line"><span class="keyword">import</span> org.apache.kafka.clients.producer.ProducerRecord;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ProducerApp</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Properties <span class="title">initProperties</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Properties props = <span class="keyword">new</span> Properties();</span><br><span class="line">        props.put(<span class="string">"bootstrap.servers"</span>, <span class="string">"192.168.1.129:9092"</span>);</span><br><span class="line">        props.put(<span class="string">"acks"</span>, <span class="string">"all"</span>);</span><br><span class="line">        props.put(<span class="string">"retries"</span>, <span class="number">0</span>);</span><br><span class="line">        props.put(<span class="string">"batch.size"</span>, <span class="number">16384</span>);</span><br><span class="line">        props.put(<span class="string">"linger.ms"</span>, <span class="number">1</span>);</span><br><span class="line">        props.put(<span class="string">"buffer.memory"</span>, <span class="number">33554432</span>);</span><br><span class="line">        props.put(<span class="string">"key.serializer"</span>,</span><br><span class="line">                <span class="string">"org.apache.kafka.common.serialization.StringSerializer"</span>);</span><br><span class="line">        props.put(<span class="string">"value.serializer"</span>,</span><br><span class="line">                <span class="string">"org.apache.kafka.common.serialization.StringSerializer"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> props;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ProducerApp app = <span class="keyword">new</span> ProducerApp();</span><br><span class="line"></span><br><span class="line">        Producer&lt;String, String&gt; producer = <span class="keyword">new</span> KafkaProducer&lt;&gt;(</span><br><span class="line">                app.initProperties());</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; i++) &#123;</span><br><span class="line">            producer.send(<span class="keyword">new</span> ProducerRecord&lt;String, String&gt;(<span class="string">"my-topic"</span>,</span><br><span class="line">                    Integer.toString(i), <span class="string">"message"</span> + i));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        producer.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的代码，首先创建了一个<code>KafkaProducer</code>需要用到的配置类。</p>
+<p><code>bootstrap.servers</code>：表示连接Kafka的broker，它将自动发现集群中的其余的borker，也可以指定多个broker，防止有服务器故障。</p>
+<p><code>ack=all</code>：表示Leader将等待所有副本同步后应答消息，此配置保障消息不会丢失，<code>all</code>将会阻塞消息，这种设置性能最低，但是是最可靠的。</p>
+<p><code>retries</code>：如果请求失败，生产者会自动重试，这里指定是0次，如果启用重试，则会有重复消息的可能性。</p>
+<p><code>batch.size</code>：producer会缓存每个分区未发送消息。缓存的大小是通过<code>batch.size</code>配置指定的。</p>
+<p><code>linger.ms</code>：指示生产者发送请求之前等待一段时间，这样可以减少网络请求，一次性可以发送更多的消息，这类型于TCP的<code>Nagle</code>算法。默认缓冲可立即发送，即便缓冲空间还没有满。</p>
+<p><code>buffer.memory</code>： 控制生产者可用的缓存总量，如果消息发送速度比其传输到服务器的快，将会耗尽这个缓存空间。当缓存空间耗尽，其他发送调用将被阻塞，阻塞时间的阈值通过<code>max.block.ms</code>设定，之后它将抛出一个<code>TimeoutException</code>。</p>
+<p><code>key.serializer</code>和<code>value.serializer</code>: b表示将用户提供的key和value对象<code>ProducerRecord</code>转换成字节。</p>
+<p><code>send()</code>：异步发送一条消息到Topic，一旦消息被保存在等待发送的消息缓存中，次方法就立即返回。这样可以并行发送多条消息而不阻塞去等待每一条消息的响应。</p>
+<p>由于<code>send</code>调用是异步的，它将为分配消息的此消息的<code>RecordMetadata</code>返回一个<code>Future</code>。如果<code>future</code>调用<code>get()</code>，则将阻塞，直到相关请求完成并返回该消息的<code>metadata</code>，或抛出发送异常。</p>
+<p>如果要模拟一个简单的阻塞调用，可以调用<code>get()</code>方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">producer.send(<span class="keyword">new</span> ProducerRecord&lt;String, String&gt;(<span class="string">"my-topic"</span>,</span><br><span class="line">                    Integer.toString(i), <span class="string">"message"</span> + i)).get();</span><br></pre></td></tr></table></figure>
+<p>在无阻塞的情况下，可以利用回调参数提供的请求完成时将调用的回调通知：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; i++) &#123;</span><br><span class="line">	ProducerRecord&lt;String, String&gt; record = <span class="keyword">new</span> ProducerRecord&lt;String, String&gt;(</span><br><span class="line">				<span class="string">"my-topic"</span>, Integer.toString(i), <span class="string">"message"</span> + i);</span><br><span class="line"></span><br><span class="line">	producer.send(record, <span class="keyword">new</span> Callback() &#123;</span><br><span class="line"></span><br><span class="line">		<span class="meta">@Override</span></span><br><span class="line">		<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCompletion</span><span class="params">(RecordMetadata metaData, Exception e)</span> </span>&#123;</span><br><span class="line">			<span class="keyword">if</span> (e != <span class="keyword">null</span>) &#123;</span><br><span class="line">					e.printStackTrace();</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			System.out.println(<span class="string">"The offset of the record just sent is "</span></span><br><span class="line">					+ metaData.offset());</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>callback</code>一般在生产者的I/O线程中执行，执行的速度要快，不适宜执行阻塞和耗时的计算操作，否则将延迟其他的线程的消息发送。</p>
+<p>发送到同一个分区的消息回调保证按一定的顺序执行，如上面的输出，第一个<code>callback</code>保证在第二个之前执行：</p>
+<pre><code>The offset of the record just sent is 90
+The offset of the record just sent is 91
+The offset of the record just sent is 92
+The offset of the record just sent is 93
+The offset of the record just sent is 94
+The offset of the record just sent is 95
+The offset of the record just sent is 96
+The offset of the record just sent is 97
+The offset of the record just sent is 98
+The offset of the record just sent is 99
+</code></pre><h4 id="Consumer客户端"><a href="#Consumer客户端" class="headerlink" title="Consumer客户端"></a>Consumer客户端</h4><p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.test.kafka;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.Properties;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.kafka.clients.consumer.ConsumerRecord;</span><br><span class="line"><span class="keyword">import</span> org.apache.kafka.clients.consumer.ConsumerRecords;</span><br><span class="line"><span class="keyword">import</span> org.apache.kafka.clients.consumer.KafkaConsumer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConsumerApp</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> Properties <span class="title">initProperties</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Properties props = <span class="keyword">new</span> Properties();</span><br><span class="line">        props.put(<span class="string">"bootstrap.servers"</span>, <span class="string">"192.168.1.129:9092"</span>);</span><br><span class="line">        props.put(<span class="string">"group.id"</span>, <span class="string">"test"</span>);</span><br><span class="line">        props.put(<span class="string">"enable.auto.commit"</span>, <span class="string">"true"</span>);</span><br><span class="line">        props.put(<span class="string">"auto.commit.interval.ms"</span>, <span class="string">"1000"</span>);</span><br><span class="line">        props.put(<span class="string">"key.deserializer"</span>,</span><br><span class="line">                <span class="string">"org.apache.kafka.common.serialization.StringDeserializer"</span>);</span><br><span class="line">        props.put(<span class="string">"value.deserializer"</span>,</span><br><span class="line">                <span class="string">"org.apache.kafka.common.serialization.StringDeserializer"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> props;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ConsumerApp app = <span class="keyword">new</span> ConsumerApp();</span><br><span class="line">        </span><br><span class="line">        KafkaConsumer&lt;String, String&gt; consumer = <span class="keyword">new</span> KafkaConsumer&lt;&gt;(</span><br><span class="line">                app.initProperties());</span><br><span class="line">        consumer.subscribe(Arrays.asList(<span class="string">"my-topic"</span>));</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            ConsumerRecords&lt;String, String&gt; records = consumer.poll(<span class="number">100</span>);</span><br><span class="line">            <span class="keyword">for</span> (ConsumerRecord&lt;String, String&gt; record : records) &#123;</span><br><span class="line">                System.out.printf(<span class="string">"offset = %d, key = %s, value = %s%n"</span>,</span><br><span class="line">                        record.offset(), record.key(), record.value());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>group.id</code>：表示消费者组，相同<code>group.id</code>的消费者将视为同一个消费者组。</p>
+<p>Kafka将已订阅topic的消息发送到每个消费者组中。并通过平衡分区在消费者分组中所有成员之间来达到平均。因此每个分区恰好地分配1个消费者（一个消费者组中）。所有如果一个topic有4个分区，并且一个消费者分组有只有2个消费者。那么每个消费者将消费2个分区。</p>
+<p>如果一个消费者故障。分配给它的分区将重新分配给同一个分组中其他的消费者。同样的，如果一个新的消费者加入到分组，将从现有消费者中移一个给它。这被称为重新平衡分组。</p>
+<p>broker通过心跳自动机制检测<code>test</code>组中失败的进程，消费者会自动ping集群，告诉进群它还活着。只要消费者能够做到这一点，它就被认为是活着的，并保留分配给它分区的权利，如果它停止心跳的时间超过<code>session.timeout.ms</code>,那么就会认为是故障的，它的分区将被分配到别的进程。</p>
+<p>消费可能遇到“活锁”的情况，它持续的发送心跳，但是没有处理。为了预防消费者在这种情况下一直持有分区，可以使用<code>max.poll.interval.ms</code>活跃检测机制。 在此基础上，如果调用的<code>poll</code>的频率大于最大间隔，则客户端将主动地离开组，以便其他消费者接管该分区。</p>
+<p>消费者提供两个配置设置来控制<code>poll</code>循环：</p>
+<p><code>max.poll.interval.ms</code>：增大poll的间隔，可以为消费者提供更多的时间去处理返回的消息。缺点是此值越大将会延迟组重新平衡。</p>
+<p><code>max.poll.records</code>：此设置限制每次调用poll返回的消息数，。通过调整此值，可以减少poll间隔，减少重新平衡分组的</p>
+<p><code>enable.auto.commit</code>表示自动提交偏移量，偏移量由<code>auto.commit.interval.ms</code>控制自动提交的频率。</p>
+<p>上面的程序输出如下：</p>
+<pre><code>offset = 90, key = 90, value = message90
+offset = 91, key = 91, value = message91
+offset = 92, key = 92, value = message92
+offset = 93, key = 93, value = message93
+offset = 94, key = 94, value = message94
+offset = 95, key = 95, value = message95
+offset = 96, key = 96, value = message96
+offset = 97, key = 97, value = message97
+offset = 98, key = 98, value = message98
+offset = 99, key = 99, value = message99
+</code></pre><p>自动提交也偏移量要求必须下次调用<code>poll</code>之前或关闭消费者之前，处理完所有返回的数据。如果操作失败，这将会导致已提交的offset超过消费的位置，从而导致丢失消息。偏移量可以自动定时提交，还可以手动提交。如下代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.test.kafka;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"><span class="keyword">import</span> java.util.Properties;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.kafka.clients.consumer.ConsumerRecord;</span><br><span class="line"><span class="keyword">import</span> org.apache.kafka.clients.consumer.ConsumerRecords;</span><br><span class="line"><span class="keyword">import</span> org.apache.kafka.clients.consumer.KafkaConsumer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConsumerApp</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> Properties <span class="title">initProperties</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Properties props = <span class="keyword">new</span> Properties();</span><br><span class="line">        props.put(<span class="string">"bootstrap.servers"</span>, <span class="string">"192.168.1.130:9092"</span>);</span><br><span class="line">        props.put(<span class="string">"group.id"</span>, <span class="string">"test"</span>);</span><br><span class="line">        props.put(<span class="string">"enable.auto.commit"</span>, <span class="string">"false"</span>);</span><br><span class="line">        props.put(<span class="string">"session.timeout.ms"</span>, <span class="string">"30000"</span>);</span><br><span class="line">        props.put(<span class="string">"key.deserializer"</span>,</span><br><span class="line">                <span class="string">"org.apache.kafka.common.serialization.StringDeserializer"</span>);</span><br><span class="line">        props.put(<span class="string">"value.deserializer"</span>,</span><br><span class="line">                <span class="string">"org.apache.kafka.common.serialization.StringDeserializer"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> props;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">insertIntoDb</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">            List&lt;ConsumerRecord&lt;String, String&gt;&gt; records)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (ConsumerRecord&lt;String, String&gt; record : records) &#123;</span><br><span class="line">            System.out.printf(</span><br><span class="line">                    <span class="string">"insertIntoDb: offset = %d, key = %s, value = %s%n"</span>,</span><br><span class="line">                    record.offset(), record.key(), record.value());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ConsumerApp app = <span class="keyword">new</span> ConsumerApp();</span><br><span class="line"></span><br><span class="line">        KafkaConsumer&lt;String, String&gt; consumer = <span class="keyword">new</span> KafkaConsumer&lt;&gt;(</span><br><span class="line">                app.initProperties());</span><br><span class="line">        consumer.subscribe(Arrays.asList(<span class="string">"my-topic"</span>));</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> minBatchSize = <span class="number">200</span>;</span><br><span class="line">        List&lt;ConsumerRecord&lt;String, String&gt;&gt; buffer = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            ConsumerRecords&lt;String, String&gt; records = consumer.poll(<span class="number">100</span>);</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">for</span> (ConsumerRecord&lt;String, String&gt; record : records) &#123;</span><br><span class="line">                buffer.add(record);</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">if</span> (buffer.size() &gt;= minBatchSize) &#123;</span><br><span class="line">                insertIntoDb(buffer);</span><br><span class="line">                consumer.commitSync();</span><br><span class="line">                buffer.clear();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在这个例子中，消费者将一批消息存储在内存中。当积累足够多的消息后，再进行处理，如批量的插入到数据库中。如果设置offset自动提交，消费将被认为是已消费的。这样会出现问题，进程可能在批处理记录之后，但在它们被插入到数据库之前失败了。</p>
+<p>但是在插入数据库之后，在提交偏移量之前。在这种情况下，进程将获取到已提交的偏移量，并会重复插入的最后一批数据。这种方式就是所谓的“至少一次”保证，在故障情况下，可以重复。</p>
+<p>运行上面的程序，输出如下：</p>
+<pre><code>insertIntoDb: offset = 490, key = 90, value = message90
+insertIntoDb: offset = 491, key = 91, value = message91
+insertIntoDb: offset = 492, key = 92, value = message92
+insertIntoDb: offset = 493, key = 93, value = message93
+insertIntoDb: offset = 494, key = 94, value = message94
+insertIntoDb: offset = 495, key = 95, value = message95
+insertIntoDb: offset = 496, key = 96, value = message96
+insertIntoDb: offset = 497, key = 97, value = message97
+insertIntoDb: offset = 498, key = 98, value = message98
+insertIntoDb: offset = 499, key = 99, value = message99
+</code></pre><p>上面的程序的<code>commitSync</code>表示所有收到的消息为”已提交”，在某些情况下，如果希望更精细的控制，通过指定一个明确消息的偏移量为“已提交”。下面的程序，在处理完每个分区中的消息后，提交偏移量。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">  <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">ConsumerRecords&lt;String, String&gt; records = consumer.poll(<span class="number">100</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (TopicPartition partition : records.partitions()) &#123;</span><br><span class="line">	List&lt;ConsumerRecord&lt;String, String&gt;&gt; partitionRecords = records</span><br><span class="line">			.records(partition);</span><br><span class="line">	<span class="keyword">for</span> (ConsumerRecord&lt;String, String&gt; record : partitionRecords) &#123;</span><br><span class="line">		System.out.println(record.offset() + <span class="string">": "</span> + record.value());</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">long</span> lastOffset = partitionRecords.get(</span><br><span class="line">			partitionRecords.size() - <span class="number">1</span>).offset();</span><br><span class="line">	consumer.commitSync(Collections.singletonMap(partition,</span><br><span class="line">			<span class="keyword">new</span> OffsetAndMetadata(lastOffset + <span class="number">1</span>)));</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>已提交的offset应始终是的程序将读取的下一条消息的offset。因此，调用<code>commitSync</code>时，应该加1个到最后处理的消息的offset。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/06/26/kafka_02/" rel="next" title="Kafka集群搭建与kafka-manager监控平台">
+                <i class="fa fa-chevron-left"></i> Kafka集群搭建与kafka-manager监控平台
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#Producer客户端"><span class="nav-number">1.</span> <span class="nav-text">Producer客户端</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Consumer客户端"><span class="nav-number">2.</span> <span class="nav-text">Consumer客户端</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
