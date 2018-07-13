@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Redis Cluster是Redis的分布式解决方案，在3.0版本正式推出，有效地解决了Redis分布式方面的需求。当遇到单机内存、并发、流量等瓶颈时，可以采用Cluster架构方案达到负载均衡的目的。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis集群">
+<meta property="og:url" content="http://yoursite.com/2018/06/29/redis_08/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="Redis Cluster是Redis的分布式解决方案，在3.0版本正式推出，有效地解决了Redis分布式方面的需求。当遇到单机内存、并发、流量等瓶颈时，可以采用Cluster架构方案达到负载均衡的目的。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-07-12T17:43:56.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Redis集群">
+<meta name="twitter:description" content="Redis Cluster是Redis的分布式解决方案，在3.0版本正式推出，有效地解决了Redis分布式方面的需求。当遇到单机内存、并发、流量等瓶颈时，可以采用Cluster架构方案达到负载均衡的目的。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/06/29/redis_08/"/>
+
+
+
+
+
+  <title>Redis集群 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/29/redis_08/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Redis集群</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-29T00:00:00+08:00">
+                2018-06-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<p>Redis Cluster是Redis的分布式解决方案，在3.0版本正式推出，有效地解决了Redis分布式方面的需求。当遇到单机内存、并发、流量等瓶颈时，可以采用Cluster架构方案达到负载均衡的目的。</p>
+<a id="more"></a>
+<h4 id="数据分布"><a href="#数据分布" class="headerlink" title="数据分布"></a>数据分布</h4><p>分布式数据库首先要解决把整个数据集按照分区规则映射到多个节点的问题，即把数据集划分到多个节点上，每个节点负责整体数据的一个子集。</p>
+<p>Redis Cluster采用哈希分区规则，常见的哈希分区规则有几种：</p>
+<h5 id="节点取余分区"><a href="#节点取余分区" class="headerlink" title="节点取余分区"></a>节点取余分区</h5><p>使用特定的数据，如Redis的键或用户ID，再根据节点数量N使用公式：<code>hash（key）%N</code>计算出哈希值，用来决定数据映射到哪一个节点上。</p>
+<p>存在问题：当节点数量变化时，如扩容或收缩节点，数据节点映射关系需要重新计算，会导致数据的重新迁移。</p>
+<p>常用于数据库的分库分表规则，扩容时通常采用翻倍扩容，避免数据映射全部被打乱导致全量迁移的情况。</p>
+<h5 id="一致性哈希分区"><a href="#一致性哈希分区" class="headerlink" title="一致性哈希分区"></a>一致性哈希分区</h5><p>先构造一个<code>0~2^32</code>的哈希环，根据节点的名称(也可以是<code>ip:port</code>)计算出hash值，根据其hash值将缓节点放置在hash环上。数据读写执行节点查找操作时，先根据key计算hash值，然后顺时针找到第一个大于等于该哈希值的节点。</p>
+<p>这种方式相比节点取余最大的好处在于加入和删除节点只影响哈希环中相邻的节点，对其他节点无影响。</p>
+<p>一致性哈希分区存在几个问题：</p>
+<ul>
+<li>加减节点会造成哈希环中部分数据无法命中</li>
+<li>当使用少量节点时，数据分布不均匀，节点变化将大范围影响哈希环中数据映射</li>
+</ul>
+<h5 id="虚拟槽分区"><a href="#虚拟槽分区" class="headerlink" title="虚拟槽分区"></a>虚拟槽分区</h5><p>虚拟槽分区巧妙地使用了哈希空间，使用分散度良好的哈希函数把所有数据映射到一个固定范围的整数集合中，整数定义为槽（slot）。这个范围一般远远大于节点数，比如Redis Cluster槽范围是0~16383。槽是集群内数据管理和迁移的基本单位。</p>
+<h4 id="Redis数据分区"><a href="#Redis数据分区" class="headerlink" title="Redis数据分区"></a>Redis数据分区</h4><p>Redis Cluser采用虚拟槽分区，所有的键根据哈希函数映射到0~16383整<br>数槽内，计算公式：<code>slot=CRC16（key）&amp;16383</code>。每一个节点负责维护一部<br>分槽以及槽所映射的键值数据。</p>
+<h4 id="集群功能限制"><a href="#集群功能限制" class="headerlink" title="集群功能限制"></a>集群功能限制</h4><p>Redis集群相对单机在功能上存在一些限制，限制如下：</p>
+<ol>
+<li><p>key批量操作支持有限。如<code>mset</code>、<code>mget</code>，目前只支持具有相同slot值的key执行批量操作。对于映射为不同slot值的key由于执行<code>mget</code>、<code>mget</code>等操作可能存在于多个节点上因此不被支持。</p>
+</li>
+<li><p>key事务操作支持有限。同理只支持多key在同一节点上的事务操作，当多个key分布在不同的节点上时无法使用事务功能。</p>
+</li>
+<li><p>key作为数据分区的最小粒度，因此不能将一个大的键值对象如<code>hash</code>、<code>list</code>等映射到不同的节点。</p>
+</li>
+<li><p>不支持多数据库空间。集群模式下只能使用一个数据库空间，即db0。</p>
+</li>
+<li><p>复制结构只支持一层，从节点只能复制主节点，不支持嵌套树状复制结构。</p>
+</li>
+</ol>
+<h4 id="搭建集群"><a href="#搭建集群" class="headerlink" title="搭建集群"></a>搭建集群</h4><h5 id="准备节点"><a href="#准备节点" class="headerlink" title="准备节点"></a>准备节点</h5><p>Redis集群一般由多个节点组成，节点数量至少为6个才能保证组成完整高可用的集群。每个节点需要开启配置<code>cluster-enabled yes</code>，让Redis运行在集群模式下。</p>
+<p>集群相关配置如下：</p>
+<pre><code>#节点端口
+port 6379
+# 开启集群模式
+cluster-enabled yes
+# 节点超时时间，单位毫秒
+cluster-node-timeout 15000
+# 集群内部配置文件
+cluster-config-file &quot;nodes-6379.conf&quot;
+</code></pre><p>启动所有节点:</p>
+<pre><code>[heql@ubuntu redis]$ redis-server conf/redis-6379.conf 
+[heql@ubuntu redis]$ redis-server conf/redis-6380.conf 
+[heql@ubuntu redis]$ redis-server conf/redis-6381.conf 
+[heql@ubuntu redis]$ redis-server conf/redis-6382.conf 
+[heql@ubuntu redis]$ redis-server conf/redis-6383.conf 
+[heql@ubuntu redis]$ redis-server conf/redis-6384.conf 
+</code></pre><p>6379节点启动成功，第一次启动时如果没有集群配置文件，它会自动创建<code>nodes-6379.conf</code>的配置文件，文件名称采用<code>cluster-config-file</code>参数项控制。如果启动时存在集群配置文件，节点会使用配置文件内容初始化集群信息。</p>
+<p>如节点6379首次启动后生成集群配置如下：</p>
+<pre><code>[heql@ubuntu redis]$ cat data/nodes-6379.conf 
+f2526aea7802af433298257faf38788178aa2d9d :0 myself,master - 0 0 0 connected
+vars currentEpoch 0 lastVoteEpoch 0
+</code></pre><p>执行<code>cluster nodes</code>命令获取集群节点状态：</p>
+<pre><code>127.0.0.1:6380&gt; cluster nodes
+abd6c61ec0b84ef066576bcacb605237c07d0606 127.0.0.1:6380 master - 0 1531192830080 1 connected
+127.0.0.1:6380&gt; 
+</code></pre><p>每个节点目前只能识别出自己的节点信息。现在启动6个节点，但每个节点彼此并不知道对方的存在，可以通过节点握手让6个节点彼此建立联系从而组成一个集群。</p>
+<h5 id="节点握手"><a href="#节点握手" class="headerlink" title="节点握手"></a>节点握手</h5><p>执行<code>cluster meet</code>命令让其他节点加入到集群中：</p>
+<pre><code>127.0.0.1:6379&gt; cluster meet 127.0.0.1 6380
+OK
+127.0.0.1:6379&gt; cluster meet 127.0.0.1 6381
+OK
+127.0.0.1:6379&gt; cluster meet 127.0.0.1 6382
+OK
+127.0.0.1:6379&gt; cluster meet 127.0.0.1 6383
+OK
+127.0.0.1:6379&gt; cluster meet 127.0.0.1 6384
+OK
+127.0.0.1:6379&gt; 
+</code></pre><p>在集群内任意节点上执行<code>cluster meet</code>命令加入新节点，握手状态会通过消息在集群内传播，这样其他节点会自动发现新节点并发起握手流程。</p>
+<p>使用<code>cluster nodes</code>命令确认6个节点都彼此感知并组成集群：</p>
+<pre><code>127.0.0.1:6379&gt; cluster nodes
+8b5102ef796d9a334d3441941ad2ff13032bd68b 127.0.0.1:6382 master - 0 1531192833104 4 connected
+abd6c61ec0b84ef066576bcacb605237c07d0606 127.0.0.1:6380 master - 0 1531192830080 1 connected
+f2526aea7802af433298257faf38788178aa2d9d 127.0.0.1:6379 myself,master - 0 0 0 connected
+58bc52e7f10b287b96a58a75f88b6f27aba06695 127.0.0.1:6381 master - 0 1531192832096 2 connected
+e73d12ab613e74fc2abc5961c11120ca1f063ddd 127.0.0.1:6383 master - 0 1531192831088 3 connected
+65dd8f6d8713882231a5897675345981dec02fd5 127.0.0.1:6384 master - 0 1531192834113 5 connected
+</code></pre><p>节点建立握手之后集群还不能正常工作，这时集群处于下线状态，所有的数据读写都被禁止。通过如下命令可以看到：</p>
+<pre><code>127.0.0.1:6379&gt; set hello world
+(error) CLUSTERDOWN The cluster is down
+</code></pre><p>通过<code>cluster info</code>命令可以获取集群当前状态：</p>
+<pre><code>127.0.0.1:6379&gt; cluster info
+cluster_state:fail
+cluster_slots_assigned:0
+cluster_slots_ok:0
+cluster_slots_pfail:0
+cluster_slots_fail:0
+cluster_known_nodes:6
+cluster_size:0
+cluster_current_epoch:5
+cluster_my_epoch:3
+cluster_stats_messages_sent:482
+cluster_stats_messages_received:482
+</code></pre><p>被分配的槽<code>cluster_slots_assigned</code>是0，由于目前所有的槽没有分配到节点，因此集群无法完成槽到节点的映射。只有当16384个槽全部分配给节点后，集群才进入在线状态。</p>
+<h5 id="分配槽"><a href="#分配槽" class="headerlink" title="分配槽"></a>分配槽</h5><p>Redis集群把所有的数据映射到16384个槽中。每个key会映射为一个固定的槽，只有当节点分配了槽，才能响应和这些槽关联的键命令。通过<code>cluster addslots</code>命令为节点分配槽。</p>
+<pre><code>[heql@ubuntu redis]$ redis-cli -h 127.0.0.1 -p 6379 cluster addslots {0..5461}
+OK
+[heql@ubuntu redis]$ redis-cli -h 127.0.0.1 -p 6380 cluster addslots {5462..10922}
+OK
+[heql@ubuntu redis]$ redis-cli -h 127.0.0.1 -p 6381 cluster addslots {10923..16383}
+OK
+</code></pre><p>把16384个slot平均分配给6379、6380、6381三个节点。执行<code>cluster info</code>查看集群状态：</p>
+<pre><code>127.0.0.1:6379&gt; cluster info
+cluster_state:ok
+cluster_slots_assigned:16384
+cluster_slots_ok:16384
+cluster_slots_pfail:0
+cluster_slots_fail:0
+cluster_known_nodes:6
+cluster_size:2
+cluster_current_epoch:5
+cluster_my_epoch:3
+cluster_stats_messages_sent:2294
+cluster_stats_messages_received:2294
+</code></pre><p>当前集群状态是OK，集群进入在线状态。所有的槽都已经分配给节点，执行<code>cluster nodes</code>命令可以看到节点和槽的分配关系：</p>
+<pre><code>127.0.0.1:6379&gt; cluster nodes
+8b5102ef796d9a334d3441941ad2ff13032bd68b 127.0.0.1:6382 master - 0 1531192914889 4 connected
+abd6c61ec0b84ef066576bcacb605237c07d0606 127.0.0.1:6380 master - 0 1531192916903 1 connected 5462-10922
+f2526aea7802af433298257faf38788178aa2d9d 127.0.0.1:6379 myself,master - 0 0 0 connected 0-5461
+58bc52e7f10b287b96a58a75f88b6f27aba06695 127.0.0.1:6381 master - 0 1531192913881 2 connected 10923-16383
+e73d12ab613e74fc2abc5961c11120ca1f063ddd 127.0.0.1:6383 master - 0 1531192915895 3 connected
+65dd8f6d8713882231a5897675345981dec02fd5 127.0.0.1:6384 master - 0 1531192917910 5 connected
+</code></pre><p>目前还有三个节点没有使用，作为一个完整的集群，每个负责处理槽的节点应该具有从节点，保证当它出现故障时可以自动进行故障转移。使用<code>cluster replicate</code>命令让一个节点成为从节点：</p>
+<pre><code>127.0.0.1:6382&gt; cluster replicate f2526aea7802af433298257faf38788178aa2d9d
+OK
+127.0.0.1:6383&gt; cluster replicate abd6c61ec0b84ef066576bcacb605237c07d0606
+OK
+127.0.0.1:6384&gt; cluster replicate 58bc52e7f10b287b96a58a75f88b6f27aba06695
+OK
+</code></pre><p>通过<code>cluster nodes</code>命令查看集群状态和复制关系，如下所示：</p>
+<pre><code>8b5102ef796d9a334d3441941ad2ff13032bd68b 127.0.0.1:6382 slave f2526aea7802af433298257faf38788178aa2d9d 0 1531193398779 4 connected
+abd6c61ec0b84ef066576bcacb605237c07d0606 127.0.0.1:6380 master - 0 1531193399786 1 connected 5462-10922
+f2526aea7802af433298257faf38788178aa2d9d 127.0.0.1:6379 myself,master - 0 0 0 connected 0-5461
+58bc52e7f10b287b96a58a75f88b6f27aba06695 127.0.0.1:6381 master - 0 1531193401806 2 connected 10923-16383
+e73d12ab613e74fc2abc5961c11120ca1f063ddd 127.0.0.1:6383 slave abd6c61ec0b84ef066576bcacb605237c07d0606 0 1531193402814 3 connected
+65dd8f6d8713882231a5897675345981dec02fd5 127.0.0.1:6384 slave 58bc52e7f10b287b96a58a75f88b6f27aba06695 0 1531193396758 5 connected
+</code></pre><p>目前为止，依照Redis协议手动建立一个集群。它由6个节点构成，3个主节点负责处理槽和相关数据，3个从节点负责故障转移。</p>
+<h4 id="使用redis-trib-rb搭建集群"><a href="#使用redis-trib-rb搭建集群" class="headerlink" title="使用redis-trib.rb搭建集群"></a>使用redis-trib.rb搭建集群</h4><p><code>redis-trib.rb</code>是采用Ruby实现的Redis集群管理工具。内部通过Cluster相关命令帮我们简化集群创建、检查、槽迁移和均衡等常见运维操作，使用之前需要安装Ruby依赖环境。</p>
+<h5 id="安装Ruby环境"><a href="#安装Ruby环境" class="headerlink" title="安装Ruby环境"></a>安装Ruby环境</h5><pre><code>wget https://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.1.tar.gz
+tar zxf ruby-2.3.1.tar.gz 
+cd ruby-2.3.1/
+./configure &amp;&amp; make
+sudo make install
+</code></pre><p>安装rubygem redis依赖：</p>
+<pre><code>wget http:// rubygems.org/downloads/redis-3.3.0.gem
+sudo gem install -l redis-3.3.0.gem
+</code></pre><p>在Redis源码编译后的目录，将生产的redis-trib.rb拷贝到可执行路径中：</p>
+<pre><code>sudo cp src/redis-trib.rb /usr/local/bin/
+</code></pre><h5 id="准备节点-1"><a href="#准备节点-1" class="headerlink" title="准备节点"></a>准备节点</h5><p>配置和之前的一样，启动所有节点：</p>
+<pre><code>[heql@ubuntu redis]$ redis-server conf/redis-6379.conf 
+[heql@ubuntu redis]$ redis-server conf/redis-6380.conf 
+[heql@ubuntu redis]$ redis-server conf/redis-6381.conf 
+[heql@ubuntu redis]$ redis-server conf/redis-6382.conf 
+[heql@ubuntu redis]$ redis-server conf/redis-6383.conf 
+[heql@ubuntu redis]$ redis-server conf/redis-6384.conf
+</code></pre><h5 id="创建集群"><a href="#创建集群" class="headerlink" title="创建集群"></a>创建集群</h5><p>启动好6个节点之后，使用<code>redis-trib.rb create</code>命令完成节点握手和槽分配过程:</p>
+<pre><code>[heql@ubuntu redis]$ redis-trib.rb create --replicas 1 127.0.0.1:6379 127.0.0.1:6380 127.0.0.1:6381 127.0.0.1:6382 127.0.0.1:6383 127.0.0.1:6384
+</code></pre><p><code>--replicas</code>参数指定集群中每个主节点配备几个从节点，这里设置为1。</p>
+<p>创建过程中首先会给出主从节点角色分配的计划，如下所示:</p>
+<pre><code>&gt;&gt;&gt; Creating cluster
+&gt;&gt;&gt; Performing hash slots allocation on 6 nodes...
+Using 3 masters:
+127.0.0.1:6379
+127.0.0.1:6380
+127.0.0.1:6381
+Adding replica 127.0.0.1:6382 to 127.0.0.1:6379
+Adding replica 127.0.0.1:6383 to 127.0.0.1:6380
+Adding replica 127.0.0.1:6384 to 127.0.0.1:6381
+M: 2a98fe0eeab67575c51188b96894af97709c1aa1 127.0.0.1:6379
+slots:0-5460 (5461 slots) master
+M: a1e476e48b42db93e9b06d11527696e5824e6bab 127.0.0.1:6380
+slots:5461-10922 (5462 slots) master
+M: 6010817240f6337aeffd9c6976fc0445bcd38eda 127.0.0.1:6381
+slots:10923-16383 (5461 slots) master
+S: 4ad9e89b058931c091cd943d1b2f79ce6d3e2fd6 127.0.0.1:6382
+replicates 2a98fe0eeab67575c51188b96894af97709c1aa1
+S: 114e1c725459f88743711f680b1508bd7f691adc 127.0.0.1:6383
+replicates a1e476e48b42db93e9b06d11527696e5824e6bab
+S: c65707ad29a25e5c349d49bde7021aa7fbab6536 127.0.0.1:6384
+replicates 6010817240f6337aeffd9c6976fc0445bcd38eda
+Can I set the above configuration? (type &apos;yes&apos; to accept):
+</code></pre><p>当同意这份计划之后输入yes，redis-trib.rb开始执行节点握手和槽分配操作，输出如下：</p>
+<pre><code>&gt;&gt;&gt; Nodes configuration updated
+&gt;&gt;&gt; Assign a different config epoch to each node
+&gt;&gt;&gt; Sending CLUSTER MEET messages to join the cluster
+Waiting for the cluster to join....
+&gt;&gt;&gt; Performing Cluster Check (using node 127.0.0.1:6379)
+M: 2a98fe0eeab67575c51188b96894af97709c1aa1 127.0.0.1:6379
+slots:0-5460 (5461 slots) master
+M: a1e476e48b42db93e9b06d11527696e5824e6bab 127.0.0.1:6380
+slots:5461-10922 (5462 slots) master
+M: 6010817240f6337aeffd9c6976fc0445bcd38eda 127.0.0.1:6381
+slots:10923-16383 (5461 slots) master
+M: 4ad9e89b058931c091cd943d1b2f79ce6d3e2fd6 127.0.0.1:6382
+slots: (0 slots) master
+replicates 2a98fe0eeab67575c51188b96894af97709c1aa1
+M: 114e1c725459f88743711f680b1508bd7f691adc 127.0.0.1:6383
+slots: (0 slots) master
+replicates a1e476e48b42db93e9b06d11527696e5824e6bab
+M: c65707ad29a25e5c349d49bde7021aa7fbab6536 127.0.0.1:6384
+slots: (0 slots) master
+replicates 6010817240f6337aeffd9c6976fc0445bcd38eda
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check for open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+</code></pre><h5 id="集群完整性检查"><a href="#集群完整性检查" class="headerlink" title="集群完整性检查"></a>集群完整性检查</h5><p>集群完整性指所有的槽都分配到存活的主节点上，只要16384个槽中有一个没有分配给节点则表示集群不完整。可以使用<code>redis-trib.rb check</code>命令检测任意一个节点地址就可以完成整个集群的检查工作：</p>
+<pre><code>[heql@ubuntu redis]$ redis-trib.rb check 127.0.0.1:6379
+</code></pre><p>提示集群所有的槽都已分配到节点：</p>
+<pre><code>&gt;&gt;&gt; Performing Cluster Check (using node 127.0.0.1:6379)
+M: 2a98fe0eeab67575c51188b96894af97709c1aa1 127.0.0.1:6379
+slots:0-5460 (5461 slots) master
+1 additional replica(s)
+M: 6010817240f6337aeffd9c6976fc0445bcd38eda 127.0.0.1:6381
+slots:10923-16383 (5461 slots) master
+1 additional replica(s)
+S: c65707ad29a25e5c349d49bde7021aa7fbab6536 127.0.0.1:6384
+slots: (0 slots) slave
+replicates 6010817240f6337aeffd9c6976fc0445bcd38eda
+S: 4ad9e89b058931c091cd943d1b2f79ce6d3e2fd6 127.0.0.1:6382
+slots: (0 slots) slave
+replicates 2a98fe0eeab67575c51188b96894af97709c1aa1
+S: 114e1c725459f88743711f680b1508bd7f691adc 127.0.0.1:6383
+slots: (0 slots) slave
+replicates a1e476e48b42db93e9b06d11527696e5824e6bab
+M: a1e476e48b42db93e9b06d11527696e5824e6bab 127.0.0.1:6380
+slots:5461-10922 (5462 slots) master
+1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check for open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+</code></pre><h4 id="扩容集群"><a href="#扩容集群" class="headerlink" title="扩容集群"></a>扩容集群</h4><h5 id="准备新节点"><a href="#准备新节点" class="headerlink" title="准备新节点"></a>准备新节点</h5><pre><code>[heql@ubuntu redis]$ redis-server conf/redis-6385.conf 
+[heql@ubuntu redis]$ redis-server conf/redis-6385.conf
+</code></pre><h5 id="加入集群"><a href="#加入集群" class="headerlink" title="加入集群"></a>加入集群</h5><pre><code>[heql@ubuntu redis]$ redis-trib.rb add-node 127.0.0.1:6385 127.0.0.1:6379
+[heql@ubuntu redis]$ redis-trib.rb add-node 127.0.0.1:6386 127.0.0.1:6379
+</code></pre><h5 id="迁移槽和数据"><a href="#迁移槽和数据" class="headerlink" title="迁移槽和数据"></a>迁移槽和数据</h5><p>使用<code>redis-trib.rb reshard</code>命令进行迁移：</p>
+<pre><code>[heql@ubuntu redis]$ redis-trib.rb reshard 127.0.0.1:6379
+&gt;&gt;&gt; Performing Cluster Check (using node 127.0.0.1:6379)
+M: 2a98fe0eeab67575c51188b96894af97709c1aa1 127.0.0.1:6379
+slots:0-5460 (5461 slots) master
+1 additional replica(s)
+M: 7b3384a04dd2ff984fe16b5620eb471034ad77d8 127.0.0.1:6386
+slots: (0 slots) master
+0 additional replica(s)
+M: 6010817240f6337aeffd9c6976fc0445bcd38eda 127.0.0.1:6381
+slots:10923-16383 (5461 slots) master
+1 additional replica(s)
+S: c65707ad29a25e5c349d49bde7021aa7fbab6536 127.0.0.1:6384
+slots: (0 slots) slave
+replicates 6010817240f6337aeffd9c6976fc0445bcd38eda
+M: 3fd031f75c8902e379ba3c7918df0330199ad435 127.0.0.1:6385
+slots: (0 slots) master
+0 additional replica(s)
+S: 4ad9e89b058931c091cd943d1b2f79ce6d3e2fd6 127.0.0.1:6382
+slots: (0 slots) slave
+replicates 2a98fe0eeab67575c51188b96894af97709c1aa1
+S: 114e1c725459f88743711f680b1508bd7f691adc 127.0.0.1:6383
+slots: (0 slots) slave
+replicates a1e476e48b42db93e9b06d11527696e5824e6bab
+M: a1e476e48b42db93e9b06d11527696e5824e6bab 127.0.0.1:6380
+slots:5461-10922 (5462 slots) master
+1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check for open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+How many slots do you want to move (from 1 to 16384)? 
+</code></pre><p>输入迁移的槽数量，这里为4096：</p>
+<pre><code>How many slots do you want to move (from 1 to 16384)? 4096
+What is the receiving node ID? 
+</code></pre><p>输入6385的节点ID作为目标节点，目标节点只能指定一个：</p>
+<pre><code>What is the receiving node ID? 3fd031f75c8902e379ba3c7918df0330199ad435
+Please enter all the source node IDs.
+Type &apos;all&apos; to use all the nodes as source nodes for the hash slots.
+Type &apos;done&apos; once you entered all the source nodes IDs.
+Source node #1:
+</code></pre><p>这里分别输入节点6379、6380、6381三个节点ID，最后用done表示结束：</p>
+<pre><code>Type &apos;done&apos; once you entered all the source nodes IDs.
+Source node #1:2a98fe0eeab67575c51188b96894af97709c1aa1
+Source node #2:a1e476e48b42db93e9b06d11527696e5824e6bab
+Source node #3:6010817240f6337aeffd9c6976fc0445bcd38eda
+Source node #4:done
+</code></pre><p>数据迁移之前会打印出所有的槽从源节点到目标节点的计划，确认计划无误后输入yes执行迁移工作：</p>
+<pre><code>    Moving slot 12286 from 6010817240f6337aeffd9c6976fc0445bcd38eda
+    Moving slot 12287 from 6010817240f6337aeffd9c6976fc0445bcd38eda
+Do you want to proceed with the proposed reshard plan (yes/no)?
+</code></pre><p>当所有的槽迁移完成后，<code>reshard</code>命令自动退出，执行<code>cluster nodes</code>命令检查节点和槽映射的变化，如下所示：</p>
+<pre><code>[heql@ubuntu redis]$ redis-cli -h 127.0.0.1 -p 6379 cluster nodes 
+7b3384a04dd2ff984fe16b5620eb471034ad77d8 127.0.0.1:6386 master - 0 1531208776886 0 connected
+6010817240f6337aeffd9c6976fc0445bcd38eda 127.0.0.1:6381 master - 0 1531208773850 3 connected 12288-16383
+c65707ad29a25e5c349d49bde7021aa7fbab6536 127.0.0.1:6384 slave 6010817240f6337aeffd9c6976fc0445bcd38eda 0 1531208775877 6 connected
+3fd031f75c8902e379ba3c7918df0330199ad435 127.0.0.1:6385 master - 0 1531208774868 7 connected 0-1364 5461-6826 10923-12287
+4ad9e89b058931c091cd943d1b2f79ce6d3e2fd6 127.0.0.1:6382 slave 2a98fe0eeab67575c51188b96894af97709c1aa1 0 1531208776382 4 connected
+114e1c725459f88743711f680b1508bd7f691adc 127.0.0.1:6383 slave a1e476e48b42db93e9b06d11527696e5824e6bab 0 1531208770820 5 connected
+a1e476e48b42db93e9b06d11527696e5824e6bab 127.0.0.1:6380 master - 0 1531208773345 2 connected 6827-10922
+2a98fe0eeab67575c51188b96894af97709c1aa1 127.0.0.1:6379 myself,master - 0 0 1 connected 1365-5460
+</code></pre><p>节点6385负责的槽变为：0-1364 5461-6826 10923-12287，由于槽用于hash运算本身顺序没有意义，因此无须强制要求节点负责槽的顺序性。</p>
+<p>使用<code>redis-trib.rb rebalance</code>命令检查节点之间槽的均衡性:</p>
+<pre><code>[heql@ubuntu redis]$ redis-trib.rb rebalance 127.0.0.1:6380
+&gt;&gt;&gt; Performing Cluster Check (using node 127.0.0.1:6380)
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check for open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+*** No rebalancing needed! All nodes are within the 2.0% threshold.
+</code></pre><p>可以看出迁移之后所有主节点负责的槽数量差异在2%以内，因此集群节点数据相对均匀，无需调整。</p>
+<h5 id="添加从节点"><a href="#添加从节点" class="headerlink" title="添加从节点"></a>添加从节点</h5><p>把节点6386作为6385的从节点，从而保证整个集群的高可用。</p>
+<pre><code>127.0.0.1:6386&gt; cluster replicate 3fd031f75c8902e379ba3c7918df0330199ad435
+OK
+</code></pre><p>查看节点6386状态确认已经变成6385节点的从节点：</p>
+<pre><code>3fd031f75c8902e379ba3c7918df0330199ad435 127.0.0.1:6385 master - 0 1531209244430 7 connected 0-1364 5461-6826 10923-12287
+7b3384a04dd2ff984fe16b5620eb471034ad77d8 127.0.0.1:6386 myself,slave 3fd031f75c8902e379ba3c7918df0330199ad435 0 0 0 connected
+</code></pre><p>到此整个集群扩容完成。</p>
+<h4 id="收缩集群"><a href="#收缩集群" class="headerlink" title="收缩集群"></a>收缩集群</h4><p>收缩集群意味着缩减规模，需要从现有集群中安全下线部分节点。</p>
+<ol>
+<li><p>首先需要确定下线节点是否有负责的槽，如果是，需要把槽迁移到其他节点，保证节点下线后整个集群槽节点映射的完整性。</p>
+</li>
+<li><p>当下线节点不再负责槽或者本身是从节点时，就可以通知集群内其他节点忘记下线节点，当所有的节点忘记该节点后可以正常关闭。</p>
+</li>
+</ol>
+<p>例如把6381和6384节点下线，节点信息如下：</p>
+<pre><code>c65707ad29a25e5c349d49bde7021aa7fbab6536 127.0.0.1:6384 slave 6010817240f6337aeffd9c6976fc0445bcd38eda 0 1531209479038 3 connected
+6010817240f6337aeffd9c6976fc0445bcd38eda 127.0.0.1:6381 master - 0 1531209482096 3 connected 12288-16383
+</code></pre><p>6381是主节点，负责槽（12288-16383），6384是它的从节点，下线6381之前需要把负责的槽迁移到其他节点。</p>
+<h5 id="迁移槽和数据-1"><a href="#迁移槽和数据-1" class="headerlink" title="迁移槽和数据"></a>迁移槽和数据</h5><p>收缩正好和扩容迁移方向相反，6381变为源节点，其他主节点变为目标节点，源节点需要把自身负责的4096个槽均匀地迁移到其他主节点上。由于每次执行reshard命令只能有一个目标节点，因此需要执行3次<code>reshard</code>命令，分别迁移1365、1365、1366个槽，如下所示：</p>
+<pre><code>[heql@ubuntu redis]$ redis-trib.rb reshard 127.0.0.1:6381
+&gt;&gt;&gt; Performing Cluster Check (using node 127.0.0.1:6381)
+M: 6010817240f6337aeffd9c6976fc0445bcd38eda 127.0.0.1:6381
+slots:12288-16383 (4096 slots) master
+1 additional replica(s)
+M: a1e476e48b42db93e9b06d11527696e5824e6bab 127.0.0.1:6380
+slots:6827-10922 (4096 slots) master
+1 additional replica(s)
+M: 2a98fe0eeab67575c51188b96894af97709c1aa1 127.0.0.1:6379
+slots:1365-5460 (4096 slots) master
+1 additional replica(s)
+S: c65707ad29a25e5c349d49bde7021aa7fbab6536 127.0.0.1:6384
+slots: (0 slots) slave
+replicates 6010817240f6337aeffd9c6976fc0445bcd38eda
+S: 7b3384a04dd2ff984fe16b5620eb471034ad77d8 127.0.0.1:6386
+slots: (0 slots) slave
+replicates 3fd031f75c8902e379ba3c7918df0330199ad435
+M: 3fd031f75c8902e379ba3c7918df0330199ad435 127.0.0.1:6385
+slots:0-1364,5461-6826,10923-12287 (4096 slots) master
+1 additional replica(s)
+S: 4ad9e89b058931c091cd943d1b2f79ce6d3e2fd6 127.0.0.1:6382
+slots: (0 slots) slave
+replicates 2a98fe0eeab67575c51188b96894af97709c1aa1
+S: 114e1c725459f88743711f680b1508bd7f691adc 127.0.0.1:6383
+slots: (0 slots) slave
+replicates a1e476e48b42db93e9b06d11527696e5824e6bab
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check for open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+How many slots do you want to move (from 1 to 16384)? 1365
+What is the receiving node ID? 2a98fe0eeab67575c51188b96894af97709c1aa1
+Please enter all the source node IDs.
+Type &apos;all&apos; to use all the nodes as source nodes for the hash slots.
+Type &apos;done&apos; once you entered all the source nodes IDs.
+Source node #1:6010817240f6337aeffd9c6976fc0445bcd38eda
+Source node #2:done
+</code></pre><p>槽迁移完成后，6379节点接管了1365个槽12288~13652，如下所示：</p>
+<pre><code>2a98fe0eeab67575c51188b96894af97709c1aa1 127.0.0.1:6379 myself,master - 0 0 8 connected 1365-5460 12288-13652
+</code></pre><p>继续把1365个槽迁移到节点6380，完成后，6380节点接管了1365个槽13653~15017：</p>
+<pre><code>a1e476e48b42db93e9b06d11527696e5824e6bab 127.0.0.1:6380 master - 0 1531210368640 9 connected 6827-10922 13653-15017
+</code></pre><p>把最后的1366个槽迁移到节点6385中：</p>
+<pre><code>3fd031f75c8902e379ba3c7918df0330199ad435 127.0.0.1:6385 master - 0 1531210636485 10 connected 0-1364 5461-6826 10923-12287 15018-16383
+</code></pre><p>到目前为止，节点6381所有的槽全部迁出完成，6381不再负责任何槽。状态如下所示：</p>
+<pre><code>6010817240f6337aeffd9c6976fc0445bcd38eda 127.0.0.1:6381 master - 0 1531210761005 3 connected
+</code></pre><h5 id="下线节点"><a href="#下线节点" class="headerlink" title="下线节点"></a>下线节点</h5><p>当下线主节点具有从节点时需要把该从节点指向到其他主节点，因此对于主从节点都下线的情况，建议先下线从节点再下线主节点，防止不必要的全量复制。</p>
+<p>6384节点下线操作，命令如下：</p>
+<pre><code>[heql@ubuntu redis]$ redis-trib.rb del-node 127.0.0.1:6379 c65707ad29a25e5c349d49bde7021aa7fbab6536
+&gt;&gt;&gt; Removing node c65707ad29a25e5c349d49bde7021aa7fbab6536 from cluster 127.0.0.1:6379
+&gt;&gt;&gt; Sending CLUSTER FORGET messages to the cluster...
+&gt;&gt;&gt; SHUTDOWN the node.
+</code></pre><p>6381节点下线操作，命令如下：</p>
+<pre><code>[heql@ubuntu redis]$ redis-trib.rb del-node 127.0.0.1:6379 6010817240f6337aeffd9c6976fc0445bcd38eda
+&gt;&gt;&gt; Removing node 6010817240f6337aeffd9c6976fc0445bcd38eda from cluster 127.0.0.1:6379
+&gt;&gt;&gt; Sending CLUSTER FORGET messages to the cluster...
+&gt;&gt;&gt; SHUTDOWN the node.
+</code></pre><p>节点下线后确认节点状态：</p>
+<pre><code>7b3384a04dd2ff984fe16b5620eb471034ad77d8 127.0.0.1:6386 slave 3fd031f75c8902e379ba3c7918df0330199ad435 0 1531211262223 10 connected
+3fd031f75c8902e379ba3c7918df0330199ad435 127.0.0.1:6385 master - 0 1531211260205 10 connected 0-1364 5461-6826 10923-12287 15018-16383
+4ad9e89b058931c091cd943d1b2f79ce6d3e2fd6 127.0.0.1:6382 slave 2a98fe0eeab67575c51188b96894af97709c1aa1 0 1531211261215 8 connected
+114e1c725459f88743711f680b1508bd7f691adc 127.0.0.1:6383 slave a1e476e48b42db93e9b06d11527696e5824e6bab 0 1531211259199 9 connected
+a1e476e48b42db93e9b06d11527696e5824e6bab 127.0.0.1:6380 master - 0 1531211255667 9 connected 6827-10922 13653-15017
+2a98fe0eeab67575c51188b96894af97709c1aa1 127.0.0.1:6379 myself,master - 0 0 8 connected 1365-5460 12288-13652
+</code></pre><p>集群节点状态中已经不包含6384和6381节点，到目前为止，完成了节点的安全下线。</p>
+<h4 id="故障转移"><a href="#故障转移" class="headerlink" title="故障转移"></a>故障转移</h4><p>当集群内少量节点出现故障时通过自动故障转移保证集群可以正常对外提供服务。</p>
+<h5 id="故障发现"><a href="#故障发现" class="headerlink" title="故障发现"></a>故障发现</h5><p><strong>主观下线</strong>：指某个节点认为另一个节点不可用，即下线状态，这个状态并不是最终的故障判定，只能代表一个节点的意见，可能存在误判情况。</p>
+<p><strong>客观下线</strong>：指标记一个节点真正的下线，集群内多个节点都认为该节点不可用，从而达成共识的结果。如果是持有槽的主节点故障，需要为该节点进行故障转移。</p>
+<h5 id="故障恢复"><a href="#故障恢复" class="headerlink" title="故障恢复"></a>故障恢复</h5><p>故障节点变为客观下线后，如果下线节点是持有槽的主节点则需要在它的从节点中选出一个替换它，从而保证集群的高可用。下线主节点的所有从节点承担故障恢复的义务，当从节点通过内部定时任务发现自身复制的主节点进入客观下线时，将会触发故障恢复流程。</p>
+<h5 id="故障转移演练"><a href="#故障转移演练" class="headerlink" title="故障转移演练"></a>故障转移演练</h5><p>确认集群状态：</p>
+<pre><code>7b3384a04dd2ff984fe16b5620eb471034ad77d8 127.0.0.1:6386 slave 3fd031f75c8902e379ba3c7918df0330199ad435 0 1531212381329 10 connected
+3fd031f75c8902e379ba3c7918df0330199ad435 127.0.0.1:6385 master - 0 1531212382340 10 connected 0-1364 5461-6826 10923-12287 15018-16383
+4ad9e89b058931c091cd943d1b2f79ce6d3e2fd6 127.0.0.1:6382 slave 2a98fe0eeab67575c51188b96894af97709c1aa1 0 1531212384358 8 connected
+114e1c725459f88743711f680b1508bd7f691adc 127.0.0.1:6383 slave a1e476e48b42db93e9b06d11527696e5824e6bab 0 1531212383349 9 connected
+a1e476e48b42db93e9b06d11527696e5824e6bab 127.0.0.1:6380 master - 0 1531212384863 9 connected 6827-10922 13653-15017
+2a98fe0eeab67575c51188b96894af97709c1aa1 127.0.0.1:6379 myself,master - 0 0 8 connected 1365-5460 12288-13652
+</code></pre><p>强制关闭6385进程：</p>
+<pre><code>[heql@ubuntu redis]$ ps aux | grep redis-server | grep 6385
+heql       3269  0.2  0.5  42320 11076 ?        Ssl  15:28   0:13 redis-server *:6385 [cluster]
+[heql@ubuntu redis]$ kill 3269
+</code></pre><p>6386变成主节点，6385节点标记为连接断开状态：</p>
+<pre><code>7b3384a04dd2ff984fe16b5620eb471034ad77d8 127.0.0.1:6386 slave 3fd031f75c8902e379ba3c7918df0330199ad435 0 1531212381329 10 connected
+3fd031f75c8902e379ba3c7918df0330199ad435 127.0.0.1:6385 master - 0 1531212382340 10 connected 0-1364 5461-6826 10923-12287 15018-16383
+4ad9e89b058931c091cd943d1b2f79ce6d3e2fd6 127.0.0.1:6382 slave 2a98fe0eeab67575c51188b96894af97709c1aa1 0 1531212384358 8 connected
+114e1c725459f88743711f680b1508bd7f691adc 127.0.0.1:6383 slave a1e476e48b42db93e9b06d11527696e5824e6bab 0 1531212383349 9 connected
+a1e476e48b42db93e9b06d11527696e5824e6bab 127.0.0.1:6380 master - 0 1531212384863 9 connected 6827-10922 13653-15017
+2a98fe0eeab67575c51188b96894af97709c1aa1 127.0.0.1:6379 myself,master - 0 0 8 connected 1365-5460 12288-13652
+</code></pre><p>重新启动故障节点6385:</p>
+<pre><code>[heql@ubuntu redis]$ redis-server conf/redis-6385.conf 
+</code></pre><p>6385节点变为新主节点6386的从节点：</p>
+<pre><code>7b3384a04dd2ff984fe16b5620eb471034ad77d8 127.0.0.1:6386 master - 0 1531212837848 11 connected 0-1364 5461-6826 10923-12287 15018-16383
+3fd031f75c8902e379ba3c7918df0330199ad435 127.0.0.1:6385 slave 7b3384a04dd2ff984fe16b5620eb471034ad77d8 0 1531212835826 11 connected
+4ad9e89b058931c091cd943d1b2f79ce6d3e2fd6 127.0.0.1:6382 slave 2a98fe0eeab67575c51188b96894af97709c1aa1 0 1531212834818 8 connected
+114e1c725459f88743711f680b1508bd7f691adc 127.0.0.1:6383 slave a1e476e48b42db93e9b06d11527696e5824e6bab 0 1531212839868 9 connected
+a1e476e48b42db93e9b06d11527696e5824e6bab 127.0.0.1:6380 master - 0 1531212838858 9 connected 6827-10922 13653-15017
+2a98fe0eeab67575c51188b96894af97709c1aa1 127.0.0.1:6379 myself,master - 0 0 8 connected 1365-5460 12288-13652
+</code></pre><h4 id="请求重定向"><a href="#请求重定向" class="headerlink" title="请求重定向"></a>请求重定向</h4><p>在集群模式下，Redis接收任何键相关命令时首先计算键对应的槽，再根据槽找出所对应的节点，如果节点是自身，则处理键命令；否则回复<code>MOVED</code>重定向错误，通知客户端请求正确的节点。这个过程称为<code>MOVED</code>重定向。</p>
+<p>键<code>key:test:1</code>对应槽5191正好位于6379节点负责的槽范围内，则<code>set</code>命令执行成功。<code>cluster keyslot</code>命令返回key所对应的槽：</p>
+<pre><code>127.0.0.1:6379&gt; set key:test:1 value-1
+OK
+127.0.0.1:6379&gt; cluster keyslot key:test:1
+(integer) 5191
+127.0.0.1:6379&gt; cluster nodes
+2a98fe0eeab67575c51188b96894af97709c1aa1 127.0.0.1:6379 myself,master - 0 0 8 connected 1365-5460 12288-13652
+</code></pre><p>由于键<code>key:test:2</code>对应槽是9252，不属于6379节点，则回复<code>MOVED</code>重定向信息：</p>
+<pre><code>127.0.0.1:6379&gt; set key:test:2 value-2
+(error) MOVED 9252 127.0.0.1:6380
+127.0.0.1:6379&gt; cluster keyslot key:test:2
+(integer) 9252
+</code></pre><p>重定向信息包含了键所对应的槽以及负责该槽的节点地址，根据这些信息客户端就可以向正确的节点发起请求。在6380节点上成功执行之前的命令：</p>
+<pre><code>127.0.0.1:6380&gt; set key:test:2 value-2
+OK
+</code></pre><p>其中键内部使用大括号包含的内容又叫做<code>hash_tag</code>，它提供不同的键可以具备相同slot的功能，常用于Redis IO优化:</p>
+<pre><code>127.0.0.1:6380&gt; cluster keyslot key:test:111
+(integer) 10050
+127.0.0.1:6380&gt; cluster keyslot key:{test}:111
+(integer) 6918
+127.0.0.1:6380&gt; cluster keyslot key:{test}:222
+(integer) 6918
+</code></pre><p>在集群模式下使用<code>mget</code>等命令优化批量调用时，键列表必须具有相同的slot，否则会报错。这时可以利用<code>hash_tag</code>让不同的键具有相同的slot达到优化的目的。</p>
+<h5 id="Smart客户端"><a href="#Smart客户端" class="headerlink" title="Smart客户端"></a>Smart客户端</h5><p>每次执行键命令前都要到Redis上进行重定向才能找到要执行命令的节点，额外增加了IO开销。正因为如此通常集群客户端都采用另一种实现：Smart（智能）客户端。</p>
+<p>大多数开发语言的Redis客户端都采用Smart客户端支持集群协议，Smart客户端通过在内部维护<code>slot→node</code>的映射关系，本地就可实现键到节点的查找，从而保证IO效率的最大化，而<code>MOVED</code>重定向负责协助Smart客户端更新<code>slot→node</code>映射。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/06/27/kafka_03/" rel="next" title="Kafka Producer和Consumer客户端">
+                <i class="fa fa-chevron-left"></i> Kafka Producer和Consumer客户端
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/06/29/redis_07/" rel="prev" title="Redis内存管理">
+                Redis内存管理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">37</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#数据分布"><span class="nav-number">1.</span> <span class="nav-text">数据分布</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#节点取余分区"><span class="nav-number">1.1.</span> <span class="nav-text">节点取余分区</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#一致性哈希分区"><span class="nav-number">1.2.</span> <span class="nav-text">一致性哈希分区</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#虚拟槽分区"><span class="nav-number">1.3.</span> <span class="nav-text">虚拟槽分区</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Redis数据分区"><span class="nav-number">2.</span> <span class="nav-text">Redis数据分区</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#集群功能限制"><span class="nav-number">3.</span> <span class="nav-text">集群功能限制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#搭建集群"><span class="nav-number">4.</span> <span class="nav-text">搭建集群</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#准备节点"><span class="nav-number">4.1.</span> <span class="nav-text">准备节点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#节点握手"><span class="nav-number">4.2.</span> <span class="nav-text">节点握手</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#分配槽"><span class="nav-number">4.3.</span> <span class="nav-text">分配槽</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用redis-trib-rb搭建集群"><span class="nav-number">5.</span> <span class="nav-text">使用redis-trib.rb搭建集群</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#安装Ruby环境"><span class="nav-number">5.1.</span> <span class="nav-text">安装Ruby环境</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#准备节点-1"><span class="nav-number">5.2.</span> <span class="nav-text">准备节点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#创建集群"><span class="nav-number">5.3.</span> <span class="nav-text">创建集群</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#集群完整性检查"><span class="nav-number">5.4.</span> <span class="nav-text">集群完整性检查</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#扩容集群"><span class="nav-number">6.</span> <span class="nav-text">扩容集群</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#准备新节点"><span class="nav-number">6.1.</span> <span class="nav-text">准备新节点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#加入集群"><span class="nav-number">6.2.</span> <span class="nav-text">加入集群</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#迁移槽和数据"><span class="nav-number">6.3.</span> <span class="nav-text">迁移槽和数据</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#添加从节点"><span class="nav-number">6.4.</span> <span class="nav-text">添加从节点</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#收缩集群"><span class="nav-number">7.</span> <span class="nav-text">收缩集群</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#迁移槽和数据-1"><span class="nav-number">7.1.</span> <span class="nav-text">迁移槽和数据</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#下线节点"><span class="nav-number">7.2.</span> <span class="nav-text">下线节点</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#故障转移"><span class="nav-number">8.</span> <span class="nav-text">故障转移</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#故障发现"><span class="nav-number">8.1.</span> <span class="nav-text">故障发现</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#故障恢复"><span class="nav-number">8.2.</span> <span class="nav-text">故障恢复</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#故障转移演练"><span class="nav-number">8.3.</span> <span class="nav-text">故障转移演练</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#请求重定向"><span class="nav-number">9.</span> <span class="nav-text">请求重定向</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Smart客户端"><span class="nav-number">9.1.</span> <span class="nav-text">Smart客户端</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
