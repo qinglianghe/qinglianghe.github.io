@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="RPC (Remote Procedure Call)即远程过程调用，是分布式系统常见的一种通信方法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RPC服务器单线程同步模型">
+<meta property="og:url" content="http://yoursite.com/2018/07/12/rpc_01/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="RPC (Remote Procedure Call)即远程过程调用，是分布式系统常见的一种通信方法。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-07-23T23:51:14.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RPC服务器单线程同步模型">
+<meta name="twitter:description" content="RPC (Remote Procedure Call)即远程过程调用，是分布式系统常见的一种通信方法。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/07/12/rpc_01/"/>
+
+
+
+
+
+  <title>RPC服务器单线程同步模型 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/12/rpc_01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">RPC服务器单线程同步模型</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-12T00:00:00+08:00">
+                2018-07-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>RPC (Remote Procedure Call)即远程过程调用，是分布式系统常见的一种通信方法。</p>
+<a id="more"></a>
+<h4 id="RPC的作用"><a href="#RPC的作用" class="headerlink" title="RPC的作用"></a>RPC的作用</h4><blockquote>
+<p>随着企业 IT 服务的不断发展，单台服务器逐渐无法承受用户日益增长的请求压力时，就需要多台服务器联合起来构成服务集群共同对外提供服务。同时业务服务会随着产品需求的增多越来越肿，架构上必须进行服务拆分，一个完整的大型服务会被打散成很多很多独立的小服务，每个小服务会由独立的进程去管理来对外提供服务，这就是微服务。</p>
+</blockquote>
+<p>当用户的请求到来时，需要将用户的请求分散到多个服务去各自处理，然后又需要将这些子服务的结果汇总起来呈现给用户。那么服务之间该使用何种方式进行交互就是需要解决的核心问题。RPC就是为解决服务之间信息交互而发明和存在的。</p>
+<h4 id="什么是RPC"><a href="#什么是RPC" class="headerlink" title="什么是RPC ?"></a>什么是RPC ?</h4><p>简单的来说：当有两台不同服务器A和B，当服务器A需要调用服务器B中的某个函数时，服务器A需要把调用服务器B的函数名和参数封装成一个消息，然后发送给服务器B。当服务器B收到请求后，根据消息中的函数名和参数调用相应的函数，然后把结果返回给服务器A。</p>
+<h4 id="HTTP与RPC"><a href="#HTTP与RPC" class="headerlink" title="HTTP与RPC"></a>HTTP与RPC</h4><blockquote>
+<p>HTTP 与 RPC 的关系就好比普通话与方言的关系。要进行跨企业服务调用时，往往都是通过 HTTP API，也就是普通话，虽然效率不高，但是通用，没有太多沟通的学习成本。但是在企业内部还是 RPC 更加高效，同一个企业公用一套方言进行高效率的交流，要比通用的 HTTP 协议来交流更加节省资源。整个中国有非常多的方言，正如有很多的企业内部服务各有自己的一套交互协议一样。虽然国家一直在提倡使用普通话交流，但是这么多年过去了，你回一趟家乡探个亲什么的就会发现身边的人还是流行说方言。</p>
+</blockquote>
+<h4 id="流行的RPC框架"><a href="#流行的RPC框架" class="headerlink" title="流行的RPC框架"></a>流行的RPC框架</h4><ol>
+<li><p>gRPC是Google最近公布的开源软件，基于最新的HTTP2.0协议，并支持常见的众多编程语言。</p>
+</li>
+<li><p>Thrift是Facebook的一个开源项目，主要是一个跨语言的服务开发框架。</p>
+</li>
+<li><p>Dubbo是阿里集团开源的一个极为出名的RPC框架，在很多互联网公司和企业应用中广泛使用。</p>
+</li>
+</ol>
+<h4 id="RPC服务器单线程同步模型的实现"><a href="#RPC服务器单线程同步模型的实现" class="headerlink" title="RPC服务器单线程同步模型的实现"></a>RPC服务器单线程同步模型的实现</h4><p>下面使用python实现一个简单的<code>rpc</code>通信，客户端通过调用服务器的<code>fib</code>函数，进行计算斐波那契级数，计算完后把结果返回给客户端。</p>
+<h5 id="客户端实现"><a href="#客户端实现" class="headerlink" title="客户端实现"></a>客户端实现</h5><p>代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">    rpc customer</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"></span><br><span class="line">__author__ = <span class="string">'heqingliang'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> struct</span><br><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">rpc</span><span class="params">(sock, in_, params)</span>:</span></span><br><span class="line">    request = json.dumps(&#123;<span class="string">'in'</span>: in_, <span class="string">'params'</span>: params&#125;)  <span class="comment"># 请求的消息体</span></span><br><span class="line">    length_prefix = struct.pack(<span class="string">'I'</span>, len(request))  <span class="comment"># 请求的消息长度</span></span><br><span class="line">    sock.send(length_prefix)</span><br><span class="line">    sock.sendall(request.encode(<span class="string">'utf-8'</span>))</span><br><span class="line"></span><br><span class="line">    length_prefix = sock.recv(<span class="number">4</span>)  <span class="comment"># 响应的长度</span></span><br><span class="line">    length, = struct.unpack(<span class="string">'I'</span>, length_prefix)</span><br><span class="line">    body = sock.recv(length)  <span class="comment"># 响应的消息体</span></span><br><span class="line">    response = json.loads(body.decode(<span class="string">'utf-8'</span>))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> response[<span class="string">'out'</span>], response[<span class="string">'result'</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">    s.connect((<span class="string">'localhost'</span>, <span class="number">9987</span>))</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, <span class="number">11</span>):</span><br><span class="line">        out, result = rpc(s, <span class="string">'fib'</span>, i)</span><br><span class="line">        print(out, result)</span><br><span class="line">    s.close()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+<p>客户端使用长度前缀法来确定消息边界，通过Python内置的<code>struct</code>包将消息体的长度整数转成4个字节的长度前缀字符串。消息体使用<code>json</code>序列化。</p>
+<p>每个消息都有相应的名称，请求的名称使用<code>in</code>字段表示，请求的参数使用<code>params</code>字段表示，响应的名称是<code>out</code>字段表示，响应的结果用<code>result</code>字段表示：</p>
+<pre><code>// 输入
+{
+    in: &quot;fib&quot;,
+    params: 1
+}
+
+// 输出
+{
+    out: &quot;result&quot;,
+    result: 1
+}
+</code></pre><h5 id="服务端实现"><a href="#服务端实现" class="headerlink" title="服务端实现"></a>服务端实现</h5><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">    rpc server</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"></span><br><span class="line">__author__ = <span class="string">'heqingliang'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> struct</span><br><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">fib</span><span class="params">(conn, params)</span>:</span></span><br><span class="line">    a, b = <span class="number">0</span>, <span class="number">1</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(params):</span><br><span class="line">        a, b = b, a + b</span><br><span class="line">    send_result(conn, <span class="string">'result'</span>, a)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">send_result</span><span class="params">(conn, out, result)</span>:</span></span><br><span class="line">    response = json.dumps(&#123;<span class="string">'out'</span>: out, <span class="string">'result'</span>: result&#125;)  <span class="comment"># 响应的消息体</span></span><br><span class="line">    length_prefix = struct.pack(<span class="string">'I'</span>, len(response))   <span class="comment"># 响应的长度</span></span><br><span class="line">    conn.send(length_prefix)</span><br><span class="line">    conn.sendall(response.encode(<span class="string">'utf-8'</span>))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">handle_conn</span><span class="params">(conn, addr, handlers)</span>:</span></span><br><span class="line">    print(addr, <span class="string">'comes'</span>)</span><br><span class="line">    <span class="keyword">while</span> <span class="keyword">True</span>:</span><br><span class="line">        length_prefix = conn.recv(<span class="number">4</span>)  <span class="comment"># 连接关闭了</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> length_prefix:</span><br><span class="line">            conn.close()</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">        length, = struct.unpack(<span class="string">'I'</span>, length_prefix)</span><br><span class="line">        body = conn.recv(length)  <span class="comment"># 请求消息体</span></span><br><span class="line">        request = json.loads(body.decode(<span class="string">'utf-8'</span>))</span><br><span class="line">        in_ = request[<span class="string">'in'</span>]</span><br><span class="line">        params = request[<span class="string">'params'</span>]</span><br><span class="line">        print(in_, params)</span><br><span class="line">        handler = handlers[in_]</span><br><span class="line">        handler(conn, params)   <span class="comment"># 处理请求</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">loop</span><span class="params">(sock, handlers)</span>:</span></span><br><span class="line">    <span class="keyword">while</span> <span class="keyword">True</span>:</span><br><span class="line">        conn, addr = sock.accept()</span><br><span class="line">        handle_conn(conn, addr, handlers)  <span class="comment"># 处理连接</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, <span class="number">1</span>)</span><br><span class="line">    sock.bind((<span class="string">'localhost'</span>, <span class="number">9987</span>))</span><br><span class="line">    sock.listen(<span class="number">256</span>)</span><br><span class="line"></span><br><span class="line">    handlers = &#123;  <span class="comment"># 注册请求处理器</span></span><br><span class="line">        <span class="string">'fib'</span>: fib</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    loop(sock, handlers)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+<p>服务器根据RPC请求的<code>in</code>字段来查找相应的<code>RPC Handler</code>进行处理。如果想支持多种消息，可以在代码中增加更多的处理器函数，并将处理器函数注册到全局的<code>handlers</code>字典中。</p>
+<h5 id="运行效果"><a href="#运行效果" class="headerlink" title="运行效果"></a>运行效果</h5><p><strong>服务器运行效果：</strong></p>
+<pre><code>(&apos;127.0.0.1&apos;, 50310) comes
+fib 1
+fib 2
+fib 3
+fib 4
+fib 5
+fib 6
+fib 7
+fib 8
+fib 9
+fib 10
+</code></pre><p><strong>客户端运行效果：</strong></p>
+<pre><code>result 1
+result 1
+result 2
+result 3
+result 5
+result 8
+result 13
+result 21
+result 34
+result 55
+</code></pre>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/07/01/mysql_lock/" rel="next" title="MySQL悲观锁与乐观锁">
+                <i class="fa fa-chevron-left"></i> MySQL悲观锁与乐观锁
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/07/13/rpc_02/" rel="prev" title="RPC服务器多线程、多进程同步模型">
+                RPC服务器多线程、多进程同步模型 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">43</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#RPC的作用"><span class="nav-number">1.</span> <span class="nav-text">RPC的作用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#什么是RPC"><span class="nav-number">2.</span> <span class="nav-text">什么是RPC ?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HTTP与RPC"><span class="nav-number">3.</span> <span class="nav-text">HTTP与RPC</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#流行的RPC框架"><span class="nav-number">4.</span> <span class="nav-text">流行的RPC框架</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RPC服务器单线程同步模型的实现"><span class="nav-number">5.</span> <span class="nav-text">RPC服务器单线程同步模型的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#客户端实现"><span class="nav-number">5.1.</span> <span class="nav-text">客户端实现</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#服务端实现"><span class="nav-number">5.2.</span> <span class="nav-text">服务端实现</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#运行效果"><span class="nav-number">5.3.</span> <span class="nav-text">运行效果</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

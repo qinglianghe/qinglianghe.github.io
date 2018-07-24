@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前面几节讲的都是单机RPC服务的模式，无论是多线程也好多进程也好，它们都只能算是单点的设计。如果节点故障，则不能再提供服务。如果要使得服务可以容忍个别节点故障仍能继续对外提供服务，则要实现分布式。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式RPC的实现">
+<meta property="og:url" content="http://yoursite.com/2018/07/16/rpc_05/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="前面几节讲的都是单机RPC服务的模式，无论是多线程也好多进程也好，它们都只能算是单点的设计。如果节点故障，则不能再提供服务。如果要使得服务可以容忍个别节点故障仍能继续对外提供服务，则要实现分布式。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-07-23T23:51:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="分布式RPC的实现">
+<meta name="twitter:description" content="前面几节讲的都是单机RPC服务的模式，无论是多线程也好多进程也好，它们都只能算是单点的设计。如果节点故障，则不能再提供服务。如果要使得服务可以容忍个别节点故障仍能继续对外提供服务，则要实现分布式。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/07/16/rpc_05/"/>
+
+
+
+
+
+  <title>分布式RPC的实现 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/16/rpc_05/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">分布式RPC的实现</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-16T00:00:00+08:00">
+                2018-07-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>前面几节讲的都是单机RPC服务的模式，无论是多线程也好多进程也好，它们都只能算是单点的设计。如果节点故障，则不能再提供服务。如果要使得服务可以容忍个别节点故障仍能继续对外提供服务，则要实现分布式。</p>
+<a id="more"></a>
+<h4 id="服务发现"><a href="#服务发现" class="headerlink" title="服务发现"></a>服务发现</h4><p>通过服务发现技术，当RPC服务节点增加或减少时，客户端可以动态快速收到服务列表的变更信息，从而可以实时调整连接配置，这样无需重启就可以完成服务的扩容和缩容。</p>
+<p>服务发现技术依赖于服务之间的特殊中间节点。这个节点的作用就是接受服务的注册，提供服务的查找，以及服务列表变更的实时通知功能。这可以通过<a href="https://qinglianghe.github.io/2018/06/19/zookeeper_01/" target="_blank" rel="noopener">Zookeeper</a>来实现。</p>
+<ul>
+<li>服务注册——服务节点在启动时将自己的服务地址注册到中间节点</li>
+<li>服务查找——客户端启动时去中间节点查询服务地址列表</li>
+<li>服务变更通知——客户端在中间节点上订阅依赖服务列表的变更事件。当依赖的服务列表变更时，中间节点负责将变更信息实时通知给客户端。</li>
+</ul>
+<h4 id="服务端的实现"><a href="#服务端的实现" class="headerlink" title="服务端的实现"></a>服务端的实现</h4><p>代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">    分布式 rpc</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"></span><br><span class="line">__author__ = <span class="string">'heqingliang'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> struct</span><br><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"><span class="keyword">import</span> asyncore</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">from</span> io <span class="keyword">import</span> BytesIO</span><br><span class="line"><span class="keyword">from</span> kazoo.client <span class="keyword">import</span> KazooClient</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RPCHandler</span><span class="params">(asyncore.dispatcher_with_send)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, sock, addr)</span>:</span></span><br><span class="line">        super(RPCHandler, self).__init__(sock=sock)</span><br><span class="line">        self.addr = addr</span><br><span class="line">        self.handlers = &#123;  <span class="comment"># 注册请求处理器</span></span><br><span class="line">            <span class="string">'fib'</span>: self.fib</span><br><span class="line">        &#125;</span><br><span class="line">        self.rbuf = BytesIO()  <span class="comment"># 读缓冲区</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">handle_close</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="string">"""</span></span><br><span class="line"><span class="string">            连接关闭之前的回调方法</span></span><br><span class="line"><span class="string">        """</span></span><br><span class="line">        print(self.addr, <span class="string">'bye'</span>)</span><br><span class="line">        self.close()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">handle_read</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="string">"""</span></span><br><span class="line"><span class="string">            有读事件时的回调方法</span></span><br><span class="line"><span class="string">        """</span></span><br><span class="line">        <span class="keyword">while</span> <span class="keyword">True</span>:</span><br><span class="line">            content = self.recv(<span class="number">1024</span>)</span><br><span class="line">            <span class="keyword">if</span> content:</span><br><span class="line">                self.rbuf.write(content)</span><br><span class="line">            <span class="keyword">if</span> len(content) &lt; <span class="number">1024</span>:</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">        self.handle_rpc()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">handle_rpc</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="string">"""</span></span><br><span class="line"><span class="string">            将读到的消息解包并处理</span></span><br><span class="line"><span class="string">        """</span></span><br><span class="line">        <span class="keyword">while</span> <span class="keyword">True</span>:</span><br><span class="line">            self.rbuf.seek(<span class="number">0</span>)</span><br><span class="line">            length_prefix = self.rbuf.read(<span class="number">4</span>)</span><br><span class="line">            <span class="keyword">if</span> len(length_prefix) &lt; <span class="number">4</span>:  <span class="comment"># 不足一个消息</span></span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">            length, = struct.unpack(<span class="string">'I'</span>, length_prefix)</span><br><span class="line">            body = self.rbuf.read(length)</span><br><span class="line">            <span class="keyword">if</span> len(body) &lt; length:  <span class="comment"># 不足一个消息</span></span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">            request = json.loads(body.decode(<span class="string">'utf-8'</span>))</span><br><span class="line">            in_ = request[<span class="string">'in'</span>]</span><br><span class="line">            params = request[<span class="string">'params'</span>]</span><br><span class="line">            print(in_, params)</span><br><span class="line">            handler = self.handlers[in_]</span><br><span class="line">            handler(params)  <span class="comment"># 处理请求</span></span><br><span class="line"></span><br><span class="line">            left = self.rbuf.getvalue()[length + <span class="number">4</span>:]  <span class="comment"># 消息处理完了，截断缓冲区</span></span><br><span class="line">            self.rbuf = BytesIO()</span><br><span class="line">            self.rbuf.write(left)</span><br><span class="line">        self.rbuf.seek(<span class="number">0</span>, <span class="number">2</span>)  <span class="comment"># 将游标挪到文件结尾，读到的数据内容继续添加到缓冲区末尾</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">fib</span><span class="params">(self, params)</span>:</span></span><br><span class="line">        a, b = <span class="number">0</span>, <span class="number">1</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> range(params):</span><br><span class="line">            a, b = b, a + b</span><br><span class="line">        self.send_result(<span class="string">'result'</span>, a)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">send_result</span><span class="params">(self, out, result)</span>:</span></span><br><span class="line">        response = json.dumps(&#123;<span class="string">'out'</span>: out, <span class="string">'result'</span>: result&#125;)  <span class="comment"># 响应的消息体</span></span><br><span class="line">        length_prefix = struct.pack(<span class="string">'I'</span>, len(response))  <span class="comment"># 响应的长度</span></span><br><span class="line">        self.send(length_prefix)</span><br><span class="line">        self.send(response.encode(<span class="string">'utf-8'</span>))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RPCServer</span><span class="params">(asyncore.dispatcher)</span>:</span></span><br><span class="line"></span><br><span class="line">    zk_root = <span class="string">'/demo'</span></span><br><span class="line">    zk_rpc = zk_root + <span class="string">'/rpc'</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, host, port)</span>:</span></span><br><span class="line">        super(RPCServer, self).__init__()</span><br><span class="line">        self.host = host</span><br><span class="line">        self.port = port</span><br><span class="line">        self.create_socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">        self.set_reuse_addr()</span><br><span class="line">        self.bind((host, port))</span><br><span class="line">        self.listen(<span class="number">256</span>)</span><br><span class="line">        self.register_zk()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">register_zk</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="string">"""</span></span><br><span class="line"><span class="string">            注册zookeeper服务</span></span><br><span class="line"><span class="string">        """</span></span><br><span class="line">        self.zk = KazooClient(hosts=<span class="string">'127.0.0.1:2181'</span>)</span><br><span class="line">        self.zk.start()</span><br><span class="line">        self.zk.ensure_path(self.zk_root)  <span class="comment"># 创建根节点</span></span><br><span class="line">        value = json.dumps(&#123;<span class="string">'host'</span>: self.host, <span class="string">'port'</span>: self.port&#125;)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 创建子节点</span></span><br><span class="line">        self.zk.create(self.zk_rpc, value.encode(<span class="string">'utf-8'</span>), ephemeral=<span class="keyword">True</span>, sequence=<span class="keyword">True</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">handle_accept</span><span class="params">(self)</span>:</span></span><br><span class="line">        pair = self.accept()</span><br><span class="line">        <span class="keyword">if</span> pair <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</span><br><span class="line">            sock, addr = pair</span><br><span class="line">            print(addr, <span class="string">'comes'</span>)</span><br><span class="line">            RPCHandler(sock, addr)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">    host = sys.argv[<span class="number">1</span>]</span><br><span class="line">    port = int(sys.argv[<span class="number">2</span>])</span><br><span class="line">    RPCServer(host, port)</span><br><span class="line">    asyncore.loop()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+<p>服务端使用的异步IO模型，只是多了一个<code>Zookeeper</code>服务的注册过程。<code>register_zk</code>创建一个根节点<code>/demo</code>，每个rpc服务都会在根节点下创建一个临时顺序节点，节点中的数据为：本机的ip和端口。当有某个rpc服务出现故障时，则对应的临时顺序节点也会被删除。</p>
+<h4 id="客户端的实现"><a href="#客户端的实现" class="headerlink" title="客户端的实现"></a>客户端的实现</h4><p>代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">    rpc customer</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"></span><br><span class="line">__author__ = <span class="string">'heqingliang'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> struct</span><br><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">from</span> kazoo.client <span class="keyword">import</span> KazooClient</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">__zk_root = <span class="string">'/demo'</span></span><br><span class="line"></span><br><span class="line">__remote_servers = &#123;<span class="string">'servers'</span>: <span class="keyword">None</span>&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RemoteServer</span><span class="params">(object)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, addr)</span>:</span></span><br><span class="line">        self.addr = addr</span><br><span class="line">        self._socket = <span class="keyword">None</span></span><br><span class="line"></span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">socket</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> self._socket:</span><br><span class="line">            self.connect()</span><br><span class="line">        <span class="keyword">return</span> self._socket</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">connect</span><span class="params">(self)</span>:</span></span><br><span class="line">        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">        host, port = self.addr.split(<span class="string">':'</span>)</span><br><span class="line">        sock.connect((host, int(port)))</span><br><span class="line">        self._socket = sock</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">close</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">if</span> self._socket:</span><br><span class="line">            self._socket.close()</span><br><span class="line">            self._socket = <span class="keyword">None</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">fib</span><span class="params">(self, n)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> self.rpc(<span class="string">'fib'</span>, n)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">rpc</span><span class="params">(self, in_, params)</span>:</span></span><br><span class="line">        sock = self.socket</span><br><span class="line">        request = json.dumps(&#123;<span class="string">'in'</span>: in_, <span class="string">'params'</span>: params&#125;)  <span class="comment"># 请求的消息体</span></span><br><span class="line">        length_prefix = struct.pack(<span class="string">'I'</span>, len(request))  <span class="comment"># 请求的消息长度</span></span><br><span class="line">        sock.send(length_prefix)</span><br><span class="line">        sock.sendall(request.encode(<span class="string">'utf-8'</span>))</span><br><span class="line"></span><br><span class="line">        length_prefix = sock.recv(<span class="number">4</span>)  <span class="comment"># 响应的长度</span></span><br><span class="line">        length, = struct.unpack(<span class="string">'I'</span>, length_prefix)</span><br><span class="line">        body = sock.recv(length)  <span class="comment"># 响应的消息体</span></span><br><span class="line">        response = json.loads(body.decode(<span class="string">'utf-8'</span>))</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> response[<span class="string">'out'</span>], response[<span class="string">'result'</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_servers</span><span class="params">()</span>:</span></span><br><span class="line">    zk = KazooClient(hosts=<span class="string">'127.0.0.1:2181'</span>)</span><br><span class="line">    zk.start()</span><br><span class="line">    current_addrs = set()  <span class="comment"># 当前活跃地址列表</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">watch_servers</span><span class="params">(*args)</span>:</span></span><br><span class="line">        <span class="string">"""</span></span><br><span class="line"><span class="string">            zookeeper的'/demo'节点发生变化时的回调函数</span></span><br><span class="line"><span class="string">        """</span></span><br><span class="line">        new_addrs = set()</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 获取节点列表</span></span><br><span class="line">        <span class="keyword">for</span> child <span class="keyword">in</span> zk.get_children(__zk_root, watch=watch_servers):</span><br><span class="line">            node = zk.get(__zk_root + <span class="string">'/'</span> + child)</span><br><span class="line">            addr = json.loads(node[<span class="number">0</span>].decode(<span class="string">'utf-8'</span>))</span><br><span class="line">            new_addrs.add(<span class="string">'%s:%d'</span> % (addr[<span class="string">'host'</span>], addr[<span class="string">'port'</span>]))</span><br><span class="line"></span><br><span class="line">            print(<span class="string">'current_addrs: %s'</span>, current_addrs)</span><br><span class="line">            print(<span class="string">'new_addrs: %s'</span>, new_addrs)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 新添加的server地址</span></span><br><span class="line">        add_addrs = new_addrs - current_addrs</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 删除的server地址</span></span><br><span class="line">        del_addrs = current_addrs - new_addrs</span><br><span class="line">        del_servers = []</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 先找出所有的待删除server对象</span></span><br><span class="line">        <span class="keyword">for</span> addr <span class="keyword">in</span> del_addrs:</span><br><span class="line">            <span class="keyword">for</span> s <span class="keyword">in</span> __remote_servers[<span class="string">'servers'</span>]:</span><br><span class="line">                <span class="keyword">if</span> s.addr == addr:</span><br><span class="line">                    del_servers.append(s)</span><br><span class="line">                    <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 依次删除每个server</span></span><br><span class="line">        <span class="keyword">for</span> server <span class="keyword">in</span> del_servers:</span><br><span class="line">            __remote_servers[<span class="string">'servers'</span>].remove(server)</span><br><span class="line">            current_addrs.remove(server.addr)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 新增server</span></span><br><span class="line">        <span class="keyword">for</span> addr <span class="keyword">in</span> add_addrs:</span><br><span class="line">            __remote_servers[<span class="string">'servers'</span>].append(RemoteServer(addr))</span><br><span class="line">            current_addrs.add(addr)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 获取节点列表并监听服务列表变更</span></span><br><span class="line">    <span class="keyword">for</span> child <span class="keyword">in</span> zk.get_children(__zk_root, watch=watch_servers):</span><br><span class="line">        node = zk.get(__zk_root + <span class="string">'/'</span> + child)</span><br><span class="line">        addr = json.loads(node[<span class="number">0</span>].decode(<span class="string">'utf-8'</span>))</span><br><span class="line">        current_addrs.add(<span class="string">'%s:%d'</span> % (addr[<span class="string">'host'</span>], addr[<span class="string">'port'</span>]))</span><br><span class="line">    __remote_servers[<span class="string">'servers'</span>] = [RemoteServer(s) <span class="keyword">for</span> s <span class="keyword">in</span> current_addrs]</span><br><span class="line">    <span class="keyword">return</span> __remote_servers[<span class="string">'servers'</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">random_server</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">        随机获取一个服务节点</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    <span class="keyword">if</span> __remote_servers[<span class="string">'servers'</span>] <span class="keyword">is</span> <span class="keyword">None</span>:</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> get_servers():  <span class="comment"># 初始化服务列表</span></span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">    <span class="keyword">return</span> random.choice(__remote_servers[<span class="string">'servers'</span>])</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, <span class="number">1000</span>):</span><br><span class="line">        server = random_server()</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> server:</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            out, result = server.fib(i)</span><br><span class="line">            print(server.addr, out, result)</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            server.close()  <span class="comment"># 遇到错误，关闭连接</span></span><br><span class="line">            print(e)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+<p>客户端在启动时，通过<code>get_servers</code>获得Zookeeper根节点<code>/demo</code>的所有节点，得到的是一个服务列表，有多个IP端口对。并在<code>/demo</code>节点设置了监听器<code>watch_servers</code>，当有节点被添加和删除时，此监听器会被调用，用于维护<code>__remote_servers</code>的服务列表。客户端调用<code>random_server</code>函数随机地从<code>__remote_servers</code>的服务列表地挑选任意的RPC服务节点进行连接。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/07/15/rpc_04/" rel="next" title="RPC服务器异步模型、进程池异步模型">
+                <i class="fa fa-chevron-left"></i> RPC服务器异步模型、进程池异步模型
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">43</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#服务发现"><span class="nav-number">1.</span> <span class="nav-text">服务发现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#服务端的实现"><span class="nav-number">2.</span> <span class="nav-text">服务端的实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#客户端的实现"><span class="nav-number">3.</span> <span class="nav-text">客户端的实现</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
