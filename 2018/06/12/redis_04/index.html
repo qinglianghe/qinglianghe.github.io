@@ -88,7 +88,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/images/redis/bgsave.png">
 <meta property="og:image" content="http://yoursite.com/images/redis/bgrewriteaof.png">
-<meta property="og:updated_time" content="2018-06-28T00:01:20.000Z">
+<meta property="og:updated_time" content="2018-07-26T01:01:48.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis持久化">
 <meta name="twitter:description" content="Redis支持RDB和AOF两种持久化机制，持久化功能有效地避免因进程退出造成的数据丢失问题，当下次重启时利用之前持久化的文件即可实现数据恢复。">
@@ -345,7 +345,7 @@ save 60 10000
 </li>
 </ol>
 <h4 id="RDB文件的处理"><a href="#RDB文件的处理" class="headerlink" title="RDB文件的处理"></a>RDB文件的处理</h4><p><strong>保存：</strong> RDB文件保存在dir配置指定的目录下，文件名通过dbfilename配置指定。可以通过执行<code>config set dir{newDir}</code>和<code>config set
-dbfilename{newFileName}</code>运行期动态执行，当下次运行时RDB文件会保存到<br>新目录。</p>
+dbfilename{newFileName}</code>运行期动态执行，当下次运行时RDB文件会保存到新目录。</p>
 <p><strong>压缩：</strong> Redis默认采用<code>LZF</code>算法对生成的RDB文件做压缩处理，压缩后的文件远远小于内存大小，默认开启，可以通过参数<code>config set rdbcompression{yes|no}</code>动态修改。</p>
 <p><strong>校验：</strong> 如果Redis加载损坏的RDB文件时拒绝启动，这时可以使用Redis提供的<code>redis-check-dump</code>工具检测RDB文件并获取对应的错误报告。</p>
 <h4 id="RDB的优缺点"><a href="#RDB的优缺点" class="headerlink" title="RDB的优缺点"></a>RDB的优缺点</h4><p><strong>RDB的优点：</strong></p>
@@ -426,7 +426,7 @@ dbfilename{newFileName}</code>运行期动态执行，当下次运行时RDB文�
 </li>
 <li><p>由于fork操作运用写时复制技术，子进程只能共享fork操作时的内存数据。由于父进程依然响应命令，Redis使用“AOF重写缓冲区”保存这部分新数据，防止新AOF文件生成期间丢失这部分数据。最后由父进程把AOF重写缓冲区的数据写入到新的AOF文件。</p>
 </li>
-<li><p>每次批量写入硬盘数据量由配置<code>aof-rewrite-incremental-fsync</code>控制，默认为<br>32MB，防止单次刷盘数据过多造成硬盘阻塞。</p>
+<li><p>每次批量写入硬盘数据量由配置<code>aof-rewrite-incremental-fsync</code>控制，默认为32MB，防止单次刷盘数据过多造成硬盘阻塞。</p>
 </li>
 </ol>
 <h5 id="重启加载"><a href="#重启加载" class="headerlink" title="重启加载"></a>重启加载</h5><p>当Redis服务器重启时，可以加载AOF文件进行数据恢复。</p>

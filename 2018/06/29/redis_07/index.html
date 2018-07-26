@@ -87,7 +87,7 @@
 <meta property="og:description" content="Redis所有的数据都存在内存中，因此如何高效利用Redis内存变得非常重要。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/images/redis/redis_memory.png">
-<meta property="og:updated_time" content="2018-07-11T17:46:42.000Z">
+<meta property="og:updated_time" content="2018-07-24T01:05:17.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis内存管理">
 <meta name="twitter:description" content="Redis所有的数据都存在内存中，因此如何高效利用Redis内存变得非常重要。">
@@ -384,7 +384,7 @@
 <li>删除到达过期时间的键对象。</li>
 <li>内存使用达到maxmemory上限时触发内存溢出控制策略。</li>
 </ul>
-<h5 id="删除过期键对象"><a href="#删除过期键对象" class="headerlink" title="删除过期键对象"></a>删除过期键对象</h5><p>Redis所有的键都可以设置过期属性，内部保存在过期字典中。，Redis采用惰性删除和定时任务删除机制实现过期键的内存回收。</p>
+<h5 id="删除过期键对象"><a href="#删除过期键对象" class="headerlink" title="删除过期键对象"></a>删除过期键对象</h5><p>Redis所有的键都可以设置过期属性，内部保存在过期字典中。Redis采用惰性删除和定时任务删除机制实现过期键的内存回收。</p>
 <h6 id="惰性删除"><a href="#惰性删除" class="headerlink" title="惰性删除"></a>惰性删除</h6><p>惰性删除用于当客户端读取带有超时属性的键时，如果已经超过键设置的过期时间，会执行删除操作并返回空。但是单独用这种方式存在内存泄露的问题，当过期键一直没有访问将无法得到及时删除，从而导致内存不能及时释放。</p>
 <h6 id="定时任务删除"><a href="#定时任务删除" class="headerlink" title="定时任务删除"></a>定时任务删除</h6><p>Redis内部维护一个定时任务，默认每秒运行10次（通过配置hz控制）。定时任务中删除过期键逻辑采用了自适应算法，根据键的过期比例、使用快慢两种速率模式回收键。</p>
 <ol>
@@ -406,7 +406,7 @@
 <h6 id="volatile-ttl"><a href="#volatile-ttl" class="headerlink" title="volatile-ttl"></a>volatile-ttl</h6><p>根据键值对象的<code>ttl</code>属性，删除最近将要过期数据。如果没有，回退到<code>noeviction</code>策略。</p>
 <p>内存溢出控制策略可以采用<code>config set maxmemory-policy {policy}</code>动态配置。</p>
 <p>可以通过执行<code>info stats</code>命令查看<code>evicted_keys</code>指标找出当前Redis服务器已剔除的键数量。</p>
-<p>当Redis一直工作在内存溢（used_memory &gt; maxmemory）的状<br>态下且设置非<code>noeviction</code>策略时，会频繁地触发回收内存的操作，影响Redis服务器的性能。</p>
+<p>当Redis一直工作在内存溢（used_memory &gt; maxmemory）的状态下且设置非<code>noeviction</code>策略时，会频繁地触发回收内存的操作，影响Redis服务器的性能。</p>
 
       
     </div>

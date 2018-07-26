@@ -86,7 +86,7 @@
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
 <meta property="og:description" content="Redis提供的5种数据结构已经足够强大，但除此之外，Redis还提供了诸如慢查询分析、功能强大的Redis Shell、Pipeline、事务与Lua脚本、Bitmaps、HyperLogLog、发布订阅、GEO等附加功能，这些功能可以在某些场景发挥重要的作用。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-06-25T01:16:50.000Z">
+<meta property="og:updated_time" content="2018-07-26T01:10:59.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis慢查询、Pipeline、事务与Lua、Bitmaps、发布订阅">
 <meta name="twitter:description" content="Redis提供的5种数据结构已经足够强大，但除此之外，Redis还提供了诸如慢查询分析、功能强大的Redis Shell、Pipeline、事务与Lua脚本、Bitmaps、HyperLogLog、发布订阅、GEO等附加功能，这些功能可以在某些场景发挥重要的作用。">
@@ -304,14 +304,14 @@
 <a id="more"></a>
 <h3 id="慢查询分析"><a href="#慢查询分析" class="headerlink" title="慢查询分析"></a>慢查询分析</h3><p>许多存储系统（例如<code>MySQL</code>）提供慢查询日志帮助开发和运维人员定位系统存在的慢操作。所谓慢查询日志就是系统在命令执行前后计算每条命令的执行时间，当超过预设阀值，就将这条命令的相关信息（例如：发生时间，耗时，命令的详细信息）记录下来，<code>Redis</code>也提供了类似的功能。</p>
 <p><code>Redis</code>客户端执行一条命令经历4个过程：发送命令、命令排队、命令执行、返回结果</p>
-<h4 id="慢查询的两个配置参数"><a href="#慢查询的两个配置参数" class="headerlink" title="慢查询的两个配置参数"></a>慢查询的两个配置参数</h4><p><code>slowlog-log-slower-than</code>： 它的单位是微秒，默认值是10000，假如执行了一条“很慢”的命令（例如keys*），如果它的执行时间超过了10000微秒，那么它将被记录在慢查询日志中。<code>slowlog-log-slower-than=0</code>会记录所有的命令，<code>slowlog-log-slowerthan&lt;0</code>对于任何命令都不会进行记录。</p>
+<h4 id="慢查询的两个配置参数"><a href="#慢查询的两个配置参数" class="headerlink" title="慢查询的两个配置参数"></a>慢查询的两个配置参数</h4><p><code>slowlog-log-slower-than</code>： 它的单位是微秒，默认值是10000，假如执行了一条“很慢”的命令（例如keys*），如果它的执行时间超过了10000微秒，那么它将被记录在慢查询日志中。<code>slowlog-log-slower-than=0</code>会记录所有的命令，<code>slowlog-log-slower-than&lt;0</code>对于任何命令都不会进行记录。</p>
 <p><code>slowlog-max-len</code>：<code>Redis</code>使用了一个列表来存储慢查询日志，<code>slowlog-max-len</code>就是列表的最大长度。一个新的命令满足慢查询条件时插入到这个列表中，当慢查询日志列表已处于其最大长度时，最早插入的一个命令将从列表中移出，例如<code>slowlog-max-len</code>设置为5，当有第6条慢查询插入的话，那么队头的第一条数据就出列，第6条慢查询就会入列。</p>
 <p>在<code>Redis</code>中有两种修改配置的方法:</p>
 <ul>
 <li>修改配置文件</li>
 <li>使用<code>config set</code>命令动态修改</li>
 </ul>
-<p>下面使用<code>config set</code>命令将<code>slowlog-log-slowerthan</code>设置为20000微秒，<code>slowlog-max-len</code>设置为1000，<code>config rewrite</code>将配置持久化到本地配置文件：</p>
+<p>下面使用<code>config set</code>命令将<code>slowlog-log-slower-than</code>设置为20000微秒，<code>slowlog-max-len</code>设置为1000，<code>config rewrite</code>将配置持久化到本地配置文件：</p>
 <pre><code>config set slowlog-log-slower-than 20000
 config set slowlog-max-len 1000
 config rewrite
@@ -434,7 +434,7 @@ QUEUED
 <p><strong>加载脚本：</strong> <code>script load</code>命令可以将脚本内容加载到<code>Redis</code>内存中，例如下面将<code>lua_get.lua</code>加载到<code>Redis</code>中，得到<code>SHA1</code>：</p>
 <pre><code>[heql@ubuntu ~]$ redis-cli script load &quot;$(cat lua_get.lua)&quot;
 &quot;7413dc2440db1fea7c0a0bde841fa68eefaf149c&quot;
-</code></pre><p><strong>执行脚本：</strong> <code>evalsha</code>的使用方法如下，参数使用<code>SHA1</code>值，执行逻辑和<br><code>eval</code>一致。</p>
+</code></pre><p><strong>执行脚本：</strong> <code>evalsha</code>的使用方法如下，参数使用<code>SHA1</code>值，执行逻辑和<code>eval</code>一致。</p>
 <p>evalsha 脚本SHA1值 key个数 key列表 参数列表</p>
 <pre><code>127.0.0.1:6379&gt; evalsha 7413dc2440db1fea7c0a0bde841fa68eefaf149c 1 redis world
 &quot;hello redisworld&quot;
@@ -461,7 +461,7 @@ OK
 <h6 id="script-kill"><a href="#script-kill" class="headerlink" title="script kill"></a>script kill</h6><p>此命令用于杀掉正在执行的<code>Lua</code>脚本。如果<code>Lua</code>脚本比较耗时，甚至<code>Lua</code>脚本存在问题，那么此时<code>Lua</code>脚本的执行会阻塞Redis，直到脚本执行完毕或者外部进行干预将其结束。</p>
 <p>执行<code>Lua</code>脚本，进入死循环，当前客户端会阻塞：</p>
 <pre><code>127.0.0.1:6379&gt; eval &apos;while 1==1 do end&apos; 0
-</code></pre><p><code>Redis</code>提供了一个<code>lua-time-limit</code>参数，默认是5秒，它是<code>Lua</code>脚本的“超时时间”，但这个超时时间仅仅是当<code>Lua</code>脚本时间超过<code>lua-time-limit</code>后，向其他命令调用发送<code>BUSY</code>的信号，但是并不会停止掉服务端和客户端的脚本执<br>行，所以当达到<code>lua-time-limit</code>值之后，其他客户端在执行正常的命令时，将<br>会收到<code>“Busy Redis is busy running a script”</code>错误，并且提示使用<code>script kill</code>或者<code>shutdown nosave</code>命令来杀掉这个busy的脚本：</p>
+</code></pre><p><code>Redis</code>提供了一个<code>lua-time-limit</code>参数，默认是5秒，它是<code>Lua</code>脚本的“超时时间”，但这个超时时间仅仅是当<code>Lua</code>脚本时间超过<code>lua-time-limit</code>后，向其他命令调用发送<code>BUSY</code>的信号，但是并不会停止掉服务端和客户端的脚本执行，所以当达到<code>lua-time-limit</code>值之后，其他客户端在执行正常的命令时，将会收到<code>“Busy Redis is busy running a script”</code>错误，并且提示使用<code>script kill</code>或者<code>shutdown nosave</code>命令来杀掉这个busy的脚本：</p>
 <pre><code>127.0.0.1:6379&gt; get hello
 (error) BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE.
 </code></pre><p>但是有一点需要注意，如果当前Lua脚本正在执行写操作，那么<code>script kill</code>将不会生效：</p>
@@ -470,7 +470,7 @@ OK
 <pre><code>127.0.0.1:6379&gt; script kill
 (error) UNKILLABLE Sorry the script already executed write commands against the dataset. You can either wait the script termination or kill the server in a hard way using the SHUTDOWN NOSAVE command.
 </code></pre><p>上面提示<code>Lua</code>脚本正在向<code>Redis</code>执行写命令，要么等待脚本执行结束要么使用<code>shutdown save</code>停掉<code>Redis</code>服务。</p>
-<h4 id="Bitmaps"><a href="#Bitmaps" class="headerlink" title="Bitmaps"></a>Bitmaps</h4><p><code>Redis</code>提供了<code>Bitmaps</code>这个可以实现对位的：</p>
+<h4 id="Bitmaps"><a href="#Bitmaps" class="headerlink" title="Bitmaps"></a>Bitmaps</h4><p><code>Redis</code>提供了<code>Bitmaps</code>这个可以实现对位的操作：</p>
 <ul>
 <li><code>Bitmaps</code>本身不是一种数据结构，实际上它就是字符串，但是它可以对字符串的位进行操作。</li>
 <li>在<code>Redis</code>中使用<code>Bitmaps</code>和使用字符串的方法不太相同。可以把<code>Bitmaps</code>想象成一个以位为单位的数组，数组的每个单元只能存储0和1，数组的下标在<code>Bitmaps</code>中叫做偏移量。</li>
@@ -558,7 +558,7 @@ Reading messages... (press Ctrl-C to quit)
 3) &quot;James lost the championship&quot;
 </code></pre><p>有关订阅命令有两点需要注意：</p>
 <ul>
-<li>客户端在执行订阅命令之后进入了订阅状态，只能接收<code>subscribe</code>、<br><code>psubscribe</code>、<code>unsubscribe</code>、<code>punsubscribe</code>的四个命令。</li>
+<li>客户端在执行订阅命令之后进入了订阅状态，只能接收<code>subscribe</code>、<code>psubscribe</code>、<code>unsubscribe</code>、<code>punsubscribe</code>的四个命令。</li>
 <li>新开启的订阅客户端，无法收到该频道之前的消息，因为<code>Redis</code>不会对发布的消息进行持久化。</li>
 </ul>
 <h6 id="取消订阅"><a href="#取消订阅" class="headerlink" title="取消订阅"></a>取消订阅</h6><p>客户端可以通过<code>unsubscribe</code>命令取消对指定频道的订阅，取消成功后，不会再收到该频道的发布消息：</p>
@@ -573,9 +573,7 @@ Reading messages... (press Ctrl-C to quit)
 1) &quot;psubscribe&quot;
 2) &quot;it*&quot;
 3) (integer) 1
-</code></pre><h6 id="查询订阅"><a href="#查询订阅" class="headerlink" title="查询订阅"></a>查询订阅</h6><ol>
-<li>查看活跃的频道</li>
-</ol>
+</code></pre><h6 id="查询订阅"><a href="#查询订阅" class="headerlink" title="查询订阅"></a>查询订阅</h6><p><strong>查看活跃的频道：</strong></p>
 <p>pubsub channels [pattern]</p>
 <p>所谓活跃的频道是指当前频道至少有一个订阅者，其中<code>[pattern]</code>是可以指定具体的模式：</p>
 <pre><code>127.0.0.1:6379&gt; pubsub channels
@@ -583,9 +581,7 @@ Reading messages... (press Ctrl-C to quit)
 127.0.0.1:6379&gt; 
 127.0.0.1:6379&gt; pubsub channels channel:*s
 1) &quot;channel:sports&quot;
-</code></pre><ol>
-<li>查看频道订阅数</li>
-</ol>
+</code></pre><p><strong>查看频道订阅数：</strong></p>
 <p>pubsub numsub [channel …]</p>
 <pre><code>127.0.0.1:6379&gt; pubsub numsub channel:sports
 1) &quot;channel:sports&quot;
