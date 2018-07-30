@@ -86,7 +86,7 @@
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
 <meta property="og:description" content="Redis Cluster是Redis的分布式解决方案，在3.0版本正式推出，有效地解决了Redis分布式方面的需求。当遇到单机内存、并发、流量等瓶颈时，可以采用Cluster架构方案达到负载均衡的目的。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-07-12T17:44:53.000Z">
+<meta property="og:updated_time" content="2018-07-30T01:28:40.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis集群">
 <meta name="twitter:description" content="Redis Cluster是Redis的分布式解决方案，在3.0版本正式推出，有效地解决了Redis分布式方面的需求。当遇到单机内存、并发、流量等瓶颈时，可以采用Cluster架构方案达到负载均衡的目的。">
@@ -315,7 +315,7 @@
 <li>当使用少量节点时，数据分布不均匀，节点变化将大范围影响哈希环中数据映射</li>
 </ul>
 <h5 id="虚拟槽分区"><a href="#虚拟槽分区" class="headerlink" title="虚拟槽分区"></a>虚拟槽分区</h5><p>虚拟槽分区巧妙地使用了哈希空间，使用分散度良好的哈希函数把所有数据映射到一个固定范围的整数集合中，整数定义为槽（slot）。这个范围一般远远大于节点数，比如Redis Cluster槽范围是0~16383。槽是集群内数据管理和迁移的基本单位。</p>
-<h4 id="Redis数据分区"><a href="#Redis数据分区" class="headerlink" title="Redis数据分区"></a>Redis数据分区</h4><p>Redis Cluser采用虚拟槽分区，所有的键根据哈希函数映射到0~16383整<br>数槽内，计算公式：<code>slot=CRC16（key）&amp;16383</code>。每一个节点负责维护一部<br>分槽以及槽所映射的键值数据。</p>
+<h4 id="Redis数据分区"><a href="#Redis数据分区" class="headerlink" title="Redis数据分区"></a>Redis数据分区</h4><p>Redis Cluser采用虚拟槽分区，所有的键根据哈希函数映射到0~16383整数槽内，计算公式：<code>slot=CRC16（key）&amp;16383</code>。每一个节点负责维护一部分槽以及槽所映射的键值数据。</p>
 <h4 id="集群功能限制"><a href="#集群功能限制" class="headerlink" title="集群功能限制"></a>集群功能限制</h4><p>Redis集群相对单机在功能上存在一些限制，限制如下：</p>
 <ol>
 <li><p>key批量操作支持有限。如<code>mset</code>、<code>mget</code>，目前只支持具有相同slot值的key执行批量操作。对于映射为不同slot值的key由于执行<code>mget</code>、<code>mget</code>等操作可能存在于多个节点上因此不被支持。</p>
@@ -446,7 +446,7 @@ sudo make install
 </code></pre><p>安装rubygem redis依赖：</p>
 <pre><code>wget http:// rubygems.org/downloads/redis-3.3.0.gem
 sudo gem install -l redis-3.3.0.gem
-</code></pre><p>在Redis源码编译后的目录，将生产的redis-trib.rb拷贝到可执行路径中：</p>
+</code></pre><p>在Redis源码编译后的目录，将生成的redis-trib.rb拷贝到可执行路径中：</p>
 <pre><code>sudo cp src/redis-trib.rb /usr/local/bin/
 </code></pre><h5 id="准备节点-1"><a href="#准备节点-1" class="headerlink" title="准备节点"></a>准备节点</h5><p>配置和之前的一样，启动所有节点：</p>
 <pre><code>[heql@ubuntu redis]$ redis-server conf/redis-6379.conf 
@@ -532,10 +532,8 @@ slots:5461-10922 (5462 slots) master
 &gt;&gt;&gt; Check for open slots...
 &gt;&gt;&gt; Check slots coverage...
 [OK] All 16384 slots covered.
-</code></pre><h4 id="扩容集群"><a href="#扩容集群" class="headerlink" title="扩容集群"></a>扩容集群</h4><h5 id="准备新节点"><a href="#准备新节点" class="headerlink" title="准备新节点"></a>准备新节点</h5><pre><code>[heql@ubuntu redis]$ redis-server conf/redis-6385.conf 
-[heql@ubuntu redis]$ redis-server conf/redis-6385.conf
-</code></pre><h5 id="加入集群"><a href="#加入集群" class="headerlink" title="加入集群"></a>加入集群</h5><pre><code>[heql@ubuntu redis]$ redis-trib.rb add-node 127.0.0.1:6385 127.0.0.1:6379
-[heql@ubuntu redis]$ redis-trib.rb add-node 127.0.0.1:6386 127.0.0.1:6379
+</code></pre><h4 id="扩容集群"><a href="#扩容集群" class="headerlink" title="扩容集群"></a>扩容集群</h4><h5 id="准备新节点"><a href="#准备新节点" class="headerlink" title="准备新节点"></a>准备新节点</h5><pre><code>[heql@ubuntu redis]$ redis-server conf/redis-6385.conf
+</code></pre><h5 id="加入集群"><a href="#加入集群" class="headerlink" title="加入集群"></a>加入集群</h5><pre><code>[heql@ubuntu redis]$ redis-trib.rb add-node 127.0.0.1:6386 127.0.0.1:6379
 </code></pre><h5 id="迁移槽和数据"><a href="#迁移槽和数据" class="headerlink" title="迁移槽和数据"></a>迁移槽和数据</h5><p>使用<code>redis-trib.rb reshard</code>命令进行迁移：</p>
 <pre><code>[heql@ubuntu redis]$ redis-trib.rb reshard 127.0.0.1:6379
 &gt;&gt;&gt; Performing Cluster Check (using node 127.0.0.1:6379)
@@ -705,13 +703,6 @@ a1e476e48b42db93e9b06d11527696e5824e6bab 127.0.0.1:6380 master - 0 1531212384863
 <pre><code>[heql@ubuntu redis]$ ps aux | grep redis-server | grep 6385
 heql       3269  0.2  0.5  42320 11076 ?        Ssl  15:28   0:13 redis-server *:6385 [cluster]
 [heql@ubuntu redis]$ kill 3269
-</code></pre><p>6386变成主节点，6385节点标记为连接断开状态：</p>
-<pre><code>7b3384a04dd2ff984fe16b5620eb471034ad77d8 127.0.0.1:6386 slave 3fd031f75c8902e379ba3c7918df0330199ad435 0 1531212381329 10 connected
-3fd031f75c8902e379ba3c7918df0330199ad435 127.0.0.1:6385 master - 0 1531212382340 10 connected 0-1364 5461-6826 10923-12287 15018-16383
-4ad9e89b058931c091cd943d1b2f79ce6d3e2fd6 127.0.0.1:6382 slave 2a98fe0eeab67575c51188b96894af97709c1aa1 0 1531212384358 8 connected
-114e1c725459f88743711f680b1508bd7f691adc 127.0.0.1:6383 slave a1e476e48b42db93e9b06d11527696e5824e6bab 0 1531212383349 9 connected
-a1e476e48b42db93e9b06d11527696e5824e6bab 127.0.0.1:6380 master - 0 1531212384863 9 connected 6827-10922 13653-15017
-2a98fe0eeab67575c51188b96894af97709c1aa1 127.0.0.1:6379 myself,master - 0 0 8 connected 1365-5460 12288-13652
 </code></pre><p>重新启动故障节点6385:</p>
 <pre><code>[heql@ubuntu redis]$ redis-server conf/redis-6385.conf 
 </code></pre><p>6385节点变为新主节点6386的从节点：</p>

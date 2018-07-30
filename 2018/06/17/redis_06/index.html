@@ -87,7 +87,7 @@
 <meta property="og:description" content="在Redis的主从复制模式下，当主节点出现故障时，Redis Sentinel能自动完成故障发现和故障转移，并通知应用方，从而实现真正的高可用。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/images/redis/sentinel.png">
-<meta property="og:updated_time" content="2018-07-04T05:59:21.000Z">
+<meta property="og:updated_time" content="2018-07-30T00:17:14.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis Sentinel（哨兵）">
 <meta name="twitter:description" content="在Redis的主从复制模式下，当主节点出现故障时，Redis Sentinel能自动完成故障发现和故障转移，并通知应用方，从而实现真正的高可用。">
@@ -305,7 +305,7 @@
 <p>在Redis的主从复制模式下，当主节点出现故障时，Redis Sentinel能自动完成故障发现和故障转移，并通知应用方，从而实现真正的高可用。</p>
 <a id="more"></a>
 <h3 id="Redis-Sentinel"><a href="#Redis-Sentinel" class="headerlink" title="Redis Sentinel"></a>Redis Sentinel</h3><p>Sentinel节点集合会定期对所有节点进行监控，特别是对主节点的故障实现自动转移。</p>
-<h4 id="故障转移的过程"><a href="#故障转移的过程" class="headerlink" title="故障转移的过程"></a>故障转移的过程</h4><p>下面以1个主节点、2个从节点、3个Sentinel节点组成的Redis Sentinel为<br>例子进行说明，拓扑结构如图：</p>
+<h4 id="故障转移的过程"><a href="#故障转移的过程" class="headerlink" title="故障转移的过程"></a>故障转移的过程</h4><p>下面以1个主节点、2个从节点、3个Sentinel节点组成的Redis Sentinel为例子进行说明，拓扑结构如图：</p>
 <p><img src="/images/redis/sentinel.png" alt="sentinel.png"></p>
 <p>整个故障转移的处理逻辑有下面4个步骤：</p>
 <ol>
@@ -394,7 +394,7 @@ sentinel_tilt:0
 sentinel_running_scripts:0
 sentinel_scripts_queue_length:0
 master0:name=mymaster,status=ok,address=127.0.0.1:6379,slaves=2,sentinels=3
-</code></pre><p>从上面info的Sentinel片段来看，Sentinel节点找到了主节点<code>127.0.0.1：6379</code>，发现了它的两个从节点，同时发现Redis Sentinel一共<br>有3个Sentinel节点。</p>
+</code></pre><p>从上面info的Sentinel片段来看，Sentinel节点找到了主节点<code>127.0.0.1：6379</code>，发现了它的两个从节点，同时发现Redis Sentinel一共有3个Sentinel节点。</p>
 <h5 id="测试故障转移"><a href="#测试故障转移" class="headerlink" title="测试故障转移"></a>测试故障转移</h5><p>模拟故障的方法有很多，比较典型的方法有以下几种：</p>
 <ol>
 <li><p>强制杀掉对应节点的进程号，这样可以模拟出宕机的效果。</p>
@@ -541,26 +541,20 @@ sentinel current-epoch 0
 <h5 id="sentinel-remove-master-name"><a href="#sentinel-remove-master-name" class="headerlink" title="sentinel remove (master name)"></a>sentinel remove (master name)</h5><p>取消当前Sentinel节点对于指定<code>&lt;master name&gt;</code>主节点的监控。</p>
 <h5 id="sentinel-is-master-down-by-addr"><a href="#sentinel-is-master-down-by-addr" class="headerlink" title="sentinel is-master-down-by-addr"></a>sentinel is-master-down-by-addr</h5><p>Sentinel节点之间用来交换对主节点是否下线的判断，根据参数的不同，还可以作为Sentinel领导者选举的通信方式。</p>
 <h4 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h4><h5 id="三个定时监控任务"><a href="#三个定时监控任务" class="headerlink" title="三个定时监控任务"></a>三个定时监控任务</h5><p>Redis Sentinel通过三个定时监控任务完成对各个节点发现和监控：</p>
-<ol>
-<li>每隔10秒，每个Sentinel节点会向主节点和从节点发送info命令获取<br>最新的拓扑结构。</li>
-</ol>
+<p>每隔10秒，每个Sentinel节点会向主节点和从节点发送info命令获取最新的拓扑结构。</p>
 <p>这个定时任务的作用具体可以表现在三个方面：</p>
 <ul>
 <li>通过向主节点执行info命令，获取从节点的信息，这也是为什么Sentinel节点不需要显式配置监控从节点。</li>
 <li>当有新的从节点加入时都可以立刻感知出来。</li>
 <li>节点不可达或者故障转移后，可以通过info命令实时更新节点拓扑信息。</li>
 </ul>
-<ol>
-<li>每隔2秒，每个Sentinel节点会向Redis数据节点的<code>__sentinel__：hello</code>频道上发送该Sentinel节点对于主节点的判断以及当前Sentinel节点的信息，同时每个Sentinel节点也会订阅该频道，来了解其他Sentinel节点以及它们对主节点的判断。</li>
-</ol>
+<p>每隔2秒，每个Sentinel节点会向Redis数据节点的<code>__sentinel__：hello</code>频道上发送该Sentinel节点对于主节点的判断以及当前Sentinel节点的信息，同时每个Sentinel节点也会订阅该频道，来了解其他Sentinel节点以及它们对主节点的判断。</p>
 <p>这个定时任务可以完成以下两个工作：</p>
 <ul>
 <li>发现新的Sentinel节点：通过订阅主节点的<code>__sentinel__：hello</code>了解其他的Sentinel节点信息，如果是新加入的Sentinel节点，将该Sentinel节点信息保存起来，并与该Sentinel节点创建连接。</li>
 <li>Sentinel节点之间交换主节点的状态，作为后面客观下线以及领导者选举的依据。</li>
 </ul>
-<ol>
-<li>每隔1秒，每个Sentinel节点会向主节点、从节点、其余Sentinel节点发送一条<code>ping</code>命令做一次心跳检测，来确认这些节点当前是否可达。</li>
-</ol>
+<p>每隔1秒，每个Sentinel节点会向主节点、从节点、其余Sentinel节点发送一条<code>ping</code>命令做一次心跳检测，来确认这些节点当前是否可达。</p>
 <p>通过上面的定时任务，Sentinel节点对主节点、从节点、其余Sentinel节点都建立起连接，实现了对每个节点的监控，这个定时任务是节点失败判定的重要依据。</p>
 <h5 id="主观下线"><a href="#主观下线" class="headerlink" title="主观下线"></a>主观下线</h5><p>每个Sentinel节点会每隔1秒对主节点、从节点、其他Sentinel节点发送<code>ping</code>命令做心跳检测，当这些节点超过<code>down-after-milliseconds</code>没有进行有效回复，Sentinel节点就会对该节点做失败判定，这个行为叫做主观下线。</p>
 <h5 id="客观下线"><a href="#客观下线" class="headerlink" title="客观下线"></a>客观下线</h5><p>当Sentinel主观下线的节点是主节点时，该Sentinel节点会通过<code>sentinel ismaster-down-by-addr</code>命令向其他Sentinel节点询问对主节点的判断，当超过<code>&lt;quorum&gt;</code>个数，Sentinel节点认为主节点确实有问题，这时该Sentinel节点会做出客观下线的决定。</p>
@@ -573,23 +567,23 @@ sentinel current-epoch 0
 <li>如果此过程没有选举出领导者，将进入下一次选举。</li>
 </ul>
 <h5 id="故障转移"><a href="#故障转移" class="headerlink" title="故障转移"></a>故障转移</h5><p>领导者选举出的Sentinel节点负责故障转移，具体步骤如下：</p>
-<ol>
-<li>在从节点列表中选出一个节点作为新的主节点，选择方法如下：</li>
-</ol>
 <ul>
+<li>在从节点列表中选出一个节点作为新的主节点，选择方法如下：</li>
+</ul>
+<ol>
 <li>过滤：“不健康”（主观下线、断线）、5秒内没有回复过Sentinel节点ping响应、与主节点失联超过<code>down-after-milliseconds*10</code>秒。</li>
 <li>选择slave-priority（从节点优先级）最高的从节点列表，如果存在则返回，不存在则继续。</li>
 <li>选择复制偏移量最大的从节点（复制的最完整），如果存在则返回，不存在则继续。</li>
 <li>选择runid最小的从节点。</li>
-</ul>
-<ol>
+</ol>
+<ul>
 <li><p>Sentinel领导者节点会对第一步选出来的从节点执行<code>slaveof no one</code>命令让其成为主节点。</p>
 </li>
 <li><p>Sentinel领导者节点会向剩余的从节点发送命令，让它们成为新主节点的从节点，复制规则和<code>parallel-syncs</code>参数有关。</p>
 </li>
 <li><p>Sentinel节点集合会将原来的主节点更新为从节点，并保持着对其关注，当其恢复后命令它去复制新的主节点。</p>
 </li>
-</ol>
+</ul>
 
       
     </div>
