@@ -86,7 +86,7 @@
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
 <meta property="og:description" content="Zookeeper搭建方式可以分为单机模式、集群模式、伪集群模式。在集群模式下，节点的个数建议为奇数个，且至少为3个节点。因为Zookeeper的leader选取至少要有半数以上的节点。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-07-07T05:05:05.000Z">
+<meta property="og:updated_time" content="2018-07-31T01:04:26.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ZooKeeper集群搭建、命令操作">
 <meta name="twitter:description" content="Zookeeper搭建方式可以分为单机模式、集群模式、伪集群模式。在集群模式下，节点的个数建议为奇数个，且至少为3个节点。因为Zookeeper的leader选取至少要有半数以上的节点。">
@@ -446,6 +446,7 @@ Starting zookeeper ... STARTED
 [heql@ubuntu zookeeper-3.4.12]$ bin/zkServer.sh start conf/zoo_2183.cfg 
 ZooKeeper JMX enabled by default
 Using config: conf/zoo_2183.cfg
+Starting zookeeper ... STARTED
 </code></pre><p><strong>查看启动结果：</strong></p>
 <pre><code>[heql@ubuntu zookeeper-3.4.12]$ jps
 3232 QuorumPeerMain
@@ -559,7 +560,8 @@ numChildren = 0
 <li>username:BASE64(SHA1(password))：是id部分 </li>
 <li>cdrwa：权限部份 </li>
 </ul>
-<p>用户名+密码授权访问方式，是常用的一种授权策略。id部份是用户名和密码做sha1加密再做BASE64加密后的组合，比如设置一个节点的用户名为heql，密码为123456，则表示方式为：<code>heql:BASE64(SHA1(123456)) ⇒ heql:W+qVWaUSzd7VWFNOpAVhryXr8xI=</code><br>。密码加密需要用到Zookeeper的一个工具类来生成，如下所示：</p>
+<p>用户名+密码授权访问方式，是常用的一种授权策略。id部份是用户名和密码做sha1加密再做BASE64加密后的组合，比如设置一个节点的用户名为heql，密码为123456，则表示方式为：<code>heql:BASE64(SHA1(123456)) ⇒ heql:W+qVWaUSzd7VWFNOpAVhryXr8xI=</code>。</p>
+<p>密码加密需要用到Zookeeper的一个工具类来生成，如下所示：</p>
 <pre><code>[heql@ubuntu zookeeper-3.4.12]$ java -Djava.ext.dirs=./lib -cp zookeeper-3.4.12.jar org.apache.zookeeper.server.auth.DigestAuthenticationProvider heql:123456
 heql:123456-&gt;heql:W+qVWaUSzd7VWFNOpAVhryXr8xI=
 </code></pre><p>下面是演示创建节点，并添加授权信息操作节点的示例：</p>

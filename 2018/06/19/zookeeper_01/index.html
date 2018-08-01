@@ -90,7 +90,7 @@
 <meta property="og:image" content="http://yoursite.com/images/zookeeper/zk_service.png">
 <meta property="og:image" content="http://yoursite.com/images/zookeeper/conf_manager.png">
 <meta property="og:image" content="http://yoursite.com/images/zookeeper/group_membership.png">
-<meta property="og:updated_time" content="2018-07-06T03:50:14.000Z">
+<meta property="og:updated_time" content="2018-07-31T01:30:04.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="分布式服务协调框架ZooKeeper">
 <meta name="twitter:description" content="ZooKeeper是一种为分布式应用所设计的高可用、高性能且一致的开源协调服务框架，它可以实现同步服务，配置维护、命名服务、分布式锁等分布式基础服务。">
@@ -320,7 +320,7 @@
 <h5 id="节点类型"><a href="#节点类型" class="headerlink" title="节点类型"></a>节点类型</h5><p>Zookeeper中znode的节点创建时候是可以指定类型的，主要有下面几种类型:</p>
 <p><strong>PERSISTENT：</strong> 持久化znode节点，一旦创建这个znode点存储的数据不会主动消失，除非是客户端主动的delete。</p>
 <p><strong>EPHEMERAL：</strong> 临时znode节点，Client连接到Zookeeper Service的时候会建立一个Session，之后用这个Zookeeper连接实例创建该类型的znode，一旦Client关闭了Zookeeper的连接，服务器就会清除Session，然后这个Session建立的ZNode节点都会从命名空间消失。临时节点不允许拥有子节点。</p>
-<p><strong>PERSISTENT_SEQUENTIAL：</strong> 顺序自动编号的znoe节点，这种znoe节点会根据当前已近存在的znode节点编号自动加1。</p>
+<p><strong>PERSISTENT_SEQUENTIAL：</strong> 顺序自动编号的znode节点，这种znode节点会根据当前已近存在的znode节点编号自动加1。</p>
 <p><strong>EPEMERAL_SEQUENTIAL：</strong> 临时自动编号节点，znode节点编号会自动增加。</p>
 <h5 id="Watcher数据变更通知"><a href="#Watcher数据变更通知" class="headerlink" title="Watcher数据变更通知"></a>Watcher数据变更通知</h5><p>znode可以被监控，包括这个目录节点中存储的数据的修改，子节点目录的变化等，一旦发生变化可以通知设置监控的客户端，这个是 Zookeeper 的核心特性，Zookeeper的很多功能都是基于这个特性实现的。</p>
 <h5 id="ACL权限控制"><a href="#ACL权限控制" class="headerlink" title="ACL权限控制"></a>ACL权限控制</h5><p>Zookeeper利用ACL策略控制节点的访问权限，如节点数据读写、节点创建、节点删除、读取子节点列表、设置节点权限等。</p>
@@ -346,7 +346,7 @@
 <li>客户端发起一个写操作请求 </li>
 <li>Leader服务器将客户端的request请求转化为事物proposql提案，同时为每个proposal分配一个全局唯一的ID，即ZXID</li>
 <li>leader服务器与每个follower之间都有一个队列，leader将消息发送到该队列 </li>
-<li>follower机器从队列中取出消息处理完(写入本地事物日志中)毕后，向leader服务器发送ACK确认</li>
+<li>follower机器从队列中取出消息处理完毕后(写入本地事物日志中)，向leader服务器发送ACK确认</li>
 <li>leader服务器收到半数以上的follower的ACK后，即认为可以发送commit </li>
 <li>leader向所有的follower服务器发送commit消息</li>
 </ol>
