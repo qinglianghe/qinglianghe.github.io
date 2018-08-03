@@ -91,7 +91,7 @@
 <meta property="og:image" content="http://yoursite.com/images/kafka/kafka_conusmer_group.png">
 <meta property="og:image" content="http://yoursite.com/images/kafka/kafka_segment.png">
 <meta property="og:image" content="http://yoursite.com/images/kafka/kafka_index_file.png">
-<meta property="og:updated_time" content="2018-07-08T17:47:04.000Z">
+<meta property="og:updated_time" content="2018-08-02T23:23:37.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Kafka">
 <meta name="twitter:description" content="Kafka是一个分布式、分区的、多副本的、多订阅者，基于zookeeper协调的分布式消息系统。">
@@ -308,11 +308,11 @@
         <hr>
 <p>Kafka是一个分布式、分区的、多副本的、多订阅者，基于zookeeper协调的分布式消息系统。</p>
 <a id="more"></a>
-<h3 id="Kafka"><a href="#Kafka" class="headerlink" title="Kafka"></a>Kafka</h3><p>Kafka对消息保存是根据<code>Topic</code>进行归类，发送消息者称为<code>Producer</code>，消息接受者称为<code>Consumer</code>，多个Kafka节点可以组成集群，每个节点成为<code>Broker</code>。</p>
+<h3 id="Kafka"><a href="#Kafka" class="headerlink" title="Kafka"></a>Kafka</h3><p>Kafka对消息保存是根据<code>Topic</code>进行归类，发送消息者称为<code>Producer</code>，消息接受者称为<code>Consumer</code>，多个Kafka节点可以组成集群，每个节点称为<code>Broker</code>。</p>
 <p><img src="/images/kafka/kafka_01.png" alt="kafka_01.png"></p>
 <h4 id="Broker"><a href="#Broker" class="headerlink" title="Broker"></a>Broker</h4><p>一个Kafka节点就是一个Broker，多个Broker可以组成一个Kafka集群。Broker的主要工作就是接收生产者发送来的消息，分配offset，然后将数据保存到磁盘上，消费者会并从Broker拉数据。</p>
 <p>每个Kafka集群会选出一个Broker来担任<code>Controller</code>，<code>Controller</code>是Kafka集群的指挥中心，其他的Broker则听从<code>Controller</code>指挥实现相应的功能。<code>Controller</code>负责管理分区的状态、管理每个分区的副本状态、监听<code>zookeeper</code>中数据的变化等。当<code>Controller</code>出现了故障的时候就重新选举新的<code>Controller</code>。</p>
-<h4 id="Topic"><a href="#Topic" class="headerlink" title="Topic"></a>Topic</h4><p>Topic是用于存储消息的逻辑概念,Topic可以看做是一个消息的集合。每个Topic可以有多个生产者向其中<code>push</code>消息,也可以有多个消费者向其中<code>pull</code>消息。</p>
+<h4 id="Topic"><a href="#Topic" class="headerlink" title="Topic"></a>Topic</h4><p>Topic是用于存储消息的逻辑概念，Topic可以看做是一个消息的集合。每个Topic可以有多个生产者向其中<code>push</code>消息，也可以有多个消费者向其中<code>pull</code>消息。</p>
 <h4 id="Partition"><a href="#Partition" class="headerlink" title="Partition"></a>Partition</h4><p>每一个Topic都可以划分成多个分区(每一个Topic都至少有一个分区)，kafka将尽量把不同的分区会分配在不同的Broker上，以对Kafka进行水平扩展从而增加Kafka的并行处理能力。</p>
 <p>Kafka会根据分区规则选择把消息存储到哪个分区中，如果分区规则设置的合理，那么所有的消息将会被均匀的分布到不同的分区中，这样就实现了负载均衡和水平扩展。</p>
 <p>每个Partition为一个目录，Partition命名的规则为<code>topic名称+有序序号</code>，序号从0开始，序号最大值为Partition数量减1。</p>
@@ -349,8 +349,8 @@
 <p>Kafka会将数据写入文件系统的PageCache（页缓存），并支持将数据从操作系统缓存刷新到磁盘上。日志的刷新策略可以采用2个配置参数：M，它定义了强制OS刷新文件到磁盘之前主动写入的消息数量。S，它定义了几秒后强制刷新。这样提供了耐久性的保障。当系统崩溃时候，丢失最多M消息，或S秒的数据。</p>
 <p>使用应用程序级别刷新设置的缺点是它的磁盘使用模式效率较低（它给操作系统减少了重新排序写操作的余地），并且可能引入延迟，因为fsync在大多数Linux文件系统中阻塞写入文件。Kafka默认的配置，完全禁用fsync应用。这意味着依赖操作系统和Kafka自己的后台刷新，数据的保障可以通过副本来保证。</p>
 <p>Kafka会启动一个后台线程定期扫描日志列表，把过期的日志删除。删除策略是删除修改时间在N天之前的日志（按时间删除），也可以使用另外一个策略：保留最后的N GB数据的策略(按大小删除)。</p>
-<h4 id="replication"><a href="#replication" class="headerlink" title="replication"></a>replication</h4><p>Kafka可以为每个Topic分区设置副本的个数，从而可以备份消息。Kafka的副本具有一定的同步机制,在每个副本集合中，都会选举出一个副本作为Leader副本。</p>
-<p>Kafka中所有的读写请求都由选举出的Leader副本处理,其他的都作为Follower副本，Follower副本仅仅是从Leader副本中把数据拉取到本地之后，同步更新到自己的Log中。</p>
+<h4 id="replication"><a href="#replication" class="headerlink" title="replication"></a>replication</h4><p>Kafka可以为每个Topic分区设置副本的个数，从而可以备份消息。Kafka的副本具有一定的同步机制，在每个副本集合中，都会选举出一个副本作为Leader副本。</p>
+<p>Kafka中所有的读写请求都由选举出的Leader副本处理，其他的都作为Follower副本，Follower副本仅仅是从Leader副本中把数据拉取到本地之后，同步更新到自己的Log中。</p>
 <p>当Leader发生故障时，会在这些Follower中选取出新的Leader，在任何时候，只要至少有一个同步Follower副本活着，就能保障在故障时消息仍然可用。</p>
 <p>Kafka的节点活着的判定：</p>
 <ol>
@@ -366,7 +366,7 @@
 </li>
 <li><p>acks=1，这意味着Leader写入消息到本地日志就立即响应，而不等待所有Follower应答。在这种情况下，如果响应消息之后但Follower还未复制之前Leader立即故障，那么消息将会丢失。</p>
 </li>
-<li><p>acks=all 这意味着Leader将等待所有副本同步后应答消息。此配置保障消息不会丢失（只要至少有一个同步的副本或者）。这是最强壮的可用性保障。等价于acks=-1。</p>
+<li><p>acks=all，这意味着Leader将等待所有副本同步后应答消息。此配置保障消息不会丢失（只要至少有一个同步的副本）。这是最强壮的可用性保障。等价于acks=-1。</p>
 </li>
 </ul>
 <p>Consumer从分区中消费消息时，会维护着上一次消费到哪里的offset信息。offset的提交可以自动或手动提交：</p>
