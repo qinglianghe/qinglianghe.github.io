@@ -86,7 +86,7 @@
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
 <meta property="og:description" content="Redis为不同的开发语言提供了客户端，如Java的Jedis、Python的redis-py等。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-07-25T23:53:17.000Z">
+<meta property="og:updated_time" content="2018-08-06T17:40:27.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis客户端">
 <meta name="twitter:description" content="Redis为不同的开发语言提供了客户端，如Java的Jedis、Python的redis-py等。">
@@ -483,7 +483,7 @@ id=48 addr=127.0.0.1:51352 fd=7 name= age=816 idle=0 flags=N db=0 sub=0 psub=0 m
 </tbody>
 </table>
 <p><strong>输入缓冲区：qbuf、qbuf-free</strong></p>
-<p>Redis为每个客户端分配了输入缓冲区，它的作用是将客户端发送的命令临时保存，同时Redis从会输入缓冲区读取命令并执行，输入缓冲区为客户端发送命令到Redis执行命令提供了缓冲功能。</p>
+<p>Redis为每个客户端分配了输入缓冲区，它的作用是将客户端发送的命令临时保存，同时Redis会从输入缓冲区读取命令并执行，输入缓冲区为客户端发送命令到Redis执行命令提供了缓冲功能。</p>
 <p><code>client list</code>中<code>qbuf</code>和<code>qbuf-free</code>分别代表这个缓冲区的总容量和剩余容量，Redis没有提供相应的配置来规定每个缓冲区的大小，输入缓冲区会根据输入内容大小的不同动态调整，只是要求每个客户端缓冲区的大小不能超过1G，超过后客户端将被关闭。</p>
 <p>输入缓冲使用不当会产生两个问题：</p>
 <ul>

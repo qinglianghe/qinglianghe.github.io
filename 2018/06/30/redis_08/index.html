@@ -86,7 +86,7 @@
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
 <meta property="og:description" content="Redis Cluster是Redis的分布式解决方案，在3.0版本正式推出，有效地解决了Redis分布式方面的需求。当遇到单机内存、并发、流量等瓶颈时，可以采用Cluster架构方案达到负载均衡的目的。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-07-30T01:28:40.000Z">
+<meta property="og:updated_time" content="2018-08-07T00:27:21.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis集群">
 <meta name="twitter:description" content="Redis Cluster是Redis的分布式解决方案，在3.0版本正式推出，有效地解决了Redis分布式方面的需求。当遇到单机内存、并发、流量等瓶颈时，可以采用Cluster架构方案达到负载均衡的目的。">
@@ -533,7 +533,9 @@ slots:5461-10922 (5462 slots) master
 &gt;&gt;&gt; Check slots coverage...
 [OK] All 16384 slots covered.
 </code></pre><h4 id="扩容集群"><a href="#扩容集群" class="headerlink" title="扩容集群"></a>扩容集群</h4><h5 id="准备新节点"><a href="#准备新节点" class="headerlink" title="准备新节点"></a>准备新节点</h5><pre><code>[heql@ubuntu redis]$ redis-server conf/redis-6385.conf
-</code></pre><h5 id="加入集群"><a href="#加入集群" class="headerlink" title="加入集群"></a>加入集群</h5><pre><code>[heql@ubuntu redis]$ redis-trib.rb add-node 127.0.0.1:6386 127.0.0.1:6379
+[heql@ubuntu redis]$ redis-server conf/redis-6386.conf
+</code></pre><h5 id="加入集群"><a href="#加入集群" class="headerlink" title="加入集群"></a>加入集群</h5><pre><code>[heql@ubuntu redis]$ redis-trib.rb add-node 127.0.0.1:6385 127.0.0.1:6379
+[heql@ubuntu redis]$ redis-trib.rb add-node 127.0.0.1:6386 127.0.0.1:6379
 </code></pre><h5 id="迁移槽和数据"><a href="#迁移槽和数据" class="headerlink" title="迁移槽和数据"></a>迁移槽和数据</h5><p>使用<code>redis-trib.rb reshard</code>命令进行迁移：</p>
 <pre><code>[heql@ubuntu redis]$ redis-trib.rb reshard 127.0.0.1:6379
 &gt;&gt;&gt; Performing Cluster Check (using node 127.0.0.1:6379)
