@@ -86,7 +86,7 @@
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
 <meta property="og:description" content="Redis提供的5种数据结构已经足够强大，但除此之外，Redis还提供了诸如慢查询分析、功能强大的Redis Shell、Pipeline、事务与Lua脚本、Bitmaps、HyperLogLog、发布订阅、GEO等附加功能，这些功能可以在某些场景发挥重要的作用。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-08-06T05:11:48.000Z">
+<meta property="og:updated_time" content="2018-08-14T01:11:26.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis慢查询、Pipeline、事务与Lua、Bitmaps、发布订阅">
 <meta name="twitter:description" content="Redis提供的5种数据结构已经足够强大，但除此之外，Redis还提供了诸如慢查询分析、功能强大的Redis Shell、Pipeline、事务与Lua脚本、Bitmaps、HyperLogLog、发布订阅、GEO等附加功能，这些功能可以在某些场景发挥重要的作用。">
@@ -412,18 +412,14 @@ QUEUED
 &quot;javapython&quot;
 </code></pre><p><code>Redis</code>提供了简单的事务，之所以说它简单，主要是因为它不支持事务中的回滚特性，同时无法实现命令之间的逻辑关系计算。</p>
 <h5 id="Redis与Lua"><a href="#Redis与Lua" class="headerlink" title="Redis与Lua"></a>Redis与Lua</h5><h6 id="在Redis中使用Lua"><a href="#在Redis中使用Lua" class="headerlink" title="在Redis中使用Lua"></a>在Redis中使用Lua</h6><p>在<code>Redis</code>中执行<code>Lua</code>脚本有两种方法：<code>eval</code>和<code>evalsha</code>。</p>
-<ol>
-<li>eval</li>
-</ol>
+<p><strong>eval</strong></p>
 <p>eval 脚本内容 key个数 key列表 参数列表</p>
 <pre><code>127.0.0.1:6379&gt; eval &apos;return &quot;hello &quot; .. KEYS[1] .. ARGV[1]&apos; 1 redis world
 &quot;hello redisworld&quot;
 </code></pre><p>此时KEYS[1]=”redis”，ARGV[1]=”world”，所以最终的返回结果是”hello redisworld”。</p>
 <p>如果<code>Lua</code>脚本较长，还可以使用<code>redis-cli--eval</code>直接执行文件。</p>
 <p><code>eval</code>命令和<code>--eval</code>参数本质是一样的，客户端如果想执行<code>Lua</code>脚本，首先在客户端编写好<code>Lua</code>脚本代码，然后把脚本作为字符串发送给服务端，服务端会将执行结果返回给客户端。</p>
-<ol>
-<li>evalsha</li>
-</ol>
+<p><strong>evalsha</strong></p>
 <p>除了使用<code>eval</code>，<code>Redis</code>还提供了<code>evalsha</code>命令来执行<code>Lua</code>脚本。首先要将<code>Lua</code>脚本加载到<code>Redis</code>服务端，得到该脚本的<code>SHA1</code>校验和，<code>evalsha</code>命令使用<code>SHA1</code>作为参数可以直接执行对应<code>Lua</code>脚本，避免每次发送<code>Lua</code>脚本的开销。这样客户端就不需要每次执行脚本内容，而脚本也会常驻在服务端，脚本功能得到了复用。</p>
 <p><strong>加载脚本：</strong> <code>script load</code>命令可以将脚本内容加载到<code>Redis</code>内存中，例如下面将<code>lua_get.lua</code>加载到<code>Redis</code>中，得到<code>SHA1</code>：</p>
 <pre><code>[heql@ubuntu ~]$ redis-cli script load &quot;$(cat lua_get.lua)&quot;

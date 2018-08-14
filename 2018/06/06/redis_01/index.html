@@ -88,7 +88,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/images/redis/object_encoding.png">
 <meta property="og:image" content="http://yoursite.com/images/redis/redis_cache.png">
-<meta property="og:updated_time" content="2018-08-06T04:13:58.000Z">
+<meta property="og:updated_time" content="2018-08-13T23:04:11.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis基本操作">
 <meta name="twitter:description" content="Redis是一种基于键值对（key-value）的NoSQL数据库，它支持string（字符串）、hash（哈希）、list（列表）、set（集合）、zset（有序集合）、Bitmaps（位图）、HyperLogLog、GEO（地理信息定位）等多种数据结构和算法。">
@@ -606,7 +606,7 @@ OK
 127.0.0.1:6379&gt; hdel user:1 age
 (integer) 0
 </code></pre><h5 id="计算field个数-hlen"><a href="#计算field个数-hlen" class="headerlink" title="计算field个数(hlen)"></a>计算field个数(hlen)</h5><pre><code>127.0.0.1:6379&gt; hset user:1 name tom
-(integer) 0
+(integer) 1
 127.0.0.1:6379&gt; hset user:1 age 23
 (integer) 1
 127.0.0.1:6379&gt; hset user:1 city guangzhou
