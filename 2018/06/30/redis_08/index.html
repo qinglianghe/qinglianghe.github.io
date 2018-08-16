@@ -86,7 +86,7 @@
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
 <meta property="og:description" content="Redis Cluster是Redis的分布式解决方案，在3.0版本正式推出，有效地解决了Redis分布式方面的需求。当遇到单机内存、并发、流量等瓶颈时，可以采用Cluster架构方案达到负载均衡的目的。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-08-07T00:27:21.000Z">
+<meta property="og:updated_time" content="2018-08-15T00:17:02.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis集群">
 <meta name="twitter:description" content="Redis Cluster是Redis的分布式解决方案，在3.0版本正式推出，有效地解决了Redis分布式方面的需求。当遇到单机内存、并发、流量等瓶颈时，可以采用Cluster架构方案达到负载均衡的目的。">
@@ -307,7 +307,7 @@
 <h5 id="节点取余分区"><a href="#节点取余分区" class="headerlink" title="节点取余分区"></a>节点取余分区</h5><p>使用特定的数据，如Redis的键或用户ID，再根据节点数量N使用公式：<code>hash（key）%N</code>计算出哈希值，用来决定数据映射到哪一个节点上。</p>
 <p>存在问题：当节点数量变化时，如扩容或收缩节点，数据节点映射关系需要重新计算，会导致数据的重新迁移。</p>
 <p>常用于数据库的分库分表规则，扩容时通常采用翻倍扩容，避免数据映射全部被打乱导致全量迁移的情况。</p>
-<h5 id="一致性哈希分区"><a href="#一致性哈希分区" class="headerlink" title="一致性哈希分区"></a>一致性哈希分区</h5><p>先构造一个<code>0~2^32</code>的哈希环，根据节点的名称(也可以是<code>ip:port</code>)计算出hash值，根据其hash值将缓节点放置在hash环上。数据读写执行节点查找操作时，先根据key计算hash值，然后顺时针找到第一个大于等于该哈希值的节点。</p>
+<h5 id="一致性哈希分区"><a href="#一致性哈希分区" class="headerlink" title="一致性哈希分区"></a>一致性哈希分区</h5><p>先构造一个<code>0~2^32</code>的哈希环，根据节点的名称(也可以是<code>ip:port</code>)计算出hash值，根据其hash值将节点放置在hash环上。数据读写执行节点查找操作时，先根据key计算hash值，然后顺时针找到第一个大于等于该哈希值的节点。</p>
 <p>这种方式相比节点取余最大的好处在于加入和删除节点只影响哈希环中相邻的节点，对其他节点无影响。</p>
 <p>一致性哈希分区存在几个问题：</p>
 <ul>
@@ -331,7 +331,7 @@
 </ol>
 <h4 id="搭建集群"><a href="#搭建集群" class="headerlink" title="搭建集群"></a>搭建集群</h4><h5 id="准备节点"><a href="#准备节点" class="headerlink" title="准备节点"></a>准备节点</h5><p>Redis集群一般由多个节点组成，节点数量至少为6个才能保证组成完整高可用的集群。每个节点需要开启配置<code>cluster-enabled yes</code>，让Redis运行在集群模式下。</p>
 <p>集群相关配置如下：</p>
-<pre><code>#节点端口
+<pre><code># 节点端口
 port 6379
 # 开启集群模式
 cluster-enabled yes
