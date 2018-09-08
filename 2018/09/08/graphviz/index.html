@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="graphviz是贝尔实验室开发的一个开源的工具包，它使用一个特定的DSL(领域特定语言): dot作为脚本语言，然后使用布局引擎来解析此脚本，并完成自动布局。graphviz提供丰富的导出格式，如常用的图片格式，SVG，PDF格式等。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="graphviz">
+<meta property="og:url" content="http://yoursite.com/2018/09/08/graphviz/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="graphviz是贝尔实验室开发的一个开源的工具包，它使用一个特定的DSL(领域特定语言): dot作为脚本语言，然后使用布局引擎来解析此脚本，并完成自动布局。graphviz提供丰富的导出格式，如常用的图片格式，SVG，PDF格式等。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/graphviz/gvedit.png">
+<meta property="og:image" content="http://yoursite.com/images/graphviz/test_graphviz.png">
+<meta property="og:image" content="http://yoursite.com/images/graphviz/dot_cmd.png">
+<meta property="og:image" content="http://yoursite.com/images/graphviz/test_graph.png">
+<meta property="og:image" content="http://yoursite.com/images/graphviz/graph_attributes.png">
+<meta property="og:image" content="http://yoursite.com/images/graphviz/node_line.png">
+<meta property="og:image" content="http://yoursite.com/images/graphviz/node_line_style.png">
+<meta property="og:image" content="http://yoursite.com/images/graphviz/line_decorate.png">
+<meta property="og:image" content="http://yoursite.com/images/graphviz/include_image.png">
+<meta property="og:image" content="http://yoursite.com/images/graphviz/graphviz_dir.png">
+<meta property="og:image" content="http://yoursite.com/images/graphviz/table.png">
+<meta property="og:image" content="http://yoursite.com/images/graphviz/subgraph.png">
+<meta property="og:updated_time" content="2018-09-08T07:52:07.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="graphviz">
+<meta name="twitter:description" content="graphviz是贝尔实验室开发的一个开源的工具包，它使用一个特定的DSL(领域特定语言): dot作为脚本语言，然后使用布局引擎来解析此脚本，并完成自动布局。graphviz提供丰富的导出格式，如常用的图片格式，SVG，PDF格式等。">
+<meta name="twitter:image" content="http://yoursite.com/images/graphviz/gvedit.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/09/08/graphviz/"/>
+
+
+
+
+
+  <title>graphviz | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/08/graphviz/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">graphviz</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-08T00:00:00+08:00">
+                2018-09-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<p>graphviz是贝尔实验室开发的一个开源的工具包，它使用一个特定的DSL(领域特定语言): dot作为脚本语言，然后使用布局引擎来解析此脚本，并完成自动布局。graphviz提供丰富的导出格式，如常用的图片格式，SVG，PDF格式等。</p>
+<a id="more"></a>
+<p>用graphviz来绘图的时候，你的主要工作就是编写dot脚本，你只要关注图中各个点之间的关系就好了，你不需要考虑如何安排各个节点的位置，怎样布局能够使你所绘制的图看起来更美观一些。</p>
+<p>graphviz中包含了众多的布局器：</p>
+<ul>
+<li>dot 默认布局方式，主要用于有向图</li>
+<li>neato 基于spring-model(又称force-based)算法</li>
+<li>twopi 径向布局</li>
+<li>circo 圆环布局</li>
+<li>fdp 用于无向图</li>
+</ul>
+<p>首先，在dot脚本中定义图的顶点和边，顶点和边都具有各自的属性，比如形状，颜色，填充模式，字体，样式等。然后使用合适的布局算法进行布局。布局算法除了绘制各个顶点和边之外，需要尽可能的将顶点均匀的分布在画布上，并且尽可能的减少边的交叉(如果交叉过多，就很难看清楚顶点之间的关系了)。所以使用graphviz的一般流程为：</p>
+<ul>
+<li>定义一个图，并向图中添加需要的顶点和边</li>
+<li>为顶点和边添加样式</li>
+<li>使用布局引擎进行绘制</li>
+</ul>
+<h4 id="安装运行"><a href="#安装运行" class="headerlink" title="安装运行"></a>安装运行</h4><p>以Widdows为例，从官网上下载安装包 graphviz-2.38.msi，<a href="https://graphviz.gitlab.io/_pages/Download/Download_windows.html" target="_blank" rel="noopener">https://graphviz.gitlab.io/_pages/Download/Download_windows.html</a></p>
+<p>安装完后，在开始菜单里面，开始-&gt;所有程序-&gt;Grapgviz 2.38-&gt;gvedit.exe。打开后如图：</p>
+<p><img src="/images/graphviz/gvedit.png" alt="gvedit.png"></p>
+<p>点击新建文件，输入如下代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">digraph test&#123;</span><br><span class="line">    a;</span><br><span class="line">    b;</span><br><span class="line"></span><br><span class="line">    a -&gt; b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行程序，点击下图中用红色标注的按钮，可以看到如下运行效果：</p>
+<p><img src="/images/graphviz/test_graphviz.png" alt="test_graphviz.png"></p>
+<p>如果想在命令运行或其他的编辑器中运行dot脚本，需要把graphviz安装后的bin目录添加到环境变量中，添加完后，打开命令行，输入以下命令，验证是否安装成功：</p>
+<p><img src="/images/graphviz/dot_cmd.png" alt="dot_cmd.png"></p>
+<h4 id="图"><a href="#图" class="headerlink" title="图"></a>图</h4><h5 id="有向图和无向图"><a href="#有向图和无向图" class="headerlink" title="有向图和无向图"></a>有向图和无向图</h5><p>使用graph定义无向图，使用digraph定义有向图，如上面的使用的test使用的是有向图，无向图和有向图最大的区别就是，有向图使用的连接线是<code>-&gt;</code>, 而无向图使用的是<code>--</code>。把上面的test改成无向图：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">graph test&#123;</span><br><span class="line">    a;</span><br><span class="line">    b;</span><br><span class="line"></span><br><span class="line">    a -- b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行如下图：</p>
+<p><img src="/images/graphviz/test_graph.png" alt="test_graph.png"></p>
+<h5 id="图的属性"><a href="#图的属性" class="headerlink" title="图的属性"></a>图的属性</h5><p>图的属性设置方式有两种，其一是直接在{}内列出，如：size = ”4, 4”；另一种方式使用：graph [属性列表]，如下代码，为上面的test添加图的属性：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">digraph test &#123;</span><br><span class="line">    bgcolor = &quot;#666666&quot;;              // 背景</span><br><span class="line">    fontname=&quot;Inconsolata, Consolas&quot;; // 字体</span><br><span class="line">    fontcolor=white;                  // 字体颜色</span><br><span class="line">    fontsize = 10;                    // 字体大小</span><br><span class="line"></span><br><span class="line">    labelloc = b                      // 标签垂直顶=底部</span><br><span class="line">    labeljust = c                     // 标签水平居中</span><br><span class="line"></span><br><span class="line">    label=&quot;Attributes of a graph&quot;</span><br><span class="line">    </span><br><span class="line">    a;</span><br><span class="line">    b;</span><br><span class="line"></span><br><span class="line">    a -&gt; b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在graph [属性列表] 添加属性，效果和上面是一样的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">digraph test &#123;</span><br><span class="line">    graph [bgcolor = &quot;#666666&quot;, fontname=&quot;Inconsolata, Consolas&quot;, </span><br><span class="line">    fontcolor=white, fontsize = 10, labelloc = b, labeljust = c, </span><br><span class="line">    label=&quot;Attributes of a graph&quot; ]</span><br><span class="line">    </span><br><span class="line">    a;</span><br><span class="line">    b;</span><br><span class="line"></span><br><span class="line">    a -&gt; b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行效果，如下图：</p>
+<p><img src="/images/graphviz/graph_attributes.png" alt="graph_attributes.png"></p>
+<p>更多的属性设置，可以参考官方的文档<a href="https://graphviz.gitlab.io/_pages/doc/info/attrs.html" target="_blank" rel="noopener">https://graphviz.gitlab.io/_pages/doc/info/attrs.html</a>。</p>
+<h4 id="节点和连接线"><a href="#节点和连接线" class="headerlink" title="节点和连接线"></a>节点和连接线</h4><h5 id="节点和连接线的属性"><a href="#节点和连接线的属性" class="headerlink" title="节点和连接线的属性"></a>节点和连接线的属性</h5><p>节点和连接线的属性和图的属性设置是差不多的，用node的列表可以设置节点的属性，edge设置连接线的属性。如下代码，把节点设置为矩形，连接线为虚线：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">digraph test &#123;</span><br><span class="line">    graph [bgcolor = &quot;#666666&quot;, fontname=&quot;Inconsolata, Consolas&quot;, </span><br><span class="line">    fontcolor=white, fontsize = 10]</span><br><span class="line">    </span><br><span class="line">    node [shape=&quot;record&quot;];</span><br><span class="line">    edge [style=&quot;dashed&quot;];</span><br><span class="line">    </span><br><span class="line">    a;</span><br><span class="line">    b;</span><br><span class="line">    c;</span><br><span class="line">    d;</span><br><span class="line">    </span><br><span class="line">    a -&gt; b;</span><br><span class="line"></span><br><span class="line">    b -&gt; d;</span><br><span class="line">    c -&gt; d;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行效果，如下图：</p>
+<p><img src="/images/graphviz/node_line.png" alt="node_line.png"></p>
+<p>用node和edge设置的属性是全局的，会影响所有的节点，如果想给只给某几个节点或某条连接线设置属性，可以只设置某个节点和连接线的属性列表，如下代码，设置a节点的颜色为淡绿色，并将c到d的边改为红色：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">digraph test &#123;</span><br><span class="line">    graph [bgcolor = &quot;#666666&quot;, fontname=&quot;Inconsolata, Consolas&quot;, </span><br><span class="line">    fontcolor=white, fontsize = 10]</span><br><span class="line">    </span><br><span class="line">    node [shape=&quot;record&quot;];</span><br><span class="line">    edge [style=&quot;dashed&quot;];</span><br><span class="line">    </span><br><span class="line">    a [style=&quot;filled&quot;, color=black, fillcolor=&quot;chartreuse&quot;];</span><br><span class="line">    b;</span><br><span class="line">    c;</span><br><span class="line">    d;</span><br><span class="line">    </span><br><span class="line">    a -&gt; b;</span><br><span class="line"></span><br><span class="line">    b -&gt; d;</span><br><span class="line">    c -&gt; d [color=red];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行效果，如下图：</p>
+<p><img src="/images/graphviz/node_line_style.png" alt="node_line_style.png"></p>
+<p>当线和线label 比较多时，可以给线的属性decorat=true，使得每条线的label标识其所属的连接线。</p>
+<p>还可以给每条线加上headlabel和taillabel，给每条线的起始点和终点加上label，他们的颜色由labelfontcolor 来决定，而label的颜色由fontcolor来决定。</p>
+<p>如下代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">graph test &#123;</span><br><span class="line">    edge [decorate=true];</span><br><span class="line">    A -- B [label = &quot;s1&quot;];</span><br><span class="line">    A -- C [label = &quot;s2&quot;];</span><br><span class="line">    A -- D [label = &quot;s3&quot;];</span><br><span class="line">    B -- C [label = &quot;s4&quot;];</span><br><span class="line">    B -- D [label = &quot;s5&quot;];</span><br><span class="line">    </span><br><span class="line">    edge [decorate = false, labelfontcolor = blue, fontcolor = red];</span><br><span class="line">    E -- F [headlabel = &quot;e &quot;, taillabel = &quot;f &quot;, label = &quot; e - f&quot;];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行效果，如下图：</p>
+<p><img src="/images/graphviz/line_decorate.png" alt="line_decorate.png"></p>
+<h5 id="以图片为节点"><a href="#以图片为节点" class="headerlink" title="以图片为节点"></a>以图片为节点</h5><p>除了颜色，节点还可以使用图片。不过需要注意的是，在使用图片作为节点的时候，需要将本来的形状设置为none，并且将label置为空字符串，避免出现文字对图片的干扰:</p>
+<pre><code>digraph test {
+    node [shape=&quot;record&quot;];
+    edge [style=&quot;dashed&quot;];
+
+    a [style=&quot;filled&quot;, color=&quot;black&quot;, fillcolor=&quot;chartreuse&quot;];
+    b;
+    c [shape=&quot;none&quot;, image=&quot;logos/browser-icon-chrome-resized.png&quot;, label=&quot;&quot;];
+    d;
+
+    a -&gt; b;
+    b -&gt; d;
+    c -&gt; d [color=&quot;red&quot;];
+}
+</code></pre><p>运行效果，如下图：</p>
+<p><img src="/images/graphviz/include_image.png" alt="include_image.png"></p>
+<h5 id="箭头的方向"><a href="#箭头的方向" class="headerlink" title="箭头的方向"></a>箭头的方向</h5><p>用dir属性可以设置每条边箭头的方向，有forward(默认)、back、both、none 四种。如下代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">digraph test &#123;</span><br><span class="line">    A -&gt; B [dir=both];</span><br><span class="line">    B -&gt; C [dir=none];</span><br><span class="line">    C -&gt; D [dir=back];</span><br><span class="line">    D -&gt; A [dir=forward];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行效果，如下图：</p>
+<p><img src="/images/graphviz/graphviz_dir.png" alt="graphviz_dir.png"></p>
+<h5 id="表格"><a href="#表格" class="headerlink" title="表格"></a>表格</h5><ol>
+<li><p>gaphviz的表格也是一种节点类型，使用label标签来指定内容和格式</p>
+</li>
+<li><p>内置布局方式通过shape为record(矩形框) &amp; Mrecord(圆角矩形框)来指定，如果和当前方向一致使用|来隔开，使用{|}表示和当前方向相反，比如说默认是纵向布局方式，那|隔开的也是从上到下，{|}则是从左到右，只是要注意，如果是在一个{|}内部再{|}，又变成了从上到下(如果只是文字换行，可以在文字末尾加\n(居中对齐)\l(左对齐)\r(右对齐)进行切分)</p>
+</li>
+<li><p>内置布局最大的问题是不能分别调整每个格子里的颜色和字体，所以如果需要更丰富的控制可以通过使用HTML表格标签，这种方式不要求shape为record或Mrecord样式，另外需要注意的是使用&lt;&gt;而不是双引号来引用内容</p>
+</li>
+</ol>
+<p>如下代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">digraph test &#123;</span><br><span class="line">    node [shape=record];</span><br><span class="line">    s1 [label=&quot;&lt;l&gt;left|middle|&lt;r&gt;right&quot;];</span><br><span class="line">    s2 [label=&quot;&lt;h&gt;one|two&quot;];</span><br><span class="line">    s3 [label=&quot;a|&#123;b|&#123;c|d|e&#125;|f&#125;|g|h&quot;];</span><br><span class="line">    </span><br><span class="line">    s1:l -&gt; s2:h;</span><br><span class="line">    s1:r -&gt;s3;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/graphviz/table.png" alt="table.png"></p>
+<h4 id="子图"><a href="#子图" class="headerlink" title="子图"></a>子图</h4><p>graphviz支持子图，即图中的部分节点和边相对对立，子图使用subgraph定义，必须以cluster开头命名，比如，下面的代码将顶点c和d归为一个子图：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">digraph test &#123;</span><br><span class="line"></span><br><span class="line">    node [shape=&quot;record&quot;];</span><br><span class="line">    edge [style=&quot;dashed&quot;];</span><br><span class="line">    </span><br><span class="line">    a [style=&quot;filled&quot;, color=&quot;black&quot;, fillcolor=&quot;chartreuse&quot;];</span><br><span class="line">    b;</span><br><span class="line">    </span><br><span class="line">        subgraph cluster_cd&#123;</span><br><span class="line">        label=&quot;c and d&quot;;</span><br><span class="line">        bgcolor=&quot;mintcream&quot;;</span><br><span class="line">        c;</span><br><span class="line">        d;</span><br><span class="line">        &#125;</span><br><span class="line">    </span><br><span class="line">    a -&gt; b;</span><br><span class="line">    b -&gt; d;</span><br><span class="line">    c -&gt; d [color=&quot;red&quot;];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行效果，如下图：</p>
+<p><img src="/images/graphviz/subgraph.png" alt="subgraph.png"></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/07/16/rpc_05/" rel="next" title="分布式RPC的实现">
+                <i class="fa fa-chevron-left"></i> 分布式RPC的实现
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">44</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#安装运行"><span class="nav-number">1.</span> <span class="nav-text">安装运行</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#图"><span class="nav-number">2.</span> <span class="nav-text">图</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#有向图和无向图"><span class="nav-number">2.1.</span> <span class="nav-text">有向图和无向图</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#图的属性"><span class="nav-number">2.2.</span> <span class="nav-text">图的属性</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#节点和连接线"><span class="nav-number">3.</span> <span class="nav-text">节点和连接线</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#节点和连接线的属性"><span class="nav-number">3.1.</span> <span class="nav-text">节点和连接线的属性</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#以图片为节点"><span class="nav-number">3.2.</span> <span class="nav-text">以图片为节点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#箭头的方向"><span class="nav-number">3.3.</span> <span class="nav-text">箭头的方向</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#表格"><span class="nav-number">3.4.</span> <span class="nav-text">表格</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#子图"><span class="nav-number">4.</span> <span class="nav-text">子图</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
