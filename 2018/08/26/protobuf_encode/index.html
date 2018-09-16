@@ -86,18 +86,18 @@
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
 <meta property="og:description" content="protobuf能够跨平台提供轻量的序列化和反序列化，得益于其平台无关的编码格式，下面分析protobuf的编码格式。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://yoursite.com/2018/08/26/protobuf_encode/images/protobuf/varint.png">
-<meta property="og:image" content="http://yoursite.com/2018/08/26/protobuf_encode/images/protobuf/varint-325.png">
-<meta property="og:image" content="http://yoursite.com/2018/08/26/protobuf_encode/images/protobuf/field_type.png">
-<meta property="og:image" content="http://yoursite.com/2018/08/26/protobuf_encode/images/protobuf/zigzag.png">
+<meta property="og:image" content="http://yoursite.com/images/protobuf/varint.png">
+<meta property="og:image" content="http://yoursite.com/images/protobuf/varint-325.png">
+<meta property="og:image" content="http://yoursite.com/images/protobuf/field_type.png">
+<meta property="og:image" content="http://yoursite.com/images/protobuf/zigzag.png">
 <meta property="og:image" content="http://yoursite.com/images/protobuf/string_encode.png">
 <meta property="og:image" content="http://yoursite.com/images/protobuf/repeated_encode.png">
 <meta property="og:image" content="http://yoursite.com/images/protobuf/message_encode.png">
-<meta property="og:updated_time" content="2018-09-16T00:25:13.000Z">
+<meta property="og:updated_time" content="2018-09-16T00:28:34.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="protobuf数据编码">
 <meta name="twitter:description" content="protobuf能够跨平台提供轻量的序列化和反序列化，得益于其平台无关的编码格式，下面分析protobuf的编码格式。">
-<meta name="twitter:image" content="http://yoursite.com/2018/08/26/protobuf_encode/images/protobuf/varint.png">
+<meta name="twitter:image" content="http://yoursite.com/images/protobuf/varint.png">
 
 
 
@@ -312,18 +312,18 @@
 <a id="more"></a>
 <h4 id="varint-编码"><a href="#varint-编码" class="headerlink" title="varint 编码"></a>varint 编码</h4><p>消息传递中大部分使用的整数值都是很小的非负整数，如果全部使用4个字节来表示一个整数会很浪费。所以就发明了一个类型叫变长整数varint。数值非常小时，只需要使用一个字节来存储(如：0~127)，数值稍微大一点可以使用2个字节，再大一点就是3个字节，它还可以超过4个字节用来表达长整形数字。</p>
 <p>其原理也很简单，就是保留每个字节的最高位的 bit 来标识是否后面还有字节，1 表示还有字节需要继续读，0 表示到读到当前字节就结束。</p>
-<p><img src="images/protobuf/varint.png" alt="varint.png"></p>
+<p><img src="/images/protobuf/varint.png" alt="varint.png"></p>
 <p>如数字1，它本身只占用一个字节即可表示,它的最高位并没有被设置：</p>
 <pre><code>0000 0001
 </code></pre><p>如数字325，它的二进制表示如下：</p>
 <pre><code>1 0100 0101
 </code></pre><p>用varint编码如下图：</p>
-<p><img src="images/protobuf/varint-325.png" alt="varint-325.png"></p>
+<p><img src="/images/protobuf/varint-325.png" alt="varint-325.png"></p>
 <p>由于protobuf是按照Little Endian的方式进行数据布局的，因此这里需要将两个字节的位置进行翻转。</p>
 <h4 id="message-数据格式"><a href="#message-数据格式" class="headerlink" title="message 数据格式"></a>message 数据格式</h4><p>protobuf传输的是一系列的键值对，在编码后每一个字段的key都是varint类型，key的值是由tag（字段标号）和type（字段类型）组成。</p>
 <p>key的最后3个bits用于存储字段的类型信息。那么在使用该编码时，protobuf所支持的字段类型将不会超过8种。如果tag[1,15]之内则使用一个字节，这就是为什么要把频繁出现的消息元素的tag保留在[1,15]之内的原因。</p>
 <p>如下表是protobuf所表示的类型：</p>
-<p><img src="images/protobuf/field_type.png" alt="field_type.png"></p>
+<p><img src="/images/protobuf/field_type.png" alt="field_type.png"></p>
 <p>定义如下的message:</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">syntax = <span class="string">"proto3"</span>;</span><br><span class="line"></span><br><span class="line">message Test &#123;</span><br><span class="line">    int32 a = <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>编译proto文件后，设置字段a的值为325，把序列化后的结果保存到文件中：</p>
@@ -338,7 +338,7 @@
 <pre><code>08 ff ff ff ff ff ff ff  ff ff 01
 </code></pre><p>所以对于负数，如果使用的是sint32/sint64，则protobuf会使用ZigZag编码，zigzag 编码将整数范围一一映射到自然数范围，然后再进行varint编，其编码后的结果将会更加高效。</p>
 <p>如下是ZigZag对照表：</p>
-<p><img src="images/protobuf/zigzag.png" alt="zigzag.png"></p>
+<p><img src="/images/protobuf/zigzag.png" alt="zigzag.png"></p>
 <p>zigzag将负数编码成正奇数，正数编码成偶数。解码的时候遇到偶数直接除2就是原值，遇到奇数就加1除2再取负就是原值。</p>
 <p>如将上面的字段a定义为sint32类型:</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">syntax = <span class="string">"proto3"</span>;</span><br><span class="line"></span><br><span class="line">message Test &#123;</span><br><span class="line">    sint32 a = <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
