@@ -1,0 +1,70 @@
+digraph {
+    rankdir=TB
+    compound=true
+    fontname="Inconsolata, Consolas"
+    margin="0,0"
+    ranksep=0.3
+
+    penwidth=0.5
+    fontsize=15
+    
+    node [fontname="Inconsolata, Consolas", fontsize=10, penwidth=0.5, colorscheme=spectral7]
+    edge [fontname="Inconsolata, Consolas", fontsize=10, penwidth=0.5]
+    
+    {
+        node [shape=record, fontsize=10, style=filled, margin=0.1, height=0.3]
+        b1   [fillcolor=3, label="<l>0 0 0 0 1 |<r>0 1 0 "]
+        hex1 [fillcolor=7, label="0a"]
+        hex2 [fillcolor=7, label="12"]
+
+        b2   [fillcolor=3, label="<l>0 0 0 0 1 |<r>0 1 0 "]
+        hex3 [fillcolor=7, label="0a"]
+        hex4 [fillcolor=7, label="05"]
+        
+        hex5 [fillcolor=7, label="43|68|69|6e|61"]
+        s1   [fillcolor=3, label="C|h|i|n|a"]
+        
+        b3   [fillcolor=3, label="<l>0 0 0 1 0 |<r>0 1 0 "]
+        hex6 [fillcolor=7, label="12"]
+        
+        hex7 [fillcolor=7, label="09"]
+        
+        hex8 [fillcolor=7, label="47|75|61|6e|67|5a|68|6f|75"]
+        s2   [fillcolor=3, label="G|u|a|n|g|Z|h|o|u"]
+    }
+    
+    {
+        node [shape=plaintext, fontsize=10, margin=0]
+        d1 [style=solid,label="field tag = 1"]
+        d2 [style=solid,label="type 2 (string)"] 
+        d3 [style=solid,label="length = 18"]
+        
+        d4 [style=solid,label="field tag = 1"]
+        d5 [style=solid,label="type 2 (string)"] 
+        d6 [style=solid,label="length = 5"]
+        
+        d7 [style=solid,label="field tag = 2"]
+        d8 [style=solid,label="type 2 (string)"] 
+        d9 [style=solid,label="length = 9"]
+    }
+
+    { rank=same; hex1; hex2; hex3; hex4; hex5; hex6; hex7; hex8 }
+    
+    d1 -> b1:l
+    d2 -> b1:r
+    b1 -> hex1
+    d3 -> hex2
+    
+    d4 -> b2:l
+    d5 -> b2:r
+    b2 -> hex3
+    d6 -> hex4
+    s1 -> hex5
+    
+    d7 -> b3:l
+    d8 -> b3:r
+    b3 -> hex6
+    
+    d9 -> hex7
+    s2 -> hex8
+}

@@ -1,0 +1,36 @@
+digraph {
+    rankdir=TB
+    compound=true
+    fontname="Inconsolata, Consolas"
+    margin="0,0"
+    ranksep=0.3
+    nodesep=1
+    penwidth=0.5
+    fontsize=15
+    
+    node [fontname="Inconsolata, Consolas", fontsize=10, penwidth=0.5, colorscheme=spectral7]
+    edge [fontname="Inconsolata, Consolas", fontsize=10, penwidth=0.5]
+    
+    {
+        node [shape=record, fontsize=10, style=filled, margin=0.1, height=0.3]
+        b1   [fillcolor=3, label="<l>0 0 0 0 0 1 0 |<r>1 0 0 0 1 0 1"]
+        b2   [fillcolor=7, label="1|<r>1 0 0 0 1 0 1"]
+        b3   [fillcolor=7, label="0|<l>0 0 0 0 0 1 0"]
+    }
+    
+    {
+        node [shape=plaintext, fontsize=25, margin=0]
+        d1 [style=solid,label="325"]
+        d2 [style=solid,label="C5"]
+        d3 [style=solid,label="02"]
+    }
+    
+    {rank = same; b2; b3}
+    
+    d1 -> b1;
+    b1:l -> b3:l
+    b1:r -> b2:r
+    b2 -> b3 [style=invis]
+    b2 -> d2
+    b3 -> d3
+}

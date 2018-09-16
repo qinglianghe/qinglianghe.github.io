@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="protobuf能够跨平台提供轻量的序列化和反序列化，得益于其平台无关的编码格式，下面分析protobuf的编码格式。 varint 编码消息传递中大部分使用的整数值都是很小的非负整数，如果全部使用4个字节来表示一个整数会很浪费。所以就发明了一个类型叫变长整数varint。数值非常小时，只需要使用一个字节来存储(如：0">
+<meta property="og:type" content="article">
+<meta property="og:title" content="protobuf数据编码">
+<meta property="og:url" content="http://yoursite.com/2018/08/26/protobuf_encode/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="protobuf能够跨平台提供轻量的序列化和反序列化，得益于其平台无关的编码格式，下面分析protobuf的编码格式。 varint 编码消息传递中大部分使用的整数值都是很小的非负整数，如果全部使用4个字节来表示一个整数会很浪费。所以就发明了一个类型叫变长整数varint。数值非常小时，只需要使用一个字节来存储(如：0~127)，数值稍微大一点可以使用2个字节，再大一点就是3个字节，它还可以超过">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2018/08/26/protobuf_encode/images/protobuf/varint.png">
+<meta property="og:image" content="http://yoursite.com/2018/08/26/protobuf_encode/images/protobuf/varint-325.png">
+<meta property="og:image" content="http://yoursite.com/2018/08/26/protobuf_encode/images/protobuf/field_type.png">
+<meta property="og:image" content="http://yoursite.com/2018/08/26/protobuf_encode/images/protobuf/zigzag.png">
+<meta property="og:image" content="http://yoursite.com/images/protobuf/string_encode.png">
+<meta property="og:image" content="http://yoursite.com/images/protobuf/repeated_encode.png">
+<meta property="og:image" content="http://yoursite.com/images/protobuf/message_encode.png">
+<meta property="og:updated_time" content="2018-09-16T00:20:59.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="protobuf数据编码">
+<meta name="twitter:description" content="protobuf能够跨平台提供轻量的序列化和反序列化，得益于其平台无关的编码格式，下面分析protobuf的编码格式。 varint 编码消息传递中大部分使用的整数值都是很小的非负整数，如果全部使用4个字节来表示一个整数会很浪费。所以就发明了一个类型叫变长整数varint。数值非常小时，只需要使用一个字节来存储(如：0~127)，数值稍微大一点可以使用2个字节，再大一点就是3个字节，它还可以超过">
+<meta name="twitter:image" content="http://yoursite.com/2018/08/26/protobuf_encode/images/protobuf/varint.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/08/26/protobuf_encode/"/>
+
+
+
+
+
+  <title>protobuf数据编码 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/26/protobuf_encode/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">protobuf数据编码</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-26T00:00:00+08:00">
+                2018-08-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<p>protobuf能够跨平台提供轻量的序列化和反序列化，得益于其平台无关的编码格式，下面分析protobuf的编码格式。</p>
+<h4 id="varint-编码"><a href="#varint-编码" class="headerlink" title="varint 编码"></a>varint 编码</h4><p>消息传递中大部分使用的整数值都是很小的非负整数，如果全部使用4个字节来表示一个整数会很浪费。所以就发明了一个类型叫变长整数varint。数值非常小时，只需要使用一个字节来存储(如：0~127)，数值稍微大一点可以使用2个字节，再大一点就是3个字节，它还可以超过4个字节用来表达长整形数字。</p>
+<p>其原理也很简单，就是保留每个字节的最高位的 bit 来标识是否后面还有字节，1 表示还有字节需要继续读，0 表示到读到当前字节就结束。</p>
+<p><img src="images/protobuf/varint.png" alt="varint.png"></p>
+<p>如数字1，它本身只占用一个字节即可表示,它的最高位并没有被设置：</p>
+<pre><code>0000 0001
+</code></pre><p>如数字325，它的二进制表示如下：</p>
+<pre><code>1 0100 0101
+</code></pre><p>用varint编码如下图：</p>
+<p><img src="images/protobuf/varint-325.png" alt="varint-325.png"></p>
+<p>由于protobuf是按照Little Endian的方式进行数据布局的，因此这里需要将两个字节的位置进行翻转。</p>
+<h4 id="message-数据格式"><a href="#message-数据格式" class="headerlink" title="message 数据格式"></a>message 数据格式</h4><p>protobuf传输的是一系列的键值对，在编码后每一个字段的key都是varint类型，key的值是由tag（字段标号）和type（字段类型）组成。</p>
+<p>key的最后3个bits用于存储字段的类型信息。那么在使用该编码时，protobuf所支持的字段类型将不会超过8种。如果tag[1,15]之内则使用一个字节，这就是为什么要把频繁出现的消息元素的tag保留在[1,15]之内的原因。</p>
+<p>如下表是protobuf所表示的类型：</p>
+<p><img src="images/protobuf/field_type.png" alt="field_type.png"></p>
+<p>定义如下的message:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">syntax = <span class="string">"proto3"</span>;</span><br><span class="line"></span><br><span class="line">message Test &#123;</span><br><span class="line">    int32 a = <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译proto文件后，设置字段a的值为325，把序列化后的结果保存到文件中：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"test.pb.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span> </span>&#123;</span><br><span class="line">    Test t;</span><br><span class="line"></span><br><span class="line">    t.set_a(<span class="number">325</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> fd;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((fd = open(<span class="string">"data.bin"</span>, O_RDWR | O_CREAT, <span class="number">0666</span>)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    t.SerializeToFileDescriptor(fd);</span><br><span class="line"></span><br><span class="line">    close(fd);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以十六进制的方式，查看序列化后的<code>data.bin</code>文件，生成的结果为:</p>
+<pre><code>08 c5 02
+</code></pre><p>其中第1个字节0x08的后3位表示type，结果为0，对应于int32的类型。将0x08后移3位，结果为1，对应于字段a。</p>
+<h4 id="ZigZag-编码"><a href="#ZigZag-编码" class="headerlink" title="ZigZag 编码"></a>ZigZag 编码</h4><p>类型0表示varint，其中包含int32/int64/uint32/uint64/sint32/sint64/bool/enum。对于负数，如：-1。如果使用int32/int64表示一个负数，采用varint编码，因为int32/int64要相互兼容，则会使用10个字节来表示。</p>
+<p>如使用上面的代码，设置a的值为-1，序列化到文件：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">t.set_a(<span class="number">-1</span>);</span><br></pre></td></tr></table></figure>
+<p>以十六进制的方式，查看序列化后的<code>data.bin</code>文件，生成的结果为:</p>
+<pre><code>08 ff ff ff ff ff ff ff  ff ff 01
+</code></pre><p>所以对于负数，如果使用的是sint32/sint64，则protobuf会使用ZigZag编码，zigzag 编码将整数范围一一映射到自然数范围，然后再进行varint编，其编码后的结果将会更加高效。</p>
+<p>如下是ZigZag对照表：</p>
+<p><img src="images/protobuf/zigzag.png" alt="zigzag.png"></p>
+<p>zigzag将负数编码成正奇数，正数编码成偶数。解码的时候遇到偶数直接除2就是原值，遇到奇数就加1除2再取负就是原值。</p>
+<p>如将上面的字段a定义为sint32类型:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">syntax = <span class="string">"proto3"</span>;</span><br><span class="line"></span><br><span class="line">message Test &#123;</span><br><span class="line">    sint32 a = <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>设置a的值为-1，序列化到文件：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">t.set_a(<span class="number">-1</span>);</span><br></pre></td></tr></table></figure>
+<p>以十六进制的方式，查看序列化后的<code>data.bin</code>文件，生成的结果为:</p>
+<pre><code>08 01
+</code></pre><p>可见，对于-1使用sint32类型后只占用1个字节。</p>
+<h4 id="Length-delimited"><a href="#Length-delimited" class="headerlink" title="Length-delimited"></a>Length-delimited</h4><p>对于string, bytes, embedded messages, packed repeated fields，protobuf使用的是长度前缀编码。第一个字节是字符串的长度，后面相应长度的字节串就是字符串的内容，长度采用的是varint编码。</p>
+<h5 id="string"><a href="#string" class="headerlink" title="string"></a>string</h5><p>如下代码，定义以了一个string类型的name字段：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">syntax = <span class="string">"proto3"</span>;</span><br><span class="line"></span><br><span class="line">message Test &#123;</span><br><span class="line">    <span class="built_in">string</span> name = <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>设置字段name的值，把序列化后的结果保存到文件中：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">t.set_name(<span class="string">"lisa"</span>);</span><br></pre></td></tr></table></figure>
+<p>以十六进制的方式，查看序列化后的结果：</p>
+<pre><code>0a 04 6c 69 73 61
+</code></pre><p>序列化后各个字节表示的结果如下：</p>
+<p><img src="/images/protobuf/string_encode.png" alt="string_encode.png"></p>
+<h5 id="repeated"><a href="#repeated" class="headerlink" title="repeated"></a>repeated</h5><p>如下代码，定义以了一个repeated修饰的email字段：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">syntax = <span class="string">"proto3"</span>;</span><br><span class="line"></span><br><span class="line">message Test &#123;</span><br><span class="line">    repeated <span class="built_in">string</span> email = <span class="number">3</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>设置字段email的值，把序列化后的结果保存到文件中：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">t.add_email(<span class="string">"test@gmail.com"</span>);</span><br><span class="line">t.add_email(<span class="string">"test@163.com"</span>);</span><br><span class="line">t.add_email(<span class="string">"test@qq.com"</span>);</span><br></pre></td></tr></table></figure>
+<p>以十六进制的方式，查看序列化后的结果：</p>
+<pre><code>00000000  1a 0e 74 65 73 74 40 67  6d 61 69 6c 2e 63 6f 6d  |..test@gmail.com|
+00000010  1a 0c 74 65 73 74 40 31  36 33 2e 63 6f 6d 1a 0b  |..test@163.com..|
+00000020  74 65 73 74 40 71 71 2e  63 6f 6d                 |test@qq.com|
+</code></pre><p>序列化后各个字节表示的结果如下：</p>
+<p><img src="/images/protobuf/repeated_encode.png" alt="repeated_encode.png"></p>
+<h5 id="message"><a href="#message" class="headerlink" title="message"></a>message</h5><p>如下代码，定义以了一个message结构的的address字段：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">syntax = <span class="string">"proto3"</span>;</span><br><span class="line"></span><br><span class="line">message Test &#123;</span><br><span class="line">    message Address &#123;</span><br><span class="line">        <span class="built_in">string</span> country = <span class="number">1</span>;</span><br><span class="line">        <span class="built_in">string</span> city = <span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    Address address = <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>设置字段address的值，把序列化后的结果保存到文件中：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Test_Address* address = t.mutable_address();</span><br><span class="line">address-&gt;set_country(<span class="string">"China"</span>);</span><br><span class="line">address-&gt;set_city(<span class="string">"GuangZhou"</span>);</span><br></pre></td></tr></table></figure>
+<p>以十六进制的方式，查看序列化后的结果：</p>
+<pre><code>00000000  0a 12 0a 05 43 68 69 6e  61 12 09 47 75 61 6e 67  |....China..Guang|
+00000010  5a 68 6f 75                                       |Zhou|
+</code></pre><p>序列化后各个字节表示的结果如下：</p>
+<p><img src="/images/protobuf/message_encode.png" alt="message_encode.png"></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/08/25/protobuf/" rel="next" title="protobuf">
+                <i class="fa fa-chevron-left"></i> protobuf
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/09/08/graphviz/" rel="prev" title="graphviz">
+                graphviz <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">46</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#varint-编码"><span class="nav-number">1.</span> <span class="nav-text">varint 编码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#message-数据格式"><span class="nav-number">2.</span> <span class="nav-text">message 数据格式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ZigZag-编码"><span class="nav-number">3.</span> <span class="nav-text">ZigZag 编码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Length-delimited"><span class="nav-number">4.</span> <span class="nav-text">Length-delimited</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#string"><span class="nav-number">4.1.</span> <span class="nav-text">string</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#repeated"><span class="nav-number">4.2.</span> <span class="nav-text">repeated</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#message"><span class="nav-number">4.3.</span> <span class="nav-text">message</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
