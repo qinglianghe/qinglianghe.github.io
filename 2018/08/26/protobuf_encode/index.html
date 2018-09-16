@@ -79,12 +79,12 @@
 
 
 
-<meta name="description" content="protobuf能够跨平台提供轻量的序列化和反序列化，得益于其平台无关的编码格式，下面分析protobuf的编码格式。 varint 编码消息传递中大部分使用的整数值都是很小的非负整数，如果全部使用4个字节来表示一个整数会很浪费。所以就发明了一个类型叫变长整数varint。数值非常小时，只需要使用一个字节来存储(如：0">
+<meta name="description" content="protobuf能够跨平台提供轻量的序列化和反序列化，得益于其平台无关的编码格式，下面分析protobuf的编码格式。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="protobuf数据编码">
 <meta property="og:url" content="http://yoursite.com/2018/08/26/protobuf_encode/index.html">
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
-<meta property="og:description" content="protobuf能够跨平台提供轻量的序列化和反序列化，得益于其平台无关的编码格式，下面分析protobuf的编码格式。 varint 编码消息传递中大部分使用的整数值都是很小的非负整数，如果全部使用4个字节来表示一个整数会很浪费。所以就发明了一个类型叫变长整数varint。数值非常小时，只需要使用一个字节来存储(如：0~127)，数值稍微大一点可以使用2个字节，再大一点就是3个字节，它还可以超过">
+<meta property="og:description" content="protobuf能够跨平台提供轻量的序列化和反序列化，得益于其平台无关的编码格式，下面分析protobuf的编码格式。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/08/26/protobuf_encode/images/protobuf/varint.png">
 <meta property="og:image" content="http://yoursite.com/2018/08/26/protobuf_encode/images/protobuf/varint-325.png">
@@ -93,10 +93,10 @@
 <meta property="og:image" content="http://yoursite.com/images/protobuf/string_encode.png">
 <meta property="og:image" content="http://yoursite.com/images/protobuf/repeated_encode.png">
 <meta property="og:image" content="http://yoursite.com/images/protobuf/message_encode.png">
-<meta property="og:updated_time" content="2018-09-16T00:20:59.000Z">
+<meta property="og:updated_time" content="2018-09-16T00:25:13.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="protobuf数据编码">
-<meta name="twitter:description" content="protobuf能够跨平台提供轻量的序列化和反序列化，得益于其平台无关的编码格式，下面分析protobuf的编码格式。 varint 编码消息传递中大部分使用的整数值都是很小的非负整数，如果全部使用4个字节来表示一个整数会很浪费。所以就发明了一个类型叫变长整数varint。数值非常小时，只需要使用一个字节来存储(如：0~127)，数值稍微大一点可以使用2个字节，再大一点就是3个字节，它还可以超过">
+<meta name="twitter:description" content="protobuf能够跨平台提供轻量的序列化和反序列化，得益于其平台无关的编码格式，下面分析protobuf的编码格式。">
 <meta name="twitter:image" content="http://yoursite.com/2018/08/26/protobuf_encode/images/protobuf/varint.png">
 
 
@@ -309,6 +309,7 @@
       
         <hr>
 <p>protobuf能够跨平台提供轻量的序列化和反序列化，得益于其平台无关的编码格式，下面分析protobuf的编码格式。</p>
+<a id="more"></a>
 <h4 id="varint-编码"><a href="#varint-编码" class="headerlink" title="varint 编码"></a>varint 编码</h4><p>消息传递中大部分使用的整数值都是很小的非负整数，如果全部使用4个字节来表示一个整数会很浪费。所以就发明了一个类型叫变长整数varint。数值非常小时，只需要使用一个字节来存储(如：0~127)，数值稍微大一点可以使用2个字节，再大一点就是3个字节，它还可以超过4个字节用来表达长整形数字。</p>
 <p>其原理也很简单，就是保留每个字节的最高位的 bit 来标识是否后面还有字节，1 表示还有字节需要继续读，0 表示到读到当前字节就结束。</p>
 <p><img src="images/protobuf/varint.png" alt="varint.png"></p>

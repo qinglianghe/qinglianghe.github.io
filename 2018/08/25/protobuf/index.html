@@ -87,7 +87,7 @@
 <meta property="og:description" content="protobuf是由Google开源的一种轻便高效的结构化数据存储格式，与平台无关、语言无关、可扩展、可用于通讯协议和数据存储等领域。与xml和json相比，它序列化后的数据的大小更小、编解码速度更快。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/images/protobuf/type.png">
-<meta property="og:updated_time" content="2018-09-13T04:55:09.000Z">
+<meta property="og:updated_time" content="2018-09-14T00:17:45.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="protobuf">
 <meta name="twitter:description" content="protobuf是由Google开源的一种轻便高效的结构化数据存储格式，与平台无关、语言无关、可扩展、可用于通讯协议和数据存储等领域。与xml和json相比，它序列化后的数据的大小更小、编解码速度更快。">
@@ -313,7 +313,7 @@ libprotoc 3.0.0
 <p><code>syntax = &quot;proto3&quot;</code>表示使用proto3语法：如果没有指定这个，编译器会使用proto2。</p>
 <h5 id="字段类型"><a href="#字段类型" class="headerlink" title="字段类型"></a>字段类型</h5><p>如上面的Person的message，定义了一个string类型的name字段和一个int32类型的age字段。字段可以指定为其他类型，如下表展示了定义于.proto文件中的类型，与之对应的、在自动生成的访问类中定义相应语言的类型。字段的类型也可以为枚举或其他消息类型。</p>
 <p><img src="/images/protobuf/type.png" alt="type.png"></p>
-<h5 id="字段的-id"><a href="#字段的-id" class="headerlink" title="字段的 id"></a>字段的 id</h5><p>每个字段都有唯一的一个id。这些id是用来在消息的二进制格式中识别各个字段的，一旦开始使用就不能够再改变。注：[1,15]之内的id在编码的时候会占用一个字节。[16,2047]之内的id则占用2个字节。所以应该为那些频繁出现的消息元素保留 [1,15]之内的id。切记：要为将来有可能添加的、频繁出现的id预留一些id。</p>
+<h5 id="字段的-id"><a href="#字段的-id" class="headerlink" title="字段的 id"></a>字段的 id</h5><p>每个字段都有唯一的一个id。这些id是用来在消息的二进制格式中识别各个字段的，一旦开始使用就不能够再改变。注：[1,15]之内的id在编码的时候会占用一个字节。[16,2047]之内的id则占用2个字节。所以应该为那些频繁出现的消息元素保留[1,15]之内的id。切记：要为将来有可能添加的、频繁出现的id预留一些id。</p>
 <p>最小的id可以从1开始，最大到2^29 - 1, or 536,870,911。不可以使用其中的[19000－19999]（ (从FieldDescriptor::kFirstReservedNumber 到 FieldDescriptor::kLastReservedNumber)）的id， Protobuf协议实现中对这些进行了预留。如果非要在.proto文件中使用这些预留id，编译时就会报警。同样你也不能使用早期保留的id。</p>
 <h5 id="指定字段规则"><a href="#指定字段规则" class="headerlink" title="指定字段规则"></a>指定字段规则</h5><p>proto3 所指定的消息字段修饰符必须是如下之一：</p>
 <ul>
