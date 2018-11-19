@@ -88,7 +88,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/images/docker/vm_container.png">
 <meta property="og:image" content="http://yoursite.com/images/docker/docker_hub.png">
-<meta property="og:updated_time" content="2018-11-14T23:23:05.000Z">
+<meta property="og:updated_time" content="2018-11-14T23:47:43.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Docker">
 <meta name="twitter:description" content="Docker属于Linux容器的一种封装，提供简单易用的容器使用接口。它是目前最流行的Linux容器解决方案。Docker将应用程序与该程序的依赖，打包在一个文件里面。运行这个文件，就会生成一个虚拟容器。">
@@ -419,7 +419,7 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
 6829b0656df7        centos              &quot;/bin/bash&quot;         5 minutes ago       Up 5 minutes  
 </code></pre><h4 id="构建自己的image"><a href="#构建自己的image" class="headerlink" title="构建自己的image"></a>构建自己的image</h4><p>创建一个<code>hello-world</code>目录，在该目录下创建一个<code>hello.c</code>的程序：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line"></span><br><span class="line">int main(int argc, char *argv[]) &#123;</span><br><span class="line">    printf(&quot;hello Docker!!!\n&quot;);</span><br><span class="line"></span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"hello Docker!!!\n"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>编译<code>hello.c</code>的程序：</p>
 <pre><code>gcc -static hello.c -o hello
 </code></pre><p>在当前目录下创建如下的Dockerfile:</p>
@@ -492,6 +492,10 @@ latest: digest: sha256:603c97629b6f0ccfd7a07af90d750ca0efd52dd51d8d5b6a901f1a98e
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/10/09/dcoker_02/" rel="prev" title="Dockerfile">
+                Dockerfile <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -572,7 +576,7 @@ latest: digest: sha256:603c97629b6f0ccfd7a07af90d750ca0efd52dd51d8d5b6a901f1a98e
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">48</span>
+                  <span class="site-state-item-count">49</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
