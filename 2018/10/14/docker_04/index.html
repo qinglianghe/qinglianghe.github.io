@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Docker的image是只读的，容器运行期间产生的数据是不会在写入到image里面，当容器被删除后，数据也随之被删除。如果想做到数据持久化，Docker使用Data volume或者Bind Mounting来持久化数据。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker的数据持久化、docker Compose">
+<meta property="og:url" content="http://yoursite.com/2018/10/14/docker_04/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="Docker的image是只读的，容器运行期间产生的数据是不会在写入到image里面，当容器被删除后，数据也随之被删除。如果想做到数据持久化，Docker使用Data volume或者Bind Mounting来持久化数据。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/docker/nginx_hello_docker.png">
+<meta property="og:image" content="http://yoursite.com/images/docker/nginx_hello_world.png">
+<meta property="og:updated_time" content="2018-11-14T23:22:59.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker的数据持久化、docker Compose">
+<meta name="twitter:description" content="Docker的image是只读的，容器运行期间产生的数据是不会在写入到image里面，当容器被删除后，数据也随之被删除。如果想做到数据持久化，Docker使用Data volume或者Bind Mounting来持久化数据。">
+<meta name="twitter:image" content="http://yoursite.com/images/docker/nginx_hello_docker.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/10/14/docker_04/"/>
+
+
+
+
+
+  <title>Docker的数据持久化、docker Compose | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/14/docker_04/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Docker的数据持久化、docker Compose</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-14T00:00:00+08:00">
+                2018-10-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<p>Docker的image是只读的，容器运行期间产生的数据是不会在写入到image里面，当容器被删除后，数据也随之被删除。如果想做到数据持久化，Docker使用Data volume或者Bind Mounting来持久化数据。<a id="more"></a></p>
+<p>如果想要简化多容器的部署，则可以使用Docker Compose。</p>
+<h3 id="Docker的数据持久化"><a href="#Docker的数据持久化" class="headerlink" title="Docker的数据持久化"></a>Docker的数据持久化</h3><h4 id="Data-volume"><a href="#Data-volume" class="headerlink" title="Data volume"></a>Data volume</h4><p>Data volume除了可以持久化数据，还提供以下特性：</p>
+<ul>
+<li><p>Data volume可以在容器之间共享和重用</p>
+</li>
+<li><p>对Data volume的修改会立马生效</p>
+</li>
+<li><p>对Data volume的更新，不会影响镜像</p>
+</li>
+<li><p>Data volume默认会一直存在，即使容器被删除</p>
+</li>
+</ul>
+<p>在Dockerfile中，可以使用<code>VOLUME</code>指令指定数据的挂载点。如下是mysql官方的Dockerfile，可以看到mysql的VOLUME挂载点：</p>
+<pre><code>VOLUME /var/lib/mysql
+</code></pre><p>如下命令，运行一个mysql容器：</p>
+<pre><code>docker run -d -v mysql:/var/lib/mysql --name mysql -e MYSQL_ALLOW_EMPTY_PASSWORD=true mysql:5.6
+</code></pre><p>使用<code>docker volume ls</code>可以看到：</p>
+<pre><code>ubuntu@docker-node1:~$ docker volume ls
+local               mysql
+</code></pre><p>进入mysql的容器，创建一个数据库docker:</p>
+<pre><code>ubuntu@docker-node1:~$ docker exec -it mysql /bin/bash
+root@937b2ceaf848:/# mysql
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 1
+Server version: 5.6.42 MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2018, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type &apos;help;&apos; or &apos;\h&apos; for help. Type &apos;\c&apos; to clear the current input statement.
+
+mysql&gt; SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
++--------------------+
+3 rows in set (0.00 sec)
+
+mysql&gt; CREATE DATABASE docker;
+Query OK, 1 row affected (0.00 sec)
+
+mysql&gt; SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| docker             |
+| mysql              |
+| performance_schema |
++--------------------+
+4 rows in set (0.00 sec)
+
+mysql&gt;
+</code></pre><p>退出mysql的容器，并删除mysql容器：</p>
+<pre><code>ubuntu@docker-node1:~$ docker rm -f mysql
+mysql
+</code></pre><p>创建一个mysql-another的容器，并使用原来的mysql的VOLUME：</p>
+<pre><code>ubuntu@docker-node1:~$ docker run -d -v mysql:/var/lib/mysql --name mysql-another -e MYSQL_ALLOW_EMPTY_PASSWORD=true mysql:5.6
+</code></pre><p>进入mysql-another的容器，可以看到数据库docker还存在：</p>
+<pre><code>ubuntu@docker-node1:~$ docker exec -it mysql-another /bin/bash
+root@97ea74e7f222:/# mysql
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 1
+Server version: 5.6.42 MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2018, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type &apos;help;&apos; or &apos;\h&apos; for help. Type &apos;\c&apos; to clear the current input statement.
+
+mysql&gt; SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| docker             |
+| mysql              |
+| performance_schema |
++--------------------+
+4 rows in set (0.00 sec)
+
+mysql&gt;
+</code></pre><h4 id="Bind-Mounting"><a href="#Bind-Mounting" class="headerlink" title="Bind Mounting"></a>Bind Mounting</h4><p>Bind Mounting是将本地目录和容器目录进行映射，当本地目录中文件更改，对应的容器目录中的文件也会更改。</p>
+<p>如下Dockerfile，是拉取一个nginx的image，并把当前目录下的index.html拷贝到容器的/usr/share/nginx/html：</p>
+<pre><code>FROM nginx:latest
+WORKDIR /usr/share/nginx/html
+COPY index.html index.html
+</code></pre><p>index.html的内容为：</p>
+<pre><code>&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot;&gt;
+    &lt;title&gt;hello&lt;/title&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+    &lt;h1&gt;Hello Docker! &lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre><p>构建image：</p>
+<pre><code>ubuntu@docker-node1:~/nginx-demo$ docker build -t heqingliang/nginx-demo .
+</code></pre><p>运行容器时，将本地目录挂载到容器的<code>/usr/share/nginx/html</code>目录：</p>
+<pre><code>ubuntu@docker-node1:~/nginx-demo$ docker run -d -v $(pwd):/usr/share/nginx/html -p 80:80 --name web heqingliang/nginx-demo
+2d5dd44d42a6a9102ec66adb5e817270ef14b79b6c8755330a8903ffbaa43434
+ubuntu@docker-node1:~/nginx-demo$ docker ps
+CONTAINER ID        IMAGE                    COMMAND                  CREATED             STATUS              PORTS                NAMES
+2d5dd44d42a6        heqingliang/nginx-demo   &quot;nginx -g &apos;daemon ...&quot;   3 seconds ago       Up 3 seconds        0.0.0.0:80-&gt;80/tcp   web
+</code></pre><p>在浏览器中输入<code>http://192.168.33.10/</code>，可以看到如下结果：</p>
+<p><img src="/images/docker/nginx_hello_docker.png" alt="nginx_hello_docker.png"></p>
+<p>进入web容器的<code>/usr/share/nginx/html</code>目录，创建一个test.txt文件：</p>
+<pre><code>ubuntu@docker-node1:~/nginx-demo$ docker exec -it web /bin/bash
+root@2d5dd44d42a6:/usr/share/nginx/html# echo &quot;abc&quot; &gt; test.txt
+</code></pre><p>退出web容器，可以看到当前目录也创建了一个test.txt文件，内容和容器中是一样的：</p>
+<pre><code>ubuntu@docker-node1:~/nginx-demo$ ls
+Dockerfile  index.html  test.txt
+ubuntu@docker-node1:~/nginx-demo$ cat test.txt
+abc
+</code></pre><p>修改本地目录的下的index.html文件为:</p>
+<pre><code>&lt;h1&gt;Hello World! &lt;/h1&gt;
+</code></pre><p>在浏览器中输入<code>http://192.168.33.10/</code>，可以看到如下结果：</p>
+<p><img src="/images/docker/nginx_hello_world.png" alt="nginx_hello_world.png"></p>
+<h3 id="Docker-Compose"><a href="#Docker-Compose" class="headerlink" title="Docker Compose"></a>Docker Compose</h3><p>在多个容器的APP部署会存在以下的问题：</p>
+<ul>
+<li><p>要从Dockerfile build image或者从DockerHub中拉取镜像</p>
+</li>
+<li><p>要创建多个container</p>
+</li>
+<li><p>要管理这些container(启动、删除、停止)</p>
+</li>
+</ul>
+<p>Docker Compose是解决上面问题的”批处理”工具，这个工具可以通过一个yml文件定义多容器的docker应用，通过一条命令就可以根据yml文件的定义去创建或者管理多个容器。</p>
+<p>在Docker Compose包含services、networks、volumes三大部分：</p>
+<ul>
+<li><p>services：一个service代表一个container，这个container可以从DockerHub中拉取的image来创建，或者从本地的Dockerfile build出来的image来创建，service的启动类似docker run，可以指定network和volume，所以可以给service</p>
+</li>
+<li><p>networks：代表创建的docker网络</p>
+</li>
+<li><p>volumes：数据持久化</p>
+</li>
+</ul>
+<p>有如下yml文件：</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">vsersion:</span> <span class="string">"3"</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line"><span class="attr">  db:</span></span><br><span class="line"><span class="attr">    images:</span> <span class="attr">postgres:9.4</span></span><br><span class="line"><span class="attr">    volumes:</span></span><br><span class="line"><span class="bullet">     -</span> <span class="string">"db-data:/var/lib/postgresql/data"</span></span><br><span class="line"><span class="attr">    networks:</span></span><br><span class="line"><span class="bullet">     -</span> <span class="string">back-tier</span></span><br><span class="line"></span><br><span class="line"><span class="attr">volumes:</span></span><br><span class="line"><span class="attr">  db-data:</span></span><br><span class="line"></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line"><span class="attr">  back-tier:</span></span><br><span class="line"><span class="attr">    driver:</span> <span class="string">bridge</span></span><br></pre></td></tr></table></figure>
+<p>定义service相当于执行如下docker命令：</p>
+<pre><code>docker run -d --network back-tier -v db-data:/var/lib/postgresql/data postgres:9.4
+</code></pre><p>定义volumes相当于执行如下docker命令：</p>
+<pre><code>docker volume create db-data
+</code></pre><p>定义networks相当于执行如下docker命令：</p>
+<pre><code>docker network create -d bridge back-tier
+</code></pre><h4 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h4><p>在linux系统中，安装docker并没有安装docker-compose，需要单独安装：</p>
+<pre><code>ubuntu@docker-node1:~/flask-redis$ sudo curl -L https://github.com/docker/compose/releases/download/1.16.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+ubuntu@docker-node1:~$ sudo chmod +x /usr/local/bin/docker-compose
+</code></pre><h4 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h4><p>有如下python程序，使用redis来记录每次访问web页面的次数，在部署时，可以把redis和应用程序部署在不同容器中：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">    flask demo</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"></span><br><span class="line">__author__ = <span class="string">'heqingliang'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask</span><br><span class="line"><span class="keyword">from</span> redis <span class="keyword">import</span> Redis</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line">redis = Redis(host=os.environ.get(<span class="string">'REDIS_HOST'</span>, <span class="string">'127.0.0.1'</span>), port=<span class="number">6379</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/', methods=['GET', 'POST'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">()</span>:</span></span><br><span class="line">    redis.incr(<span class="string">'hits'</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="string">'&lt;h1&gt;Hello Container, I have been seen %s times.&lt;/h1&gt;'</span> % (redis.get(<span class="string">'hits'</span>))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">    app.run(host=<span class="string">"0.0.0.0"</span>, port=<span class="number">5000</span>, debug=<span class="keyword">True</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+<p>如下是app.py程序的Dockerfile:</p>
+<pre><code>FROM python
+LABEL maintainer=&quot;heqingliang_gzus@163.com&quot;
+RUN pip install flask redis
+COPY app.py /app/
+WORKDIR /app
+EXPOSE 5000
+CMD [&quot;python&quot;, &quot;app.py&quot;]
+</code></pre><p>定义如下docker-compose.yml文件：</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">"3"</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line"><span class="attr">  redis:</span></span><br><span class="line"><span class="attr">    image:</span> <span class="string">redis</span></span><br><span class="line"></span><br><span class="line"><span class="attr">web:</span></span><br><span class="line"><span class="attr">  build:</span></span><br><span class="line"><span class="attr">    context:</span> <span class="string">.</span></span><br><span class="line"><span class="attr">    dockerfile:</span> <span class="string">Dockerfile</span></span><br><span class="line"><span class="attr">    ports:</span></span><br><span class="line"><span class="bullet">     -</span> <span class="number">5000</span><span class="string">:5000</span></span><br><span class="line"><span class="attr">    environment:</span></span><br><span class="line"><span class="attr">      REDIS_HOST:</span> <span class="string">redis</span></span><br></pre></td></tr></table></figure>
+<h5 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h5><p>执行下面的命令，就可以创建和启动容器：</p>
+<pre><code>ubuntu@docker-node1:~/flask-redis$ docker-compose up -d
+Creating network &quot;flaskredis_default&quot; with the default driver
+Creating flaskredis_web_1 ...
+Creating flaskredis_redis_1 ...
+Creating flaskredis_web_1
+Creating flaskredis_redis_1 ... done
+</code></pre><p>启动默认执行的是当前目录下的docer-compose.yml，如果想要执行指定的docer-compose.yml，可以使用<code>-f</code>参数指定：</p>
+<pre><code>docker-compose -f docker-compose.yml up -d
+</code></pre><p><code>-d</code>参数表示在后台执行，如果想要查看启动的信息，可以把<code>-d</code>参数去掉。</p>
+<p>访问<code>127.0.0.1:5000</code>，可以看到如下结果：</p>
+<pre><code>ubuntu@docker-node1:~/flask-redis$ curl 127.0.0.1:5000
+&lt;h1&gt;Hello Container, I have been seen b&apos;1&apos; times.&lt;/h1&gt;
+ubuntu@docker-node1:~/flask-redis$ curl 127.0.0.1:5000
+&lt;h1&gt;Hello Container, I have been seen b&apos;2&apos; times.&lt;/h1&gt;
+ubuntu@docker-node1:~/flask-redis$ curl 127.0.0.1:5000
+&lt;h1&gt;Hello Container, I have been seen b&apos;3&apos; times.&lt;/h1&gt;
+</code></pre><p>上面的<code>docer-compose.yml</code>并没有创建自定义的网络，但是也可以直接使用redis容器的名字，直接通信，那是因为docker-compose创建了一个默认的网络<code>flaskredis_default</code>：</p>
+<pre><code>ubuntu@docker-node1:~/flask-redis$ docker network ls
+NETWORK ID          NAME                 DRIVER              SCOPE
+48a159571164        bridge               bridge              local
+ff50d198b5dc        docker_gwbridge      bridge              local
+182def1a98fa        flaskredis_default   bridge              local
+65e22acf0beb        host                 host                local
+c305a4b53c3b        none                 null                local
+</code></pre><h5 id="查看容器的运行状态"><a href="#查看容器的运行状态" class="headerlink" title="查看容器的运行状态"></a>查看容器的运行状态</h5><pre><code>ubuntu@docker-node1:~/flask-redis$ docker-compose ps
+   Name                   Command             State           Ports
+--------------------------------------------------------------------------------
+flaskredis_redis_1   docker-entrypoint.sh redis   Up      6379/tcp
+                    ...
+flaskredis_web_1     python app.py                Up      0.0.0.0:5000-&gt;5000/tcp
+</code></pre><h5 id="查看镜像"><a href="#查看镜像" class="headerlink" title="查看镜像"></a>查看镜像</h5><pre><code>ubuntu@docker-node1:~/flask-redis$ docker-compose images
+Container          Repository      Tag       Image Id      Size
+---------------------------------------------------------------------
+flaskredis_redis_1   redis            latest   415381a6cb81   90.5 MB
+flaskredis_web_1     flaskredis_web   latest   0a1d5cbead89   889 MB
+</code></pre><h5 id="停止运行的容器"><a href="#停止运行的容器" class="headerlink" title="停止运行的容器"></a>停止运行的容器</h5><pre><code>ubuntu@docker-node1:~/flask-redis$ docker-compose stop
+Stopping flaskredis_redis_1 ... done
+Stopping flaskredis_web_1   ... done
+</code></pre><h5 id="重新启动容器"><a href="#重新启动容器" class="headerlink" title="重新启动容器"></a>重新启动容器</h5><pre><code>ubuntu@docker-node1:~/flask-redis$ docker-compose start
+Starting web   ... done
+Starting redis ... done
+</code></pre><h5 id="进入到某个容器中"><a href="#进入到某个容器中" class="headerlink" title="进入到某个容器中"></a>进入到某个容器中</h5><pre><code>ubuntu@docker-node1:~/flask-redis$ docker-compose exec redis bash
+root@3375d56db073:/data#
+</code></pre><h5 id="停止并删除容器"><a href="#停止并删除容器" class="headerlink" title="停止并删除容器"></a>停止并删除容器</h5><pre><code>ubuntu@docker-node1:~/flask-redis$ docker-compose down
+Stopping flaskredis_redis_1 ... done
+Stopping flaskredis_web_1   ... done
+Removing flaskredis_redis_1 ... done
+Removing flaskredis_web_1   ... done
+Removing network flaskredis_default
+</code></pre>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/10/11/docker_03/" rel="next" title="Docker的网络">
+                <i class="fa fa-chevron-left"></i> Docker的网络
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">51</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Docker的数据持久化"><span class="nav-number">1.</span> <span class="nav-text">Docker的数据持久化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Data-volume"><span class="nav-number">1.1.</span> <span class="nav-text">Data volume</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Bind-Mounting"><span class="nav-number">1.2.</span> <span class="nav-text">Bind Mounting</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Docker-Compose"><span class="nav-number">2.</span> <span class="nav-text">Docker Compose</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#安装"><span class="nav-number">2.1.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#例子"><span class="nav-number">2.2.</span> <span class="nav-text">例子</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#启动"><span class="nav-number">2.2.1.</span> <span class="nav-text">启动</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#查看容器的运行状态"><span class="nav-number">2.2.2.</span> <span class="nav-text">查看容器的运行状态</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#查看镜像"><span class="nav-number">2.2.3.</span> <span class="nav-text">查看镜像</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#停止运行的容器"><span class="nav-number">2.2.4.</span> <span class="nav-text">停止运行的容器</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#重新启动容器"><span class="nav-number">2.2.5.</span> <span class="nav-text">重新启动容器</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#进入到某个容器中"><span class="nav-number">2.2.6.</span> <span class="nav-text">进入到某个容器中</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#停止并删除容器"><span class="nav-number">2.2.7.</span> <span class="nav-text">停止并删除容器</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
