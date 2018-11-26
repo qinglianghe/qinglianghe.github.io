@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Consul是golang开发的一个高可用的分布式服务注册系统，有service discovery和key/value，健康检查, 节点选举，多数据中心等功能，与zookeeper和etcd等相似。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Consul做服务发现">
+<meta property="og:url" content="http://yoursite.com/2018/11/03/consul/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="Consul是golang开发的一个高可用的分布式服务注册系统，有service discovery和key/value，健康检查, 节点选举，多数据中心等功能，与zookeeper和etcd等相似。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/consul/consul_arch.png">
+<meta property="og:image" content="http://yoursite.com/consul/consul_members.png">
+<meta property="og:image" content="http://yoursite.com/consul/consul_service_discovery.png">
+<meta property="og:image" content="http://yoursite.com/consul/consul_hello_service.png">
+<meta property="og:image" content="http://yoursite.com/consul/consul_hello_service_2.png">
+<meta property="og:updated_time" content="2018-11-25T19:26:56.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用Consul做服务发现">
+<meta name="twitter:description" content="Consul是golang开发的一个高可用的分布式服务注册系统，有service discovery和key/value，健康检查, 节点选举，多数据中心等功能，与zookeeper和etcd等相似。">
+<meta name="twitter:image" content="http://yoursite.com/consul/consul_arch.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/03/consul/"/>
+
+
+
+
+
+  <title>使用Consul做服务发现 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/03/consul/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">使用Consul做服务发现</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-03T00:00:00+08:00">
+                2018-11-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<p>Consul是golang开发的一个高可用的分布式服务注册系统，有service discovery和key/value，健康检查, 节点选举，多数据中心等功能，与zookeeper和etcd等相似。</p>
+<a id="more"></a>
+<h3 id="zookeeper和Consul比较"><a href="#zookeeper和Consul比较" class="headerlink" title="zookeeper和Consul比较"></a>zookeeper和Consul比较</h3><ul>
+<li><p>开发语言方面，zookeeper采用java开发，安装的时候需要部署java环境；Consul采用golang开发，所有依赖都编译到了可执行程序中。</p>
+</li>
+<li><p>部署方面，zookeeper一般部署奇数个节点方便做简单多数的选举机制。Consul部署的时候分server节点和client节点（通过不同的启动参数区分），server节点做leader选举和数据一致性维护，client节点部署在服务机器上，作为服务程序访问Consul的接口。</p>
+</li>
+<li><p>一致性协议方面，zookeeper使用自定义的zab协议，Consul的一致性协议采用更流行的Raft。</p>
+</li>
+<li><p>zookeeper不支持多数据中心，Consul可以跨机房支持多数据中心部署，有效避免了单数据中心故障不能访问的情况。</p>
+</li>
+<li><p>链接方式上，zookeeper client api和服务器保持长连接，需要服务程序自行管理和维护链接有效性，服务程序注册回调函数处理zookeeper事件，并自己维护在zookeeper上建立的目录结构有效性（如临时节点维护；Consul采用DNS或者http获取服务信息，没有主动通知，需要自己轮训获取。</p>
+</li>
+</ul>
+<h3 id="Consul工作原理"><a href="#Consul工作原理" class="headerlink" title="Consul工作原理"></a>Consul工作原理</h3><p>下面这张图来源于Consul官网，很好的解释了Consul的工作原理：</p>
+<p><img src="/consul/consul_arch.png" alt="consul_arch.png"></p>
+<p>Consul支持多数据中心，在上图中有两个DataCenter，他们通过Internet互联，同时请注意为了提高通信效率，只有Server节点才加入跨数据中心的通信。</p>
+<p>在单个数据中心中，Consul分为Client和Server两种节点（所有的节点也被称为Agent），Server节点保存数据，Client负责健康检查及转发数据请求到Server；Server节点有一个Leader和多个Follower，Leader节点会将数据同步到Follower，Server的数量推荐是3个或者5个，在Leader挂掉的时候会启动选举机制产生一个新的Leader。</p>
+<p>集群内的Consul节点通过gossip协议（流言协议）维护成员关系，也就是说某个节点了解集群内现在还有哪些节点，这些节点是Client还是Server。单个数据中心的流言协议同时使用TCP和UDP通信，并且都使用8301端口。跨数据中心的流言协议也同时使用TCP和UDP通信，端口使用8302。</p>
+<p>集群内数据的读写请求既可以直接发到Server，也可以通过Client使用RPC转发到Server，请求最终会到达Leader节点，在允许数据轻微陈旧的情况下，读请求也可以在普通的Server节点完成，集群内数据的读写和复制都是通过TCP的8300端口完成。</p>
+<h3 id="安装Consul"><a href="#安装Consul" class="headerlink" title="安装Consul"></a>安装Consul</h3><p>在<a href="https://www.consul.io/downloads.html" target="_blank" rel="noopener">https://www.consul.io/downloads.html</a>下载对应平台的安装包，在Linux平台，只需要把对应的可执行文件拷贝到可执行路径即可。安装成功后，执行如下命令可以看到：</p>
+<pre><code>[heql@ubuntu ~]$ consul --version
+Consul v1.3.0
+Protocol 2 spoken by default, understands 2 to 3 (agent will automatically use protocol &gt;2 when speaking to compatible agents)
+</code></pre><p>Consul一般运行在集群模式下，通常一个数据中心需要3个或者5个server mode, 其他的运行client mode。Consul也提供开发模式用于启动单节点服务供开发调试用，运行下面的命令的可以启动Consul的开发模式：</p>
+<pre><code>[heql@ubuntu ~]$ consul agent -dev
+</code></pre><h3 id="Consul集群"><a href="#Consul集群" class="headerlink" title="Consul集群"></a>Consul集群</h3><p>Consul运行在集群模式时，一般需要3个或者5个server mode。如下使用Docker，启动4个Consul Agent，3个Server（会选举出一个leader），1个Client，这些Consul节点在Docker的容器内是互通的，他们通过桥接的模式通信：</p>
+<p>启动第1个Server节点，将容器8500端口映射到主机8900端口，同时开启管理界面：</p>
+<pre><code>[heql@ubuntu ~]$ docker run -d --name=consul1 -p 8900:8500 -e CONSUL_BIND_INTERFACE=eth0 consul agent --server=true --bootstrap-expect=3 --client=0.0.0.0 -ui
+</code></pre><p> 启动第2个Server节点，并加入集群:</p>
+<pre><code>[heql@ubuntu ~]$ docker run -d --name=consul2 -e CONSUL_BIND_INTERFACE=eth0 consul agent --server=true --client=0.0.0.0 --join 172.17.0.2
+</code></pre><p>启动第3个Server节点，并加入集群:</p>
+<pre><code>[heql@ubuntu ~]$ docker run -d --name=consul3 -e CONSUL_BIND_INTERFACE=eth0 consul agent --server=true --client=0.0.0.0 --join 172.17.0.2
+</code></pre><p>启动第4个Client节点，并加入集群：</p>
+<pre><code>[heql@ubuntu ~]$ docker run -d --name=consul4 -e CONSUL_BIND_INTERFACE=eth0 consul agent --server=false --client=0.0.0.0 --join 172.17.0.2
+</code></pre><h4 id="查看集群的状态"><a href="#查看集群的状态" class="headerlink" title="查看集群的状态"></a>查看集群的状态</h4><p>启动成功后，就可以运行如下命令，查看集群的状态：</p>
+<pre><code>[heql@ubuntu ~]$ docker exec consul1 consul members
+Node          Address          Status  Type    Build  Protocol  DC   Segment
+52e765ec782b  172.17.0.3:8301  alive   server  1.3.0  2         dc1  &lt;all&gt;
+c33456162dfb  172.17.0.2:8301  alive   server  1.3.0  2         dc1  &lt;all&gt;
+e6ce79caaba9  172.17.0.4:8301  alive   server  1.3.0  2         dc1  &lt;all&gt;
+c57535032e4e  172.17.0.5:8301  alive   client  1.3.0  2         dc1  &lt;default&gt;
+</code></pre><p>在启动第一个节点时，把节点的8500端口映射到了主机的8900端口，所以也可以通过浏览器访问<code>127.0.0.1:8900</code>，查看集群的信息：</p>
+<p><img src="/consul/consul_members.png" alt="consul_members.png"></p>
+<h4 id="Consul服务发现原理"><a href="#Consul服务发现原理" class="headerlink" title="Consul服务发现原理"></a>Consul服务发现原理</h4><p>如下图，描述了Consul服务发现的流程：</p>
+<p><img src="/consul/consul_service_discovery.png" alt="consul_service_discovery.png"></p>
+<p>在服务器Server1、Server2、Server3上分别部署了Consul Server，假设他们选举了Server2上的Consul Server节点为Leader。这些服务器上最好只部署Consul程序，以尽量维护Consul Server的稳定。</p>
+<p>然后在服务器Server4和Server5上通过Consul Client分别注册Service A、B、C，这里每个Service分别部署在了两个服务器上，这样可以避免Service的单点问题。服务注册到Consul可以通过HTTP API（8500端口）的方式，也可以通过Consul配置文件的方式。<br>Consul Client可以认为是无状态的，它将注册信息通过RPC转发到Consul Server，服务信息保存在Server的各个节点中，并且通过Raft实现了强一致性。</p>
+<p>最后在服务器Server6中Program D需要访问Service B，这时候Program D首先访问本机Consul Client提供的HTTP API，本机Client会将请求转发到Consul Server，Consul Server查询到Service B当前的信息返回，最终Program D拿到了Service B的所有部署的IP和端口，然后就可以选择Service B的其中一个部署并向其发起请求了。<br>如果服务发现采用的是DNS方式，则Program D中直接使用Service B的服务发现域名，域名解析请求首先到达本机DNS代理，然后转发到本机Consul Client，本机Client会将请求转发到Consul Server，Consul Server查询到Service B当前的信息返回，最终Program D拿到了Service B的某个部署的IP和端口。</p>
+<h4 id="服务注册"><a href="#服务注册" class="headerlink" title="服务注册"></a>服务注册</h4><p>服务可以通过提供服务定义的配置文件或通过对HTTP API进行适当的调用来注册。</p>
+<p>如下，是使用golang开发的一个echo的服务端程序：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"fmt"</span></span><br><span class="line">    <span class="string">"bufio"</span></span><br><span class="line">    <span class="string">"io"</span></span><br><span class="line">    <span class="string">"log"</span></span><br><span class="line">    <span class="string">"net"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    listener, err := net.Listen(<span class="string">"tcp"</span>, <span class="string">":8000"</span>)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="built_in">panic</span>(err)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        conn, err := listener.Accept()</span><br><span class="line">        <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">            log.Print(err)</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">go</span> handleConn(conn)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">handleConn</span><span class="params">(c net.Conn)</span></span> &#123;</span><br><span class="line">    <span class="keyword">defer</span> c.Close()</span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        <span class="keyword">var</span> msg <span class="keyword">string</span></span><br><span class="line">        <span class="keyword">var</span> err error</span><br><span class="line"></span><br><span class="line">        reader := bufio.NewReader(c)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> msg, err = reader.ReadString(<span class="string">'\n'</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> err != io.EOF &#123;</span><br><span class="line">                log.Println(err)</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> _, err = c.Write([]<span class="keyword">byte</span>(fmt.Sprintf(<span class="string">"Response: %s"</span>, msg))); err != <span class="literal">nil</span> &#123;</span><br><span class="line">            log.Println(err)</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译程序，因为要上传到consul docker容器中运行，consul docker使用的是alpine系统，使用如下命令进行编译：</p>
+<pre><code>[heql@ubuntu service]$ CGO_ENABLED=0 go build -a -installsuffix cgo .
+</code></pre><p>把编译生成的二进制文件<code>hello</code>上传到容器中：</p>
+<pre><code>[heql@ubuntu service]$ docker cp hello consul4:/
+</code></pre><h5 id="通过配置文件注册服务"><a href="#通过配置文件注册服务" class="headerlink" title="通过配置文件注册服务"></a>通过配置文件注册服务</h5><p>这里将上面的程序定义为hello服务，通过配置文件的方式注册到Consul，服务的相关信息：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">"services"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">        <span class="attr">"id"</span>: <span class="string">"hello"</span>,</span><br><span class="line">        <span class="attr">"name"</span>: <span class="string">"hello"</span>,</span><br><span class="line">        <span class="attr">"tags"</span>: [</span><br><span class="line">            <span class="string">"primary"</span></span><br><span class="line">        ],</span><br><span class="line">        <span class="attr">"address"</span>: <span class="string">"172.17.0.5"</span>,</span><br><span class="line">        <span class="attr">"port"</span>: <span class="number">8000</span>,</span><br><span class="line">        <span class="attr">"checks"</span>: [</span><br><span class="line">            &#123;</span><br><span class="line">            <span class="attr">"DeregisterCriticalServiceAfter"</span>: <span class="string">"1m"</span>,</span><br><span class="line">            <span class="attr">"tcp"</span>: <span class="string">"172.17.0.5:8000"</span>,</span><br><span class="line">            <span class="attr">"tls_skip_verify"</span>: <span class="literal">false</span>,</span><br><span class="line">            <span class="attr">"interval"</span>: <span class="string">"10s"</span>,</span><br><span class="line">            <span class="attr">"timeout"</span>: <span class="string">"1s"</span></span><br><span class="line">            &#125;</span><br><span class="line">        ]</span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>name：hello，服务名称，需要能够区分不同的业务服务，可以部署多份并使用相同的name注册。</p>
+</li>
+<li><p>id：hello，服务id，在每个节点上需要唯一，如果有重复会被覆盖</p>
+</li>
+<li><p>address：172.17.0.5，服务所在机器的地址</p>
+</li>
+<li><p>port：5000，服务的端口。</p>
+</li>
+<li><p>checks：健康检查，使用tcp的方式，地址为：172.17.0.5:8000，interval：每10秒Consul请求一次，timeout：请求超时时间为1秒。DeregisterCriticalServiceAfter：服务不可用时，超过1分钟，则删除。Consul也提供了其他方式的健康检查，如http，详情可以参考：<a href="https://learn.hashicorp.com/consul/getting-started/checks.html" target="_blank" rel="noopener">https://learn.hashicorp.com/consul/getting-started/checks.html</a></p>
+</li>
+</ul>
+<p>将上面的内容保存成文件services.json，并上传到容器的/consul/config目录中，consul启动时默认加载配置的路径：</p>
+<pre><code>[heql@ubuntu service]$ docker cp service.json consul4:/consul/config
+</code></pre><p>运行hello服务：</p>
+<pre><code>[heql@ubuntu service]$ docker exec -it consul4 /bin/sh
+/ # ./hello &amp;
+</code></pre><p>从新加载consul的配置：</p>
+<pre><code>/ # consul reload
+Configuration reload triggered
+</code></pre><p>然后这个服务就注册成功了，可以在界面上看到hello服务，目前运行在<code>172.17.0.5</code>节点上：</p>
+<p><img src="/consul/consul_hello_service.png" alt="consul_hello_service.png"></p>
+<p>因为上面的consul容器是通过桥接的模式进行通信的，所以本机也是可以和consul的容器进行通信的，所以可以在本机启动一个consul节点，把service.json配置的address和tcp的ip地址改为本机的ip地址<code>192.168.1.136</code>，启动节点，节点加载的配置为当前目录：</p>
+<pre><code>[heql@ubuntu service]$ consul agent --server=false -config-dir=$(pwd) -data-dir=/tmp --bind=192.168.1.136 --join 172.17.0.2
+</code></pre><p>在本机启动一个hello服务：</p>
+<pre><code>[heql@ubuntu service]$ ./hello
+</code></pre><p>在界面上看到hello服务，目前运行在<code>172.17.0.5</code>、<code>192.168.1.136</code>两个节点上：</p>
+<p><img src="/consul/consul_hello_service_2.png" alt="consul_hello_service_2.png"></p>
+<h5 id="通过HTTP-API注册服务"><a href="#通过HTTP-API注册服务" class="headerlink" title="通过HTTP API注册服务"></a>通过HTTP API注册服务</h5><p>consul也可以使用HTTP API进行注册，但是官方更推荐使用配置文件的方式进行注册，如下程序是用通过go的consul提供的api进行注册服务：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    consulapi <span class="string">"github.com/hashicorp/consul/api"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    config := consulapi.DefaultConfig()</span><br><span class="line">    client, err := consulapi.NewClient(config)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="built_in">panic</span>(err)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    registration := <span class="built_in">new</span>(consulapi.AgentServiceRegistration)</span><br><span class="line">    registration.ID = <span class="string">"hello"</span></span><br><span class="line">    registration.Name = <span class="string">"hello"</span></span><br><span class="line">    registration.Tags = []<span class="keyword">string</span>&#123;<span class="string">"primary"</span>&#125;</span><br><span class="line">    registration.Port = <span class="number">8000</span></span><br><span class="line">    registration.Address = <span class="string">"192.168.1.136"</span></span><br><span class="line">    registration.Check = &amp;consulapi.AgentServiceCheck&#123;</span><br><span class="line">        TCP:      <span class="string">"192.168.1.136:8000"</span>,</span><br><span class="line">        Interval: <span class="string">"10s"</span>,</span><br><span class="line">        Timeout:  <span class="string">"1s"</span>,</span><br><span class="line">        DeregisterCriticalServiceAfter: <span class="string">"1m"</span>,</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    err = client.Agent().ServiceRegister(registration)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="built_in">panic</span>(err)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行上面的程序，即可看到与通过配置文件方式注册的hello的服务。</p>
+<h4 id="服务的发现"><a href="#服务的发现" class="headerlink" title="服务的发现"></a>服务的发现</h4><p>服务注册成功以后，consul提供以DNS的方式和HTTP的方式来发现服务：</p>
+<h5 id="DNS方式"><a href="#DNS方式" class="headerlink" title="DNS方式"></a>DNS方式</h5><p>对于DNS的方式，服务的DNS名称是<code>NAME.service.consul</code>。如上面注册的hello服务为：<code>hello.service.consul</code></p>
+<pre><code>[heql@ubuntu ~]$ dig  @127.0.0.1 -p 8600 hello.service.consul
+
+; &lt;&lt;&gt;&gt; DiG 9.9.5-3ubuntu0.17-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.1 -p 8600 hello.service.consul
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 4356
+;; flags: qr aa rd; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 3
+;; WARNING: recursion requested but not available
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;hello.service.consul.        IN    A
+
+;; ANSWER SECTION:
+hello.service.consul.    0    IN    A    172.17.0.5
+hello.service.consul.    0    IN    A    192.168.1.136
+
+;; ADDITIONAL SECTION:
+hello.service.consul.    0    IN    TXT    &quot;consul-network-segment=&quot;
+hello.service.consul.    0    IN    TXT    &quot;consul-network-segment=&quot;
+
+;; Query time: 6 msec
+;; SERVER: 127.0.0.1#8600(127.0.0.1)
+;; WHEN: Wed Nov 21 21:01:42 CST 2018
+;; MSG SIZE  rcvd: 153
+</code></pre><p>如上面的输出信息，两个A记录返回了服务可用的节点的IP地址。 A记录只能保存IP地址。</p>
+<p>也可以使用DNS来检索整个地址/端口对作为SRV记录：</p>
+<pre><code>[heql@ubuntu ~]$ dig  @127.0.0.1 -p 8600 hello.service.consul SRV
+
+; &lt;&lt;&gt;&gt; DiG 9.9.5-3ubuntu0.17-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.1 -p 8600 hello.service.consul SRV
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 62070
+;; flags: qr aa rd; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 5
+;; WARNING: recursion requested but not available
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;hello.service.consul.        IN    SRV
+
+;; ANSWER SECTION:
+hello.service.consul.    0    IN    SRV    1 1 8000 f9a30e055338.node.dc1.consul.
+hello.service.consul.    0    IN    SRV    1 1 8000 ubuntu.node.dc1.consul.
+
+;; ADDITIONAL SECTION:
+f9a30e055338.node.dc1.consul. 0    IN    A    172.17.0.5
+f9a30e055338.node.dc1.consul. 0    IN    TXT    &quot;consul-network-segment=&quot;
+ubuntu.node.dc1.consul.    0    IN    A    192.168.1.136
+ubuntu.node.dc1.consul.    0    IN    TXT    &quot;consul-network-segment=&quot;
+
+;; Query time: 14 msec
+;; SERVER: 127.0.0.1#8600(127.0.0.1)
+;; WHEN: Wed Nov 21 21:05:37 CST 2018
+;; MSG SIZE  rcvd: 243
+
+SRV记录表示该服务正在端口8000上运行，并且存在于节点`f9a30e055338.node.dc1.consul`、`ubuntu.node.dc1.consul`上。DNS使用该记录的A记录返回附加部分。
+</code></pre><h5 id="HTTP-API方式"><a href="#HTTP-API方式" class="headerlink" title="HTTP API方式"></a>HTTP API方式</h5><p>如下面的命令会返回所有注册的Consul节点信息、服务信息及服务的健康检查信息：</p>
+<pre><code>[heql@ubuntu ~]$ curl http://localhost:8500/v1/catalog/service/hello
+</code></pre><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">[&#123;</span><br><span class="line">    <span class="attr">"ID"</span>: <span class="string">"3088d97d-9009-5254-77e9-4c087abe3862"</span>,</span><br><span class="line">    <span class="attr">"Node"</span>: <span class="string">"f9a30e055338"</span>,</span><br><span class="line">    <span class="attr">"Address"</span>: <span class="string">"172.17.0.5"</span>,</span><br><span class="line">    <span class="attr">"Datacenter"</span>: <span class="string">"dc1"</span>,</span><br><span class="line">    <span class="attr">"TaggedAddresses"</span>: &#123;</span><br><span class="line">        <span class="attr">"lan"</span>: <span class="string">"172.17.0.5"</span>,</span><br><span class="line">        <span class="attr">"wan"</span>: <span class="string">"172.17.0.5"</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"NodeMeta"</span>: &#123;</span><br><span class="line">        <span class="attr">"consul-network-segment"</span>: <span class="string">""</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"ServiceKind"</span>: <span class="string">""</span>,</span><br><span class="line">    <span class="attr">"ServiceID"</span>: <span class="string">"hello"</span>,</span><br><span class="line">    <span class="attr">"ServiceName"</span>: <span class="string">"hello"</span>,</span><br><span class="line">    <span class="attr">"ServiceTags"</span>: [<span class="string">"primary"</span>],</span><br><span class="line">    <span class="attr">"ServiceAddress"</span>: <span class="string">"172.17.0.5"</span>,</span><br><span class="line">    <span class="attr">"ServiceWeights"</span>: &#123;</span><br><span class="line">        <span class="attr">"Passing"</span>: <span class="number">1</span>,</span><br><span class="line">        <span class="attr">"Warning"</span>: <span class="number">1</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"ServiceMeta"</span>: &#123;&#125;,</span><br><span class="line">    <span class="attr">"ServicePort"</span>: <span class="number">8000</span>,</span><br><span class="line">    <span class="attr">"ServiceEnableTagOverride"</span>: <span class="literal">false</span>,</span><br><span class="line">    <span class="attr">"ServiceProxyDestination"</span>: <span class="string">""</span>,</span><br><span class="line">    <span class="attr">"ServiceProxy"</span>: &#123;&#125;,</span><br><span class="line">    <span class="attr">"ServiceConnect"</span>: &#123;&#125;,</span><br><span class="line">    <span class="attr">"CreateIndex"</span>: <span class="number">516</span>,</span><br><span class="line">    <span class="attr">"ModifyIndex"</span>: <span class="number">516</span></span><br><span class="line">&#125;, &#123;</span><br><span class="line">    <span class="attr">"ID"</span>: <span class="string">"551cbb63-f693-3d1b-35fc-e6b141595373"</span>,</span><br><span class="line">    <span class="attr">"Node"</span>: <span class="string">"ubuntu"</span>,</span><br><span class="line">    <span class="attr">"Address"</span>: <span class="string">"192.168.1.136"</span>,</span><br><span class="line">    <span class="attr">"Datacenter"</span>: <span class="string">"dc1"</span>,</span><br><span class="line">    <span class="attr">"TaggedAddresses"</span>: &#123;</span><br><span class="line">        <span class="attr">"lan"</span>: <span class="string">"192.168.1.136"</span>,</span><br><span class="line">        <span class="attr">"wan"</span>: <span class="string">"192.168.1.136"</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"NodeMeta"</span>: &#123;</span><br><span class="line">        <span class="attr">"consul-network-segment"</span>: <span class="string">""</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"ServiceKind"</span>: <span class="string">""</span>,</span><br><span class="line">    <span class="attr">"ServiceID"</span>: <span class="string">"hello"</span>,</span><br><span class="line">    <span class="attr">"ServiceName"</span>: <span class="string">"hello"</span>,</span><br><span class="line">    <span class="attr">"ServiceTags"</span>: [<span class="string">"primary"</span>],</span><br><span class="line">    <span class="attr">"ServiceAddress"</span>: <span class="string">"192.168.1.136"</span>,</span><br><span class="line">    <span class="attr">"ServiceWeights"</span>: &#123;</span><br><span class="line">        <span class="attr">"Passing"</span>: <span class="number">1</span>,</span><br><span class="line">        <span class="attr">"Warning"</span>: <span class="number">1</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"ServiceMeta"</span>: &#123;&#125;,</span><br><span class="line">    <span class="attr">"ServicePort"</span>: <span class="number">8000</span>,</span><br><span class="line">    <span class="attr">"ServiceEnableTagOverride"</span>: <span class="literal">false</span>,</span><br><span class="line">    <span class="attr">"ServiceProxyDestination"</span>: <span class="string">""</span>,</span><br><span class="line">    <span class="attr">"ServiceProxy"</span>: &#123;&#125;,</span><br><span class="line">    <span class="attr">"ServiceConnect"</span>: &#123;&#125;,</span><br><span class="line">    <span class="attr">"CreateIndex"</span>: <span class="number">497</span>,</span><br><span class="line">    <span class="attr">"ModifyIndex"</span>: <span class="number">497</span></span><br><span class="line">&#125;]</span><br></pre></td></tr></table></figure>
+<p>上面的查询的是服务的所有节点，如果需要自动过滤掉不健康的服务，包括本身不健康的服务和不健康的Consul节点上的服务，可以使用下面的命令：</p>
+<pre><code>[heql@ubuntu ~]$ curl http://localhost:8500/v1/health/service/hello?passing
+</code></pre><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br></pre></td><td class="code"><pre><span class="line">[&#123;</span><br><span class="line">    <span class="attr">"Node"</span>: &#123;</span><br><span class="line">        <span class="attr">"ID"</span>: <span class="string">"3088d97d-9009-5254-77e9-4c087abe3862"</span>,</span><br><span class="line">        <span class="attr">"Node"</span>: <span class="string">"f9a30e055338"</span>,</span><br><span class="line">        <span class="attr">"Address"</span>: <span class="string">"172.17.0.5"</span>,</span><br><span class="line">        <span class="attr">"Datacenter"</span>: <span class="string">"dc1"</span>,</span><br><span class="line">        <span class="attr">"TaggedAddresses"</span>: &#123;</span><br><span class="line">            <span class="attr">"lan"</span>: <span class="string">"172.17.0.5"</span>,</span><br><span class="line">            <span class="attr">"wan"</span>: <span class="string">"172.17.0.5"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"Meta"</span>: &#123;</span><br><span class="line">            <span class="attr">"consul-network-segment"</span>: <span class="string">""</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"CreateIndex"</span>: <span class="number">12</span>,</span><br><span class="line">        <span class="attr">"ModifyIndex"</span>: <span class="number">13</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"Service"</span>: &#123;</span><br><span class="line">        <span class="attr">"ID"</span>: <span class="string">"hello"</span>,</span><br><span class="line">        <span class="attr">"Service"</span>: <span class="string">"hello"</span>,</span><br><span class="line">        <span class="attr">"Tags"</span>: [<span class="string">"primary"</span>],</span><br><span class="line">        <span class="attr">"Address"</span>: <span class="string">"172.17.0.5"</span>,</span><br><span class="line">        <span class="attr">"Meta"</span>: <span class="literal">null</span>,</span><br><span class="line">        <span class="attr">"Port"</span>: <span class="number">8000</span>,</span><br><span class="line">        <span class="attr">"Weights"</span>: &#123;</span><br><span class="line">            <span class="attr">"Passing"</span>: <span class="number">1</span>,</span><br><span class="line">            <span class="attr">"Warning"</span>: <span class="number">1</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"EnableTagOverride"</span>: <span class="literal">false</span>,</span><br><span class="line">        <span class="attr">"ProxyDestination"</span>: <span class="string">""</span>,</span><br><span class="line">        <span class="attr">"Proxy"</span>: &#123;&#125;,</span><br><span class="line">        <span class="attr">"Connect"</span>: &#123;&#125;,</span><br><span class="line">        <span class="attr">"CreateIndex"</span>: <span class="number">516</span>,</span><br><span class="line">        <span class="attr">"ModifyIndex"</span>: <span class="number">516</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"Checks"</span>: [&#123;</span><br><span class="line">        <span class="attr">"Node"</span>: <span class="string">"f9a30e055338"</span>,</span><br><span class="line">        <span class="attr">"CheckID"</span>: <span class="string">"serfHealth"</span>,</span><br><span class="line">        <span class="attr">"Name"</span>: <span class="string">"Serf Health Status"</span>,</span><br><span class="line">        <span class="attr">"Status"</span>: <span class="string">"passing"</span>,</span><br><span class="line">        <span class="attr">"Notes"</span>: <span class="string">""</span>,</span><br><span class="line">        <span class="attr">"Output"</span>: <span class="string">"Agent alive and reachable"</span>,</span><br><span class="line">        <span class="attr">"ServiceID"</span>: <span class="string">""</span>,</span><br><span class="line">        <span class="attr">"ServiceName"</span>: <span class="string">""</span>,</span><br><span class="line">        <span class="attr">"ServiceTags"</span>: [],</span><br><span class="line">        <span class="attr">"Definition"</span>: &#123;&#125;,</span><br><span class="line">        <span class="attr">"CreateIndex"</span>: <span class="number">12</span>,</span><br><span class="line">        <span class="attr">"ModifyIndex"</span>: <span class="number">12</span></span><br><span class="line">    &#125;, &#123;</span><br><span class="line">        <span class="attr">"Node"</span>: <span class="string">"f9a30e055338"</span>,</span><br><span class="line">        <span class="attr">"CheckID"</span>: <span class="string">"service:hello"</span>,</span><br><span class="line">        <span class="attr">"Name"</span>: <span class="string">"Service 'hello' check"</span>,</span><br><span class="line">        <span class="attr">"Status"</span>: <span class="string">"passing"</span>,</span><br><span class="line">        <span class="attr">"Notes"</span>: <span class="string">""</span>,</span><br><span class="line">        <span class="attr">"Output"</span>: <span class="string">"TCP connect 172.17.0.5:8000: Success"</span>,</span><br><span class="line">        <span class="attr">"ServiceID"</span>: <span class="string">"hello"</span>,</span><br><span class="line">        <span class="attr">"ServiceName"</span>: <span class="string">"hello"</span>,</span><br><span class="line">        <span class="attr">"ServiceTags"</span>: [<span class="string">"primary"</span>],</span><br><span class="line">        <span class="attr">"Definition"</span>: &#123;&#125;,</span><br><span class="line">        <span class="attr">"CreateIndex"</span>: <span class="number">516</span>,</span><br><span class="line">        <span class="attr">"ModifyIndex"</span>: <span class="number">517</span></span><br><span class="line">    &#125;]</span><br><span class="line">&#125;, &#123;</span><br><span class="line">    <span class="attr">"Node"</span>: &#123;</span><br><span class="line">        <span class="attr">"ID"</span>: <span class="string">"551cbb63-f693-3d1b-35fc-e6b141595373"</span>,</span><br><span class="line">        <span class="attr">"Node"</span>: <span class="string">"ubuntu"</span>,</span><br><span class="line">        <span class="attr">"Address"</span>: <span class="string">"192.168.1.136"</span>,</span><br><span class="line">        <span class="attr">"Datacenter"</span>: <span class="string">"dc1"</span>,</span><br><span class="line">        <span class="attr">"TaggedAddresses"</span>: &#123;</span><br><span class="line">            <span class="attr">"lan"</span>: <span class="string">"192.168.1.136"</span>,</span><br><span class="line">            <span class="attr">"wan"</span>: <span class="string">"192.168.1.136"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"Meta"</span>: &#123;</span><br><span class="line">            <span class="attr">"consul-network-segment"</span>: <span class="string">""</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"CreateIndex"</span>: <span class="number">497</span>,</span><br><span class="line">        <span class="attr">"ModifyIndex"</span>: <span class="number">497</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"Service"</span>: &#123;</span><br><span class="line">        <span class="attr">"ID"</span>: <span class="string">"hello"</span>,</span><br><span class="line">        <span class="attr">"Service"</span>: <span class="string">"hello"</span>,</span><br><span class="line">        <span class="attr">"Tags"</span>: [<span class="string">"primary"</span>],</span><br><span class="line">        <span class="attr">"Address"</span>: <span class="string">"192.168.1.136"</span>,</span><br><span class="line">        <span class="attr">"Meta"</span>: <span class="literal">null</span>,</span><br><span class="line">        <span class="attr">"Port"</span>: <span class="number">8000</span>,</span><br><span class="line">        <span class="attr">"Weights"</span>: &#123;</span><br><span class="line">            <span class="attr">"Passing"</span>: <span class="number">1</span>,</span><br><span class="line">            <span class="attr">"Warning"</span>: <span class="number">1</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"EnableTagOverride"</span>: <span class="literal">false</span>,</span><br><span class="line">        <span class="attr">"ProxyDestination"</span>: <span class="string">""</span>,</span><br><span class="line">        <span class="attr">"Proxy"</span>: &#123;&#125;,</span><br><span class="line">        <span class="attr">"Connect"</span>: &#123;&#125;,</span><br><span class="line">        <span class="attr">"CreateIndex"</span>: <span class="number">497</span>,</span><br><span class="line">        <span class="attr">"ModifyIndex"</span>: <span class="number">497</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"Checks"</span>: [&#123;</span><br><span class="line">        <span class="attr">"Node"</span>: <span class="string">"ubuntu"</span>,</span><br><span class="line">        <span class="attr">"CheckID"</span>: <span class="string">"serfHealth"</span>,</span><br><span class="line">        <span class="attr">"Name"</span>: <span class="string">"Serf Health Status"</span>,</span><br><span class="line">        <span class="attr">"Status"</span>: <span class="string">"passing"</span>,</span><br><span class="line">        <span class="attr">"Notes"</span>: <span class="string">""</span>,</span><br><span class="line">        <span class="attr">"Output"</span>: <span class="string">"Agent alive and reachable"</span>,</span><br><span class="line">        <span class="attr">"ServiceID"</span>: <span class="string">""</span>,</span><br><span class="line">        <span class="attr">"ServiceName"</span>: <span class="string">""</span>,</span><br><span class="line">        <span class="attr">"ServiceTags"</span>: [],</span><br><span class="line">        <span class="attr">"Definition"</span>: &#123;&#125;,</span><br><span class="line">        <span class="attr">"CreateIndex"</span>: <span class="number">498</span>,</span><br><span class="line">        <span class="attr">"ModifyIndex"</span>: <span class="number">498</span></span><br><span class="line">    &#125;, &#123;</span><br><span class="line">        <span class="attr">"Node"</span>: <span class="string">"ubuntu"</span>,</span><br><span class="line">        <span class="attr">"CheckID"</span>: <span class="string">"service:hello"</span>,</span><br><span class="line">        <span class="attr">"Name"</span>: <span class="string">"Service 'hello' check"</span>,</span><br><span class="line">        <span class="attr">"Status"</span>: <span class="string">"passing"</span>,</span><br><span class="line">        <span class="attr">"Notes"</span>: <span class="string">""</span>,</span><br><span class="line">        <span class="attr">"Output"</span>: <span class="string">"TCP connect 192.168.1.136:8000: Success"</span>,</span><br><span class="line">        <span class="attr">"ServiceID"</span>: <span class="string">"hello"</span>,</span><br><span class="line">        <span class="attr">"ServiceName"</span>: <span class="string">"hello"</span>,</span><br><span class="line">        <span class="attr">"ServiceTags"</span>: [<span class="string">"primary"</span>],</span><br><span class="line">        <span class="attr">"Definition"</span>: &#123;&#125;,</span><br><span class="line">        <span class="attr">"CreateIndex"</span>: <span class="number">497</span>,</span><br><span class="line">        <span class="attr">"ModifyIndex"</span>: <span class="number">501</span></span><br><span class="line">    &#125;]</span><br><span class="line">&#125;]</span><br></pre></td></tr></table></figure>
+<h4 id="服务发现使用的例子"><a href="#服务发现使用的例子" class="headerlink" title="服务发现使用的例子"></a>服务发现使用的例子</h4><p>如下程序：</p>
+<ul>
+<li><p>通过consul发现上面上面的hello服务，获得所有hello服务的ip地址和端口号，并建立tcp的连接池。</p>
+</li>
+<li><p>通过轮询的方式，向每个hello服务发送数据。</p>
+</li>
+<li><p>每隔3秒查询可用的服务，并动态的更新连接池，当有新的服务可用时，添加到连接池，当服务不可用时，从连接池中删除。</p>
+</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">"bufio"</span></span><br><span class="line">    <span class="string">"fmt"</span></span><br><span class="line">    <span class="string">"log"</span></span><br><span class="line">    <span class="string">"net"</span></span><br><span class="line">    <span class="string">"time"</span></span><br><span class="line"></span><br><span class="line">    consulapi <span class="string">"github.com/hashicorp/consul/api"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> clientPool = <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]*tcpClient)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> tcpClient <span class="keyword">struct</span> &#123;</span><br><span class="line">    host      <span class="keyword">string</span></span><br><span class="line">    conn      *net.TCPConn</span><br><span class="line">    canBeUsed <span class="keyword">bool</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">discoveryService</span><span class="params">()</span> <span class="params">([]<span class="keyword">string</span>, error)</span></span> &#123;</span><br><span class="line">    config := consulapi.DefaultConfig()</span><br><span class="line">    client, err := consulapi.NewClient(config)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> hosts []<span class="keyword">string</span></span><br><span class="line"></span><br><span class="line">    serviceEntry, _, err := client.Health().Service(<span class="string">"hello"</span>, <span class="string">""</span>, <span class="literal">true</span>, &amp;consulapi.QueryOptions&#123;&#125;)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> _, entry := <span class="keyword">range</span> serviceEntry &#123;</span><br><span class="line">        <span class="keyword">for</span> _, health := <span class="keyword">range</span> entry.Checks &#123;</span><br><span class="line">            <span class="keyword">if</span> health.ServiceName != <span class="string">"hello"</span> &#123;</span><br><span class="line">                <span class="keyword">continue</span></span><br><span class="line">            &#125;</span><br><span class="line">            ip := entry.Service.Address</span><br><span class="line">            port := entry.Service.Port</span><br><span class="line">            host := fmt.Sprintf(<span class="string">"%s:%d"</span>, ip, port)</span><br><span class="line">            hosts = <span class="built_in">append</span>(hosts, host)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    log.Printf(<span class="string">"discovery service: %v\n"</span>, hosts)</span><br><span class="line">    <span class="keyword">return</span> hosts, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">addClientToPool</span><span class="params">(hosts []<span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">    <span class="comment">// create client pool</span></span><br><span class="line">    <span class="keyword">for</span> _, host := <span class="keyword">range</span> hosts &#123;</span><br><span class="line">        conn, err := net.Dial(<span class="string">"tcp"</span>, host)</span><br><span class="line">        <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">            log.Printf(<span class="string">"Error connecting to: %s"</span>, host)</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            log.Printf(<span class="string">"connecting to: %s"</span>, host)</span><br><span class="line">            <span class="keyword">var</span> client tcpClient</span><br><span class="line">            client.conn = conn.(*net.TCPConn)</span><br><span class="line">            client.canBeUsed = <span class="literal">true</span></span><br><span class="line">            client.host = host</span><br><span class="line">            clientPool[host] = &amp;client</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">request</span><span class="params">(host <span class="keyword">string</span>, conn *net.TCPConn)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> _, err := conn.Write([]<span class="keyword">byte</span>(<span class="string">"Hello, "</span> + host + <span class="string">"\n"</span>)); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> err</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    reader := bufio.NewReader(conn)</span><br><span class="line">    <span class="keyword">if</span> msg, err := reader.ReadString(<span class="string">'\n'</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> err</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        fmt.Printf(<span class="string">"%s"</span>, msg)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">removeClientFromPool</span><span class="params">(host <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">    <span class="comment">// close client and delete the client from client pool</span></span><br><span class="line">    clientPool[host].conn.Close()</span><br><span class="line">    <span class="built_in">delete</span>(clientPool, host)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">differentHosts</span><span class="params">(hosts []<span class="keyword">string</span>)</span> <span class="params">([]<span class="keyword">string</span>, <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">struct</span>&#123;&#125;)</span></span> &#123;</span><br><span class="line">    <span class="keyword">var</span> newHosts []<span class="keyword">string</span></span><br><span class="line">    deleteHosts := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">struct</span>&#123;&#125;, <span class="built_in">len</span>(clientPool))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> host := <span class="keyword">range</span> clientPool &#123;</span><br><span class="line">        deleteHosts[host] = <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> _, host := <span class="keyword">range</span> hosts &#123;</span><br><span class="line">        <span class="keyword">if</span> _, ok := clientPool[host]; !ok &#123;</span><br><span class="line">            newHosts = <span class="built_in">append</span>(newHosts, host)</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="built_in">delete</span>(deleteHosts, host)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> newHosts, deleteHosts</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">updateClientPool</span><span class="params">(hosts []<span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">    newHosts, deleteHosts := differentHosts(hosts)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// add new host</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(newHosts) != <span class="number">0</span> &#123;</span><br><span class="line">        log.Printf(<span class="string">"add host: %v\n"</span>, newHosts)</span><br><span class="line">        addClientToPool(newHosts)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// delete host</span></span><br><span class="line">    <span class="keyword">for</span> host := <span class="keyword">range</span> deleteHosts &#123;</span><br><span class="line">        log.Printf(<span class="string">"delete host: %v\n"</span>, host)</span><br><span class="line">        removeClientFromPool(host)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    t := time.NewTicker(time.Second * <span class="number">3</span>)</span><br><span class="line"></span><br><span class="line">    hosts, err := discoveryService()</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="built_in">panic</span>(err)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    addClientToPool(hosts)</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(clientPool) == <span class="number">0</span> &#123;</span><br><span class="line">        log.Fatal(<span class="string">"no have any client !!!"</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    clientChan := <span class="built_in">make</span>(<span class="keyword">chan</span> tcpClient)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(clientChan <span class="keyword">chan</span> tcpClient)</span></span> &#123;</span><br><span class="line">        <span class="keyword">for</span> client := <span class="keyword">range</span> clientChan &#123;</span><br><span class="line">            <span class="keyword">if</span> err := request(client.host, client.conn); err != <span class="literal">nil</span> &#123;</span><br><span class="line">                log.Printf(<span class="string">"client: %v\n"</span>, err)</span><br><span class="line">                clientPool[client.host].canBeUsed = <span class="literal">false</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;(clientChan)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        <span class="keyword">select</span> &#123;</span><br><span class="line">        <span class="keyword">case</span> &lt;-t.C:</span><br><span class="line">            <span class="keyword">if</span> hosts, err := discoveryService(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">                log.Println(err)</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                updateClientPool(hosts)</span><br><span class="line">            &#125;</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            <span class="keyword">for</span> _, client := <span class="keyword">range</span> clientPool &#123;</span><br><span class="line">                <span class="keyword">if</span> client.canBeUsed &#123;</span><br><span class="line">                    clientChan &lt;- *client</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            time.Sleep(time.Second * <span class="number">1</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行程序，输出如下信息：</p>
+<pre><code>[heql@ubuntu client]$ go run client.go 
+2018/11/21 21:34:32 discovery service: [172.17.0.5:8000 192.168.1.136:8000]
+2018/11/21 21:34:32 connecting to: 172.17.0.5:8000
+2018/11/21 21:34:32 connecting to: 192.168.1.136:8000
+Response: Hello, 192.168.1.136:8000
+Response: Hello, 172.17.0.5:8000
+Response: Hello, 172.17.0.5:8000
+Response: Hello, 192.168.1.136:8000
+Response: Hello, 172.17.0.5:8000
+Response: Hello, 192.168.1.136:8000
+</code></pre><p>停止<code>192.168.1.136</code>的hello服务，输出如下：</p>
+<pre><code>2018/11/21 21:35:26 discovery service: [172.17.0.5:8000]
+2018/11/21 21:35:26 delete host: 192.168.1.136:8000
+Response: Hello, 172.17.0.5:8000
+Response: Hello, 172.17.0.5:8000
+Response: Hello, 172.17.0.5:8000
+</code></pre><p>重新启动<code>192.168.1.136</code>的hello服务，输出如下：</p>
+<pre><code>2018/11/21 21:36:41 discovery service: [172.17.0.5:8000 192.168.1.136:8000]
+2018/11/21 21:36:41 add host: [192.168.1.136:8000]
+2018/11/21 21:36:41 connecting to: 192.168.1.136:8000
+Response: Hello, 192.168.1.136:8000
+Response: Hello, 172.17.0.5:8000
+Response: Hello, 172.17.0.5:8000
+Response: Hello, 192.168.1.136:8000
+Response: Hello, 172.17.0.5:8000
+Response: Hello, 192.168.1.136:8000
+</code></pre>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/10/14/docker_04/" rel="next" title="Docker的数据持久化、docker Compose">
+                <i class="fa fa-chevron-left"></i> Docker的数据持久化、docker Compose
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">52</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#zookeeper和Consul比较"><span class="nav-number">1.</span> <span class="nav-text">zookeeper和Consul比较</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Consul工作原理"><span class="nav-number">2.</span> <span class="nav-text">Consul工作原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装Consul"><span class="nav-number">3.</span> <span class="nav-text">安装Consul</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Consul集群"><span class="nav-number">4.</span> <span class="nav-text">Consul集群</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查看集群的状态"><span class="nav-number">4.1.</span> <span class="nav-text">查看集群的状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Consul服务发现原理"><span class="nav-number">4.2.</span> <span class="nav-text">Consul服务发现原理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#服务注册"><span class="nav-number">4.3.</span> <span class="nav-text">服务注册</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#通过配置文件注册服务"><span class="nav-number">4.3.1.</span> <span class="nav-text">通过配置文件注册服务</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#通过HTTP-API注册服务"><span class="nav-number">4.3.2.</span> <span class="nav-text">通过HTTP API注册服务</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#服务的发现"><span class="nav-number">4.4.</span> <span class="nav-text">服务的发现</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#DNS方式"><span class="nav-number">4.4.1.</span> <span class="nav-text">DNS方式</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#HTTP-API方式"><span class="nav-number">4.4.2.</span> <span class="nav-text">HTTP API方式</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#服务发现使用的例子"><span class="nav-number">4.5.</span> <span class="nav-text">服务发现使用的例子</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
