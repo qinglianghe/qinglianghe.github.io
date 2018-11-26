@@ -86,16 +86,16 @@
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
 <meta property="og:description" content="Consul是golang开发的一个高可用的分布式服务注册系统，有service discovery和key/value，健康检查, 节点选举，多数据中心等功能，与zookeeper和etcd等相似。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://yoursite.com/consul/consul_arch.png">
-<meta property="og:image" content="http://yoursite.com/consul/consul_members.png">
-<meta property="og:image" content="http://yoursite.com/consul/consul_service_discovery.png">
-<meta property="og:image" content="http://yoursite.com/consul/consul_hello_service.png">
-<meta property="og:image" content="http://yoursite.com/consul/consul_hello_service_2.png">
-<meta property="og:updated_time" content="2018-11-25T19:26:56.000Z">
+<meta property="og:image" content="http://yoursite.com/images/consul/consul_arch.png">
+<meta property="og:image" content="http://yoursite.com/images/consul/consul_members.png">
+<meta property="og:image" content="http://yoursite.com/images/consul/consul_service_discovery.png">
+<meta property="og:image" content="http://yoursite.com/images/consul/consul_hello_service.png">
+<meta property="og:image" content="http://yoursite.com/images/consul/consul_hello_service_2.png">
+<meta property="og:updated_time" content="2018-11-25T19:35:04.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="使用Consul做服务发现">
 <meta name="twitter:description" content="Consul是golang开发的一个高可用的分布式服务注册系统，有service discovery和key/value，健康检查, 节点选举，多数据中心等功能，与zookeeper和etcd等相似。">
-<meta name="twitter:image" content="http://yoursite.com/consul/consul_arch.png">
+<meta name="twitter:image" content="http://yoursite.com/images/consul/consul_arch.png">
 
 
 
@@ -321,7 +321,7 @@
 </li>
 </ul>
 <h3 id="Consul工作原理"><a href="#Consul工作原理" class="headerlink" title="Consul工作原理"></a>Consul工作原理</h3><p>下面这张图来源于Consul官网，很好的解释了Consul的工作原理：</p>
-<p><img src="/consul/consul_arch.png" alt="consul_arch.png"></p>
+<p><img src="/images/consul/consul_arch.png" alt="consul_arch.png"></p>
 <p>Consul支持多数据中心，在上图中有两个DataCenter，他们通过Internet互联，同时请注意为了提高通信效率，只有Server节点才加入跨数据中心的通信。</p>
 <p>在单个数据中心中，Consul分为Client和Server两种节点（所有的节点也被称为Agent），Server节点保存数据，Client负责健康检查及转发数据请求到Server；Server节点有一个Leader和多个Follower，Leader节点会将数据同步到Follower，Server的数量推荐是3个或者5个，在Leader挂掉的时候会启动选举机制产生一个新的Leader。</p>
 <p>集群内的Consul节点通过gossip协议（流言协议）维护成员关系，也就是说某个节点了解集群内现在还有哪些节点，这些节点是Client还是Server。单个数据中心的流言协议同时使用TCP和UDP通信，并且都使用8301端口。跨数据中心的流言协议也同时使用TCP和UDP通信，端口使用8302。</p>
@@ -349,9 +349,9 @@ c33456162dfb  172.17.0.2:8301  alive   server  1.3.0  2         dc1  &lt;all&gt;
 e6ce79caaba9  172.17.0.4:8301  alive   server  1.3.0  2         dc1  &lt;all&gt;
 c57535032e4e  172.17.0.5:8301  alive   client  1.3.0  2         dc1  &lt;default&gt;
 </code></pre><p>在启动第一个节点时，把节点的8500端口映射到了主机的8900端口，所以也可以通过浏览器访问<code>127.0.0.1:8900</code>，查看集群的信息：</p>
-<p><img src="/consul/consul_members.png" alt="consul_members.png"></p>
+<p><img src="/images/consul/consul_members.png" alt="consul_members.png"></p>
 <h4 id="Consul服务发现原理"><a href="#Consul服务发现原理" class="headerlink" title="Consul服务发现原理"></a>Consul服务发现原理</h4><p>如下图，描述了Consul服务发现的流程：</p>
-<p><img src="/consul/consul_service_discovery.png" alt="consul_service_discovery.png"></p>
+<p><img src="/images/consul/consul_service_discovery.png" alt="consul_service_discovery.png"></p>
 <p>在服务器Server1、Server2、Server3上分别部署了Consul Server，假设他们选举了Server2上的Consul Server节点为Leader。这些服务器上最好只部署Consul程序，以尽量维护Consul Server的稳定。</p>
 <p>然后在服务器Server4和Server5上通过Consul Client分别注册Service A、B、C，这里每个Service分别部署在了两个服务器上，这样可以避免Service的单点问题。服务注册到Consul可以通过HTTP API（8500端口）的方式，也可以通过Consul配置文件的方式。<br>Consul Client可以认为是无状态的，它将注册信息通过RPC转发到Consul Server，服务信息保存在Server的各个节点中，并且通过Raft实现了强一致性。</p>
 <p>最后在服务器Server6中Program D需要访问Service B，这时候Program D首先访问本机Consul Client提供的HTTP API，本机Client会将请求转发到Consul Server，Consul Server查询到Service B当前的信息返回，最终Program D拿到了Service B的所有部署的IP和端口，然后就可以选择Service B的其中一个部署并向其发起请求了。<br>如果服务发现采用的是DNS方式，则Program D中直接使用Service B的服务发现域名，域名解析请求首先到达本机DNS代理，然后转发到本机Consul Client，本机Client会将请求转发到Consul Server，Consul Server查询到Service B当前的信息返回，最终Program D拿到了Service B的某个部署的IP和端口。</p>
@@ -385,13 +385,13 @@ c57535032e4e  172.17.0.5:8301  alive   client  1.3.0  2         dc1  &lt;default
 <pre><code>/ # consul reload
 Configuration reload triggered
 </code></pre><p>然后这个服务就注册成功了，可以在界面上看到hello服务，目前运行在<code>172.17.0.5</code>节点上：</p>
-<p><img src="/consul/consul_hello_service.png" alt="consul_hello_service.png"></p>
+<p><img src="/images/consul/consul_hello_service.png" alt="consul_hello_service.png"></p>
 <p>因为上面的consul容器是通过桥接的模式进行通信的，所以本机也是可以和consul的容器进行通信的，所以可以在本机启动一个consul节点，把service.json配置的address和tcp的ip地址改为本机的ip地址<code>192.168.1.136</code>，启动节点，节点加载的配置为当前目录：</p>
 <pre><code>[heql@ubuntu service]$ consul agent --server=false -config-dir=$(pwd) -data-dir=/tmp --bind=192.168.1.136 --join 172.17.0.2
 </code></pre><p>在本机启动一个hello服务：</p>
 <pre><code>[heql@ubuntu service]$ ./hello
 </code></pre><p>在界面上看到hello服务，目前运行在<code>172.17.0.5</code>、<code>192.168.1.136</code>两个节点上：</p>
-<p><img src="/consul/consul_hello_service_2.png" alt="consul_hello_service_2.png"></p>
+<p><img src="/images/consul/consul_hello_service_2.png" alt="consul_hello_service_2.png"></p>
 <h5 id="通过HTTP-API注册服务"><a href="#通过HTTP-API注册服务" class="headerlink" title="通过HTTP API注册服务"></a>通过HTTP API注册服务</h5><p>consul也可以使用HTTP API进行注册，但是官方更推荐使用配置文件的方式进行注册，如下程序是用通过go的consul提供的api进行注册服务：</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    consulapi <span class="string">"github.com/hashicorp/consul/api"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    config := consulapi.DefaultConfig()</span><br><span class="line">    client, err := consulapi.NewClient(config)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="built_in">panic</span>(err)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    registration := <span class="built_in">new</span>(consulapi.AgentServiceRegistration)</span><br><span class="line">    registration.ID = <span class="string">"hello"</span></span><br><span class="line">    registration.Name = <span class="string">"hello"</span></span><br><span class="line">    registration.Tags = []<span class="keyword">string</span>&#123;<span class="string">"primary"</span>&#125;</span><br><span class="line">    registration.Port = <span class="number">8000</span></span><br><span class="line">    registration.Address = <span class="string">"192.168.1.136"</span></span><br><span class="line">    registration.Check = &amp;consulapi.AgentServiceCheck&#123;</span><br><span class="line">        TCP:      <span class="string">"192.168.1.136:8000"</span>,</span><br><span class="line">        Interval: <span class="string">"10s"</span>,</span><br><span class="line">        Timeout:  <span class="string">"1s"</span>,</span><br><span class="line">        DeregisterCriticalServiceAfter: <span class="string">"1m"</span>,</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    err = client.Agent().ServiceRegister(registration)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="built_in">panic</span>(err)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>运行上面的程序，即可看到与通过配置文件方式注册的hello的服务。</p>
