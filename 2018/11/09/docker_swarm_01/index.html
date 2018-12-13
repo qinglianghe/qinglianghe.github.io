@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Swarm是Docker官方提供的一款集群管理工具，其主要作用是把若干台Docker主机抽象为一个整体，并且通过一个入口统一管理这些Docker主机上的各种Docker资源。Swarm和Kubernetes比较类似，具有的功能也较kubernetes更少一些。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker Swarm">
+<meta property="og:url" content="http://yoursite.com/2018/11/09/docker_swarm_01/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="Swarm是Docker官方提供的一款集群管理工具，其主要作用是把若干台Docker主机抽象为一个整体，并且通过一个入口统一管理这些Docker主机上的各种Docker资源。Swarm和Kubernetes比较类似，具有的功能也较kubernetes更少一些。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/docker/docker_swarm_mode_arch.png">
+<meta property="og:image" content="http://yoursite.com/images/docker/service_task_container.png">
+<meta property="og:updated_time" content="2018-12-12T17:33:08.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker Swarm">
+<meta name="twitter:description" content="Swarm是Docker官方提供的一款集群管理工具，其主要作用是把若干台Docker主机抽象为一个整体，并且通过一个入口统一管理这些Docker主机上的各种Docker资源。Swarm和Kubernetes比较类似，具有的功能也较kubernetes更少一些。">
+<meta name="twitter:image" content="http://yoursite.com/images/docker/docker_swarm_mode_arch.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/09/docker_swarm_01/"/>
+
+
+
+
+
+  <title>Docker Swarm | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/09/docker_swarm_01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Docker Swarm</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-09T00:00:00+08:00">
+                2018-11-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<p>Swarm是Docker官方提供的一款集群管理工具，其主要作用是把若干台Docker主机抽象为一个整体，并且通过一个入口统一管理这些Docker主机上的各种Docker资源。Swarm和Kubernetes比较类似，具有的功能也较kubernetes更少一些。</p>
+<a id="more"></a>
+<h3 id="基本特性"><a href="#基本特性" class="headerlink" title="基本特性"></a>基本特性</h3><p>Docker Swarm具有如下基本特性：</p>
+<h4 id="Docker集群管理"><a href="#Docker集群管理" class="headerlink" title="Docker集群管理"></a>Docker集群管理</h4><p>使用内置的集群管理功能，可以直接通过Docker CLI命令来创建Swarm集群，然后去部署应用服务，而不再需要其它外部的软件来创建和管理一个Swarm集群。</p>
+<h4 id="去中心化设计"><a href="#去中心化设计" class="headerlink" title="去中心化设计"></a>去中心化设计</h4><p>Swarm集群中包含Manager和Worker两类Node，可以直接基于Docker Engine来部署任何类型的Node。而且，在Swarm集群运行期间，既可以对其作出任何改变，实现对集群的扩容和缩容等，如添加Manager Node，如删除Worker Node，而做这些操作不需要暂停或重启当前的Swarm集群服务。</p>
+<h4 id="服务扩容缩容"><a href="#服务扩容缩容" class="headerlink" title="服务扩容缩容"></a>服务扩容缩容</h4><p>对于部署的每一个应用服务，可以通过命令行的方式，设置启动多少个Docker容器去运行它。已经部署完成的应用，如果有扩容或缩容的需求，只需要通过命令行指定需要几个Docker容器即可，Swarm集群运行时便能自动地、灵活地进行调整。</p>
+<h4 id="协调预期状态与实际状态的一致性"><a href="#协调预期状态与实际状态的一致性" class="headerlink" title="协调预期状态与实际状态的一致性"></a>协调预期状态与实际状态的一致性</h4><p>Swarm集群Manager Node会不断地监控集群的状态，协调集群状态使得预期状态和实际状态保持一致。例如启动了一个应用服务，指定服务副本为10，则会启动10个Docker容器去运行，如果某个Worker Node上面运行的2个Docker容器挂掉了，则Swarm Manager会选择集群中其它可用的Worker Node，并创建2个服务副本，使实际运行的Docker容器数仍然保持与预期的10个一致。</p>
+<h4 id="多主机网络"><a href="#多主机网络" class="headerlink" title="多主机网络"></a>多主机网络</h4><p>可以为待部署应用服务指定一个Overlay网络，当应用服务初始化或者进行更新时，Swarm Manager在给定的Overlay网络中为Docker容器自动地分配IP地址，实际是一个虚拟IP地址（VIP）。</p>
+<h4 id="服务发现"><a href="#服务发现" class="headerlink" title="服务发现"></a>服务发现</h4><p>Swarm Manager会给集群中每一个服务分配一个唯一的DNS名称，对运行中的Docker容器进行负载均衡。可以通过Swarm内置的DNS Server，查询Swarm集群中运行的Docker容器状态。</p>
+<h4 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h4><p>在Swarm内部，可以指定如何在各个Node之间分发服务容器（Service Container），实现负载均衡。如果想要使用Swarm集群外部的负载均衡器，可以将服务容器的端口暴露到外部。</p>
+<h3 id="swarm-mode中的节点"><a href="#swarm-mode中的节点" class="headerlink" title="swarm mode中的节点"></a>swarm mode中的节点</h3><p>下面是swarm node的架构图：</p>
+<p><img src="/images/docker/docker_swarm_mode_arch.png" alt="docker_swarm_mode_arch.png"></p>
+<h4 id="manager-node"><a href="#manager-node" class="headerlink" title="manager node"></a>manager node</h4><ul>
+<li><p>manager node作为整个集群的调度者，负责分配资源、编排容器、分发task、管理各种service</p>
+</li>
+<li><p>为了保持高可用和容错率，需要保持多个manager node，manager node使用一种Raft一致性算法来保持集群的高可用状态</p>
+</li>
+<li><p>manager Node也作为一个Worker Node来执行Task，Swarm支持配置Manager只作为一个专用的管理Node</p>
+</li>
+</ul>
+<h4 id="Worker-Node"><a href="#Worker-Node" class="headerlink" title="Worker Node"></a>Worker Node</h4><ul>
+<li><p>Worker Node不负责维护集群的整体信息</p>
+</li>
+<li><p>Worker Node接收由Manager Node调度并指派的Task，启动一个Docker容器来运行指定的服务，并且Worker Node需要向Manager Node汇报被指派的Task的执行状态</p>
+</li>
+</ul>
+<h3 id="Swarm集群搭建"><a href="#Swarm集群搭建" class="headerlink" title="Swarm集群搭建"></a>Swarm集群搭建</h3><p>搭建如下Swarm集群，包括三个Node，对应的主机名和IP地址分别如下所示，这三台机器是可以互相通信的：</p>
+<table>
+<thead>
+<tr>
+<th>Node</th>
+<th style="text-align:left">IP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>manager</td>
+<td style="text-align:left">192.168.33.10</td>
+</tr>
+<tr>
+<td>worker1</td>
+<td style="text-align:left">192.168.33.11</td>
+</tr>
+<tr>
+<td>worker2</td>
+<td style="text-align:left">192.168.33.12</td>
+</tr>
+</tbody>
+</table>
+<h4 id="启动manager节点"><a href="#启动manager节点" class="headerlink" title="启动manager节点"></a>启动manager节点</h4><p>使用下面的命令可以创建一个manager节点：</p>
+<pre><code>ubuntu@swarm-manager:~$ docker swarm init --advertise-addr 192.168.33.10
+Swarm initialized: current node (x579h1dmbuiftl3t0v1bqm5pr) is now a manager.
+
+To add a worker to this swarm, run the following command:
+
+    docker swarm join \
+    --token SWMTKN-1-05k8n988php7b5yl90lz6r8kusfgli5wvm6buc8m3n2tkvsiko-bxnunif1vx4og9s9dmvy8lf0y \
+    192.168.33.10:2377
+
+To add a manager to this swarm, run &apos;docker swarm join-token manager&apos; and follow the instructions.
+</code></pre><p>创建manager节点的时候会返回一个token，那个token是worker节点加入集群的token。</p>
+<h4 id="启动worker节点"><a href="#启动worker节点" class="headerlink" title="启动worker节点"></a>启动worker节点</h4><p>使用如下的命令，可以把worker1、worker2节点加入集群中：</p>
+<pre><code>ubuntu@swarm-worker1:~$ docker swarm join --token SWMTKN-1-05k8n988php7b5yl90lz6r8kusfgli5wvm6buc8m3n2tkvsiko-bxnunif1vx4og9s9dmvy8lf0y 192.168.33.10:2377
+This node joined a swarm as a worker.
+
+ubuntu@swarm-worker2:~$ docker swarm join --token SWMTKN-1-05k8n988php7b5yl90lz6r8kusfgli5wvm6buc8m3n2tkvsiko-bxnunif1vx4og9s9dmvy8lf0y 192.168.33.10:2377
+This node joined a swarm as a worker.
+</code></pre><h4 id="查看节点的状态"><a href="#查看节点的状态" class="headerlink" title="查看节点的状态"></a>查看节点的状态</h4><pre><code>ubuntu@swarm-manager:~$ docker node ls
+ID                           HOSTNAME       STATUS  AVAILABILITY  MANAGER STATUS
+f9qlbs5mpalab9kj5c9iabc9z    swarm-worker1  Ready   Active
+py76ujrlk3ib7yg475ix98lxv    swarm-worker2  Ready   Active
+x579h1dmbuiftl3t0v1bqm5pr *  swarm-manager  Ready   Active        Leader
+</code></pre><p>上面信息中，AVAILABILITY表示Swarm Scheduler是否可以向集群中的某个Node指派Task，对应有如下三种状态：</p>
+<ul>
+<li><p>Active：集群中该Node可以被指派Task</p>
+</li>
+<li><p>Pause：集群中该Node不可以被指派新的Task，但是其他已经存在的Task保持运行</p>
+</li>
+<li><p>Drain：集群中该Node不可以被指派新的Task，Swarm Scheduler停掉已经存在的Task，并将它们调度到可用的Node上</p>
+</li>
+</ul>
+<h4 id="Node状态变更管理"><a href="#Node状态变更管理" class="headerlink" title="Node状态变更管理"></a>Node状态变更管理</h4><p>Node的AVAILABILITY有三种状态：Active、Pause、Drain，对某个Node进行变更，可以将其AVAILABILITY值通过Docker CLI修改为对应的状态即可，下面是常见的变更操作：</p>
+<ul>
+<li><p>设置Manager Node只具有管理功能</p>
+</li>
+<li><p>对服务进行停机维护，可以修改AVAILABILITY为Drain状态</p>
+</li>
+<li><p>暂停一个Node，然后该Node就不再接收新的Task</p>
+</li>
+<li><p>恢复一个不可用或者暂停的Node</p>
+</li>
+</ul>
+<p>如下，将Manager Node的AVAILABILITY值修改为Drain状态，使其只具备管理功能，执行如下命令：</p>
+<pre><code>ubuntu@swarm-manager:~$ docker node update --availability drain x579h1dmbuiftl3t0v1bqm5pr
+x579h1dmbuiftl3t0v1bqm5pr
+ubuntu@swarm-manager:~$ docker node ls
+ID                           HOSTNAME       STATUS  AVAILABILITY  MANAGER STATUS
+f9qlbs5mpalab9kj5c9iabc9z    swarm-worker1  Ready   Active
+py76ujrlk3ib7yg475ix98lxv    swarm-worker2  Ready   Active
+x579h1dmbuiftl3t0v1bqm5pr *  swarm-manager  Ready   Drain         Leader
+</code></pre><h4 id="Node提权-降权"><a href="#Node提权-降权" class="headerlink" title="Node提权/降权"></a>Node提权/降权</h4><p>改变Node的角色，Worker Node可以变为Manager Node，这样实际Worker Node有工作Node变成了管理Node。如下，将worker1和worker2都升级为Manager Node，执行如下命令：</p>
+<pre><code>ubuntu@swarm-manager:~$ docker node promote swarm-worker1 swarm-worker2
+Node swarm-worker1 promoted to a manager in the swarm.
+Node swarm-worker2 promoted to a manager in the swarm.
+ubuntu@swarm-manager:~$
+ubuntu@swarm-manager:~$ docker node ls
+ID                           HOSTNAME       STATUS  AVAILABILITY  MANAGER STATUS
+f9qlbs5mpalab9kj5c9iabc9z    swarm-worker1  Ready   Active        Reachable
+py76ujrlk3ib7yg475ix98lxv    swarm-worker2  Ready   Active        Reachable
+x579h1dmbuiftl3t0v1bqm5pr *  swarm-manager  Ready   Drain         Leader
+</code></pre><p>对上面已提权的worker1和worker2执行降权，需要执行如下命令：</p>
+<pre><code>ubuntu@swarm-manager:~$ docker node demote swarm-worker1 swarm-worker2
+Manager swarm-worker1 demoted in the swarm.
+Manager swarm-worker2 demoted in the swarm.
+ubuntu@swarm-manager:~$
+ubuntu@swarm-manager:~$ docker node ls
+ID                           HOSTNAME       STATUS  AVAILABILITY  MANAGER STATUS
+f9qlbs5mpalab9kj5c9iabc9z    swarm-worker1  Ready   Active
+py76ujrlk3ib7yg475ix98lxv    swarm-worker2  Ready   Active
+x579h1dmbuiftl3t0v1bqm5pr *  swarm-manager  Ready   Drain         Leader
+</code></pre><h4 id="退出Swarm集群"><a href="#退出Swarm集群" class="headerlink" title="退出Swarm集群"></a>退出Swarm集群</h4><p>如果Worker想要退出Swarm集群，在Worker Node上，执行如下命令：</p>
+<pre><code>ubuntu@swarm-worker1:~$ docker swarm leave
+Node left the swarm.
+</code></pre><p>在manager节点上查看节点的信息，可以看到worker1状态为DOWN</p>
+<pre><code>ubuntu@swarm-manager:~$ docker node ls
+ID                           HOSTNAME       STATUS  AVAILABILITY  MANAGER STATUS
+f9qlbs5mpalab9kj5c9iabc9z    swarm-worker1  Down    Active
+py76ujrlk3ib7yg475ix98lxv    swarm-worker2  Ready   Active
+x579h1dmbuiftl3t0v1bqm5pr *  swarm-manager  Ready   Drain         Leader
+</code></pre><p>如果Manager想要退出Swarm集群，但是集群中还存在其它的Worker Node，则需要加上一个强制选项：</p>
+<pre><code>ubuntu@swarm-manager:~$ docker swarm leave --force
+Node left the swarm.
+</code></pre><h4 id="管理服务"><a href="#管理服务" class="headerlink" title="管理服务"></a>管理服务</h4><p>在Swarm mode下使用Docker，可以实现部署运行服务、服务扩容缩容、删除服务、滚动更新等功能，在Swarm集群上部署服务，必须在Manager Node上进行操作。下图是Service、Task、Container（容器）这个三个概念的关系：</p>
+<p><img src="/images/docker/service_task_container.png" alt="service_task_container.png"></p>
+<h4 id="创建服务"><a href="#创建服务" class="headerlink" title="创建服务"></a>创建服务</h4><p>首先要启动Swarm集群，使用了如下的命令创建了一个demo的service：</p>
+<pre><code>ubuntu@swarm-manager:~$ docker service create --name demo busybox sh -c &quot;while true; do sleep 3600; done&quot;
+qbju4in1fqq5oa7j67ff2pp48
+</code></pre><h4 id="查看服务"><a href="#查看服务" class="headerlink" title="查看服务"></a>查看服务</h4><p>可以看到当前的demo service运行在swarm-manager节点上：</p>
+<pre><code>ubuntu@swarm-manager:~$ docker service ls
+ID            NAME  MODE        REPLICAS  IMAGE
+qbju4in1fqq5  demo  replicated  1/1       busybox:latest
+
+ubuntu@swarm-manager:~$ docker service ps demo
+ID            NAME    IMAGE           NODE           DESIRED STATE  CURRENT STATE          ERROR  PORTS
+968zbp0nz05k  demo.1  busybox:latest  swarm-manager  Running        Running 2 minutes ago
+
+ubuntu@swarm-manager:~$ docker ps
+CONTAINER ID        IMAGE                                                                             COMMAND                  CREATED             STATUS              PORTS               NAMES
+1f2d80f554ca        busybox@sha256:2a03a6059f21e150ae84b0973863609494aad70f0a80eaeb64bddd8d92465812   &quot;sh -c &apos;while true...&quot;   4 minutes ago       Up 4 minutes                            demo.1.968zbp0nz05kahew3pp2y4j4c
+</code></pre><h4 id="扩容缩容服务"><a href="#扩容缩容服务" class="headerlink" title="扩容缩容服务"></a>扩容缩容服务</h4><p>Docker Swarm支持服务的扩容缩容，可以replicated模式指定服务Task的个数，如下命令将demo service水平扩容成5个：</p>
+<pre><code>ubuntu@swarm-manager:~$ docker service scale demo=5
+demo scaled to 5
+ubuntu@swarm-manager:~$
+ubuntu@swarm-manager:~$ docker service ls
+ID            NAME  MODE        REPLICAS  IMAGE
+qbju4in1fqq5  demo  replicated  5/5       busybox:latest
+
+ubuntu@swarm-manager:~$ docker service ps demo
+ID            NAME    IMAGE           NODE           DESIRED STATE  CURRENT STATE           ERROR  PORTS
+968zbp0nz05k  demo.1  busybox:latest  swarm-manager  Running        Running 9 minutes ago
+1mgc8aj4mkoy  demo.2  busybox:latest  swarm-worker1  Running        Running 57 seconds ago
+7l49mkwuhoym  demo.3  busybox:latest  swarm-worker2  Running        Running 43 seconds ago
+ho68t3g7sf2p  demo.4  busybox:latest  swarm-worker2  Running        Running 43 seconds ago
+so3ajlroy35j  demo.5  busybox:latest  swarm-manager  Running        Running 57 seconds ago
+</code></pre><p>可以看到在swarm-manager和swarm-worker2有两个service、swarm-worker1有一个service。如在swarm-worker2节点上使用<code>docker ps</code>，可以看到有个demo容器在运行：</p>
+<pre><code>ubuntu@swarm-worker2:~$ docker ps
+CONTAINER ID        IMAGE                                                                             COMMAND                  CREATED             STATUS              PORTS               NAMES
+ee77dc7037b3        busybox@sha256:2a03a6059f21e150ae84b0973863609494aad70f0a80eaeb64bddd8d92465812   &quot;sh -c &apos;while true...&quot;   2 minutes ago       Up 2 minutes                            demo.3.7l49mkwuhoymkxq5yr72qaa8z
+c036b5ad902d        busybox@sha256:2a03a6059f21e150ae84b0973863609494aad70f0a80eaeb64bddd8d92465812   &quot;sh -c &apos;while true...&quot;   2 minutes ago       Up 2 minutes                            demo.4.ho68t3g7sf2pk7cp4bt8l9q5y
+</code></pre><p>如果把swarm-worker2节点上其中一个容器删除，Swarm Manager会选择集群中其它可用的节点，载再创建一个服务，使实际运行的Docker容器数仍然保持与预期的5个一致：</p>
+<pre><code>ubuntu@swarm-manager:~$ docker service ls
+ID            NAME  MODE        REPLICAS  IMAGE
+qbju4in1fqq5  demo  replicated  4/5       busybox:latest
+ubuntu@swarm-manager:~$
+ubuntu@swarm-manager:~$ docker service ls
+ID            NAME  MODE        REPLICAS  IMAGE
+qbju4in1fqq5  demo  replicated  5/5       busybox:latest
+
+
+ubuntu@swarm-manager:~$ docker service ps demo
+ID            NAME        IMAGE           NODE           DESIRED STATE  CURRENT STATE           ERROR                        PORTS
+968zbp0nz05k  demo.1      busybox:latest  swarm-manager  Running        Running 19 minutes ago
+1mgc8aj4mkoy  demo.2      busybox:latest  swarm-worker1  Running        Running 11 minutes ago
+7l49mkwuhoym  demo.3      busybox:latest  swarm-worker2  Running        Running 10 minutes ago
+p1a2gc7in33s  demo.4      busybox:latest  swarm-worker2  Running        Running 52 seconds ago
+ho68t3g7sf2p   \_ demo.4  busybox:latest  swarm-worker2  Shutdown       Failed 57 seconds ago   &quot;task: non-zero exit (137)&quot;
+so3ajlroy35j  demo.5      busybox:latest  swarm-manager  Running        Running 11 minutes ago
+</code></pre><p>在swarm-worker2节点上删除了一个服务后，最终在swarm-worker2节点上启动了一个新的服务。</p>
+<p><strong>缩容服务</strong>： 只需要将副本数小于当前应用服务拥有的副本数即可实现，大于指定缩容副本数的副本会被删除。</p>
+<h4 id="删除服务"><a href="#删除服务" class="headerlink" title="删除服务"></a>删除服务</h4><p>使用下面的命令即可把服务删除：</p>
+<pre><code>ubuntu@swarm-manager:~$ docker service rm demo
+demo
+</code></pre><h3 id="Swarm部署服务的例子"><a href="#Swarm部署服务的例子" class="headerlink" title="Swarm部署服务的例子"></a>Swarm部署服务的例子</h3><p>如下使用Swarm部署<a href="https://qinglianghe.github.io/2018/10/14/docker_04/" target="_blank" rel="noopener">Dcoker Compose</a>那节中使用的flask app的例子：</p>
+<p>首先使用Dockerfile build一个flaskredis_web的image，要把image push到自己的hub里面，因为在部署的时候Swarm如果发现本机没有相应的image，就会从hub里面拉取，如果hub里面不存在，则会报错:</p>
+<pre><code>ubuntu@swarm-manager:~/flask-redis$ docker build -t heqingliang/flaskredis_web .
+</code></pre><p>创建一个overlay网络：</p>
+<pre><code>ubuntu@swarm-manager:~/flask-redis$ docker network create -d overlay demo
+bp3clp7ooa8bl2rpmqvd1b1um
+ubuntu@swarm-manager:~/flask-redis$ docker network ls
+NETWORK ID          NAME                DRIVER              SCOPE
+de6c660c5569        bridge              bridge              local
+bp3clp7ooa8b        demo                overlay             swarm
+ff50d198b5dc        docker_gwbridge     bridge              local
+65e22acf0beb        host                host                local
+wdh4p4u1ch9w        ingress             overlay             swarm
+ba700ffa1e8f        my-bridge           bridge              local
+c305a4b53c3b        none                null                local
+</code></pre><p>创建redis服务：</p>
+<pre><code>ubuntu@swarm-manager:~/flask-redis$ docker service create --name redis --network demo redis
+td7e95h7jhwmraziiy7f8p8u3
+ubuntu@swarm-manager:~/flask-redis$ docker service ps redis
+ID            NAME     IMAGE         NODE           DESIRED STATE  CURRENT STATE           ERROR  PORTS
+6ol4i4fv1u92  redis.1  redis:latest  swarm-manager  Running        Running 16 seconds ago
+</code></pre><p>创建flask web服务，可以看到falsk-web服务运行在worker1节点：</p>
+<pre><code>ubuntu@swarm-manager:~/flask-redis$ docker service create --name flask-web -p 5000:5000 --network demo --env REDIS_HOST=redis heqingliang/flaskredis_web
+
+ubuntu@swarm-manager:~/flask-redis$ docker service ps flask-web
+ID            NAME         IMAGE                       NODE           DESIRED STATE  CURRENT STATE               ERROR  PORTS
+cjh5ku96wtj9  flask-web.1  heqingliang/flaskredis_web  swarm-worker1  Running        Running about a minute ago
+</code></pre><p>访问flask-web服务， 虽然falsk-web服务运行在swarm-worker1节点，但是访问任意一个节点的5000端口都可以，其他节点会转发到swarm-worker1节点：</p>
+<pre><code>ubuntu@swarm-manager:~/flask-redis$ curl 192.168.33.11:5000
+&lt;h1&gt;Hello Container, I have been seen b&apos;1&apos; times.&lt;/h1&gt;
+ubuntu@swarm-manager:~/flask-redis$ curl 192.168.33.11:5000
+&lt;h1&gt;Hello Container, I have been seen b&apos;2&apos; times.
+ubuntu@swarm-manager:~/flask-redis$
+ubuntu@swarm-manager:~/flask-redis$ curl 192.168.33.10:5000
+&lt;h1&gt;Hello Container, I have been seen b&apos;3&apos; times.&lt;/h1&gt;
+ubuntu@swarm-manager:~/flask-redis$ curl 192.168.33.10:5000
+&lt;h1&gt;Hello Container, I have been seen b&apos;4&apos; times.&lt;/h1&gt;
+ubuntu@swarm-manager:~/flask-redis$
+ubuntu@swarm-manager:~/flask-redis$ curl 192.168.33.12:5000
+&lt;h1&gt;Hello Container, I have been seen b&apos;5&apos; times.&lt;/h1&gt;
+</code></pre>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/03/consul/" rel="next" title="使用Consul做服务发现">
+                <i class="fa fa-chevron-left"></i> 使用Consul做服务发现
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/11/10/docker_swarm_02/" rel="prev" title="Docker Swarm模式下的docker stack、Routing Mesh、滚动更新">
+                Docker Swarm模式下的docker stack、Routing Mesh、滚动更新 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">54</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本特性"><span class="nav-number">1.</span> <span class="nav-text">基本特性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Docker集群管理"><span class="nav-number">1.1.</span> <span class="nav-text">Docker集群管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#去中心化设计"><span class="nav-number">1.2.</span> <span class="nav-text">去中心化设计</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#服务扩容缩容"><span class="nav-number">1.3.</span> <span class="nav-text">服务扩容缩容</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#协调预期状态与实际状态的一致性"><span class="nav-number">1.4.</span> <span class="nav-text">协调预期状态与实际状态的一致性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#多主机网络"><span class="nav-number">1.5.</span> <span class="nav-text">多主机网络</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#服务发现"><span class="nav-number">1.6.</span> <span class="nav-text">服务发现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#负载均衡"><span class="nav-number">1.7.</span> <span class="nav-text">负载均衡</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#swarm-mode中的节点"><span class="nav-number">2.</span> <span class="nav-text">swarm mode中的节点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#manager-node"><span class="nav-number">2.1.</span> <span class="nav-text">manager node</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Worker-Node"><span class="nav-number">2.2.</span> <span class="nav-text">Worker Node</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Swarm集群搭建"><span class="nav-number">3.</span> <span class="nav-text">Swarm集群搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#启动manager节点"><span class="nav-number">3.1.</span> <span class="nav-text">启动manager节点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#启动worker节点"><span class="nav-number">3.2.</span> <span class="nav-text">启动worker节点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#查看节点的状态"><span class="nav-number">3.3.</span> <span class="nav-text">查看节点的状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Node状态变更管理"><span class="nav-number">3.4.</span> <span class="nav-text">Node状态变更管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Node提权-降权"><span class="nav-number">3.5.</span> <span class="nav-text">Node提权/降权</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#退出Swarm集群"><span class="nav-number">3.6.</span> <span class="nav-text">退出Swarm集群</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#管理服务"><span class="nav-number">3.7.</span> <span class="nav-text">管理服务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#创建服务"><span class="nav-number">3.8.</span> <span class="nav-text">创建服务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#查看服务"><span class="nav-number">3.9.</span> <span class="nav-text">查看服务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#扩容缩容服务"><span class="nav-number">3.10.</span> <span class="nav-text">扩容缩容服务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#删除服务"><span class="nav-number">3.11.</span> <span class="nav-text">删除服务</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Swarm部署服务的例子"><span class="nav-number">4.</span> <span class="nav-text">Swarm部署服务的例子</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

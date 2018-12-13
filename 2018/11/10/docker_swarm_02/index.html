@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="dcoker Stackdocker Stack和docker-compose类似，都是使用yml文件，用于部署多个服务。docker-compose只能把多个服务到同一台机器，而docker stack可以在swarm模式下部署到多台机器、每个服务可以定义多个副本。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker Swarm模式下的docker stack、Routing Mesh、滚动更新">
+<meta property="og:url" content="http://yoursite.com/2018/11/10/docker_swarm_02/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="dcoker Stackdocker Stack和docker-compose类似，都是使用yml文件，用于部署多个服务。docker-compose只能把多个服务到同一台机器，而docker stack可以在swarm模式下部署到多台机器、每个服务可以定义多个副本。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/docker/visualizer.png">
+<meta property="og:image" content="http://yoursite.com/images/docker/routing_mesh_dns.png">
+<meta property="og:image" content="http://yoursite.com/images/docker/ingress.png">
+<meta property="og:updated_time" content="2018-12-12T17:33:48.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker Swarm模式下的docker stack、Routing Mesh、滚动更新">
+<meta name="twitter:description" content="dcoker Stackdocker Stack和docker-compose类似，都是使用yml文件，用于部署多个服务。docker-compose只能把多个服务到同一台机器，而docker stack可以在swarm模式下部署到多台机器、每个服务可以定义多个副本。">
+<meta name="twitter:image" content="http://yoursite.com/images/docker/visualizer.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/10/docker_swarm_02/"/>
+
+
+
+
+
+  <title>Docker Swarm模式下的docker stack、Routing Mesh、滚动更新 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/10/docker_swarm_02/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Docker Swarm模式下的docker stack、Routing Mesh、滚动更新</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-10T00:00:00+08:00">
+                2018-11-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<h3 id="dcoker-Stack"><a href="#dcoker-Stack" class="headerlink" title="dcoker Stack"></a>dcoker Stack</h3><p>docker Stack和docker-compose类似，都是使用<code>yml</code>文件，用于部署多个服务。docker-compose只能把多个服务到同一台机器，而docker stack可以在swarm模式下部署到多台机器、每个服务可以定义多个副本。</p>
+<a id="more"></a>
+<p>如下使用docker-compose.yml定义上节中<code>flask-redis</code>：</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">"3"</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line"><span class="attr">  redis:</span></span><br><span class="line"><span class="attr">    image:</span> <span class="string">redis</span></span><br><span class="line"><span class="attr">    networks:</span></span><br><span class="line"><span class="bullet">      -</span> <span class="string">my-network</span></span><br><span class="line"><span class="attr">    deploy:</span></span><br><span class="line"><span class="attr">      mode:</span> <span class="string">global</span></span><br><span class="line"><span class="attr">      placement:</span></span><br><span class="line"><span class="attr">        constraints:</span></span><br><span class="line"><span class="bullet">          -</span> <span class="string">node.role</span> <span class="string">==</span> <span class="string">manager</span></span><br><span class="line"></span><br><span class="line"><span class="attr">  web:</span></span><br><span class="line"><span class="attr">    image:</span> <span class="string">heqingliang/flaskredis_web</span></span><br><span class="line"><span class="attr">    ports:</span></span><br><span class="line"><span class="bullet">     -</span> <span class="number">5000</span><span class="string">:5000</span></span><br><span class="line"><span class="attr">    environment:</span></span><br><span class="line"><span class="attr">      REDIS_HOST:</span> <span class="string">redis</span></span><br><span class="line"><span class="attr">    networks:</span></span><br><span class="line"><span class="bullet">      -</span> <span class="string">my-network</span></span><br><span class="line"><span class="attr">    depends_on:</span></span><br><span class="line"><span class="bullet">      -</span> <span class="string">redis</span></span><br><span class="line"><span class="attr">    deploy:</span></span><br><span class="line"><span class="attr">      mode:</span> <span class="string">replicated</span></span><br><span class="line"><span class="attr">      replicas:</span> <span class="number">3</span></span><br><span class="line"><span class="attr">      restart_policy:</span></span><br><span class="line"><span class="attr">        condition:</span> <span class="string">on-failure</span></span><br><span class="line"><span class="attr">        delay:</span> <span class="number">5</span><span class="string">s</span></span><br><span class="line"><span class="attr">        max_attempts:</span> <span class="number">3</span></span><br><span class="line"><span class="attr">      update_config:</span></span><br><span class="line"><span class="attr">        parallelism:</span> <span class="number">1</span></span><br><span class="line"><span class="attr">        delay:</span> <span class="number">10</span><span class="string">s</span></span><br><span class="line"></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line"><span class="attr">  my-network:</span></span><br><span class="line"><span class="attr">    driver:</span> <span class="string">overlay</span></span><br></pre></td></tr></table></figure>
+<p>使用docker stack部署：</p>
+<pre><code>ubuntu@swarm-manager:~/flask-redis$ docker stack deploy --compose-file docker-compose.yml web
+Creating network web_my-network
+Creating service web_redis
+Creating service web_web
+</code></pre><p>查看服务的状态：</p>
+<pre><code>ubuntu@swarm-manager:~/flask-redis$ docker service ls
+ID            NAME       MODE        REPLICAS  IMAGE
+i5d8wcqy684o  web_web    replicated  3/3       heqingliang/flaskredis_web
+prwd381d4700  web_redis  global      1/1       redis:latest
+</code></pre><p>查看某个服务的状态：</p>
+<pre><code>ubuntu@swarm-manager:~/flask-redis$ docker service ps web_web
+ID            NAME       IMAGE                       NODE           DESIRED STATE  CURRENT STATE               ERROR  PORTS
+x6wwegl7m7hk  web_web.1  heqingliang/flaskredis_web  swarm-worker2  Running        Running about a minute ago
+lrc1rxi9e788  web_web.2  heqingliang/flaskredis_web  swarm-worker1  Running        Running about a minute ago
+zeilj8s901ei  web_web.3  heqingliang/flaskredis_web  swarm-manager  Running        Running about a minute ago
+ubuntu@swarm-manager:~/flask-redis$ docker service ps web_redis
+ID            NAME                                 IMAGE         NODE           DESIRED STATE  CURRENT STATE          ERROR  PORTS
+t1y4et6ympxi  web_redis.y271lmw7frng7p6btfwic0pfs  redis:latest  swarm-manager  Running        Running 2 minutes ago
+</code></pre><p>访问任意一个节点的5000端口的服务：</p>
+<pre><code>ubuntu@swarm-manager:~/flask-redis$ curl 192.168.33.10:5000
+&lt;h1&gt;Hello Container, I have been seen b&apos;1&apos; times.&lt;/h1&gt;
+ubuntu@swarm-manager:~/flask-redis$ curl 192.168.33.11:5000
+&lt;h1&gt;Hello Container, I have been seen b&apos;2&apos; times.&lt;/h1&gt;
+ubuntu@swarm-manager:~/flask-redis$ curl 192.168.33.12:5000
+&lt;h1&gt;Hello Container, I have been seen b&apos;3&apos; times.&lt;/h1&gt;
+</code></pre><p>删除服务：</p>
+<pre><code>ubuntu@swarm-manager:~/flask-redis$ docker stack rm web
+Removing service web_web
+Removing service web_redis
+Removing network web_my-network
+</code></pre><h4 id="visualizer"><a href="#visualizer" class="headerlink" title="visualizer"></a>visualizer</h4><p>visualizer是一个可以通过界面，查看Swarm集群的service，如为上面的docker-compose.yml添加一个visualizer service:</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">visualizer:</span></span><br><span class="line"><span class="attr">  image:</span> <span class="string">dockersamples/visualizer:stable</span></span><br><span class="line"><span class="attr">  ports:</span></span><br><span class="line"><span class="bullet">   -</span> <span class="number">8080</span><span class="string">:8080</span></span><br><span class="line"><span class="attr">  stop_grace_period:</span> <span class="number">1</span><span class="string">m30s</span></span><br><span class="line"><span class="attr">  volumes:</span></span><br><span class="line"><span class="bullet">   -</span> <span class="string">"/var/run/docker.sock:/var/run/docker.sock"</span></span><br><span class="line"><span class="attr">  deploy:</span></span><br><span class="line"><span class="attr">    mode:</span> <span class="string">global</span></span><br><span class="line"><span class="attr">    placement:</span></span><br><span class="line"><span class="attr">      constraints:</span></span><br><span class="line"><span class="bullet">        -</span> <span class="string">node.role</span> <span class="string">==</span> <span class="string">manager</span></span><br></pre></td></tr></table></figure>
+<p>部署完服务后，可以通过访问manager节点的8080端口可以看到：</p>
+<p><img src="/images/docker/visualizer.png" alt="visualizer.png"></p>
+<h3 id="Routing-Mesh"><a href="#Routing-Mesh" class="headerlink" title="Routing Mesh"></a>Routing Mesh</h3><p>在一个Swarm集群中，外部请求Swarm集群中任意节点的某个服务时，Swarm通过Ingress将外部请求路由到不同主机的容器，从而实现了外部网络对service的访问。在容器之间的访问通过VIP(虚拟IP)实现，由LVS进行负载均衡。</p>
+<h4 id="VIP"><a href="#VIP" class="headerlink" title="VIP"></a>VIP</h4><p>在一个Swarm集群中，当不同的容器在overlay网络中，创建一个service时，如下图创建一个<code>myservice</code>的服务，会在Docker的DNS的服务器增加一条DNS的记录，<code>myservice 10.0.0.3</code>，但是这条记录对应的IP地址，并不是容器的IP地址，而是一个VIP(虚拟IP)，因为容器内的IP地址不是固定的，而VIP是固定的。</p>
+<p>下图通过Swarm把<code>myservice</code> sacle成两个: <code>task1.myservice</code>、<code>task2myservice</code>，部署在两台不同的机器，容器内的IP地址为: <code>10.0.0.4</code>、<code>10.0.0.5</code>，当请求<code>myservice</code>时，使用的VIP: <code>10.0.0.3</code>，Swarm会通过LVS进行负载均衡把请求分配到<code>10.0.0.4</code>或<code>10.0.0.5</code>中：</p>
+<p><img src="/images/docker/routing_mesh_dns.png" alt="routing_mesh_dns.png"></p>
+<p>如下，创建一个demo的overlay网络：</p>
+<pre><code>ubuntu@swarm-manager:~$ docker network create -d overlay demo
+jw8a5qcul5pljzt09m3wkjgjk
+</code></pre><p>使用<code>jwilder/whoami</code>的image，这个image可以返回容器的ID，创建一个whoami的service，连接到demo网络，可以看到whoami在swarm-worker1节点：</p>
+<pre><code>ubuntu@swarm-manager:~$ docker service create --name whoami -p 8000:8000 --network demo jwilder/whoami
+o56u12e455yx4d22tnpes5jpn
+ubuntu@swarm-manager:~$ docker service ls
+ID            NAME    MODE        REPLICAS  IMAGE
+o56u12e455yx  whoami  replicated  1/1       jwilder/whoami:latest
+ubuntu@swarm-manager:~$ docker service ps whoami
+ID            NAME      IMAGE                  NODE           DESIRED STATE  CURRENT STATE           ERROR  PORTS
+xfi5wuypwuoc  whoami.1  jwilder/whoami:latest  swarm-worker1  Running        Running 16 seconds ago
+ubuntu@swarm-manager:~$ curl 127.0.0.1:8000
+I&apos;m e6560538dfce
+</code></pre><p>创建一个centos的service，连接到demo网络，可以看到client运行在swarm-worker2节点：</p>
+<pre><code>ubuntu@swarm-manager:~$ docker service create --name centos --network demo centos sh -c &quot;while true; do sleep 3600; done&quot;
+vk1a30yjef6954d8arbbfri8b
+ubuntu@swarm-manager:~$ docker service ps centos
+ID            NAME      IMAGE          NODE           DESIRED STATE  CURRENT STATE             ERROR  PORTS
+lgktuxe54ny9  centos.1  centos:latest  swarm-worker2  Running        Preparing 14 seconds ago
+</code></pre><p>在swarm-worker2节点，进入容器，执行<code>ping whoami</code>，可以看到<code>whoami</code>对应的IP地址为<code>10.0.0.2</code>：</p>
+<pre><code>ubuntu@swarm-worker2:~$ docker ps
+CONTAINER ID        IMAGE                                                                            COMMAND                  CREATED             STATUS              PORTS               NAMES
+9c6f9552e3a2        centos@sha256:67dad89757a55bfdfabec8abd0e22f8c7c12a1856514726470228063ed86593b   &quot;sh -c &apos;while true...&quot;   16 seconds ago      Up 16 seconds                           centos.1.lgktuxe54ny9kpktrod7zkmaw
+ubuntu@swarm-worker2:~$
+ubuntu@swarm-worker2:~$ docker exec -it 9c6f /bin/bash
+[root@9c6f9552e3a2 /]# ping whoami
+PING whoami (10.0.0.2) 56(84) bytes of data.
+64 bytes from 10.0.0.2 (10.0.0.2): icmp_seq=1 ttl=64 time=0.240 ms
+64 bytes from 10.0.0.2 (10.0.0.2): icmp_seq=2 ttl=64 time=0.135 ms
+</code></pre><p><code>10.0.0.2</code>并不是<code>whoami</code>对应容器的IP地址，而是一个VIP，如下将<code>whoami</code>水平扩展为2个，但是在swarm-worker2节点，执行<code>ping whoami</code>的时候，对应的IP地址还是<code>10.0.0.2</code>：</p>
+<p>水平扩展whoami:</p>
+<pre><code>ubuntu@swarm-manager:~$ docker service scale whoami=2
+whoami scaled to 2
+ubuntu@swarm-manager:~$ docker service ps whoami
+ID            NAME      IMAGE                  NODE           DESIRED STATE  CURRENT STATE           ERROR  PORTS
+xfi5wuypwuoc  whoami.1  jwilder/whoami:latest  swarm-worker1  Running        Running 14 minutes ago
+6nghi6p0i9gh  whoami.2  jwilder/whoami:latest  swarm-manager  Running        Running 8 seconds ago
+</code></pre><p>在swarm-worker2节点，执行<code>ping whoami</code>:</p>
+<pre><code>[root@9c6f9552e3a2 /]# ping whoami
+PING whoami (10.0.0.2) 56(84) bytes of data.
+64 bytes from 10.0.0.2 (10.0.0.2): icmp_seq=1 ttl=64 time=0.097 ms
+64 bytes from 10.0.0.2 (10.0.0.2): icmp_seq=2 ttl=64 time=0.138 ms
+</code></pre><p>在swarm-worker2节点，执行<code>nslookup whoami</code>:</p>
+<pre><code>[root@9c6f9552e3a2 /]# nslookup whoami
+Server:         127.0.0.11
+Address:        127.0.0.11#53
+
+Non-authoritative answer:
+Name:   whoami
+Address: 10.0.0.2
+</code></pre><p>可以看到<code>whoami</code>虽然水平扩展了2个，但是对应的IP地址还是<code>10.0.0.2</code>，这个地址对应的不是容器的地址，而是一个VIP。</p>
+<p>在swarm-worker2节点，执行<code>nslookup tasks.whoami</code>，可以看到容器的真实的IP地址为<code>10.0.0.6</code>、<code>10.0.0.3</code>:</p>
+<pre><code>[root@9c6f9552e3a2 /]# nslookup tasks.whoami
+Server:         127.0.0.11
+Address:        127.0.0.11#53
+
+Non-authoritative answer:
+Name:   tasks.whoami
+Address: 10.0.0.6
+Name:   tasks.whoami
+Address: 10.0.0.3
+</code></pre><p>在swarm-manager和swarm-worker1节点上查询<code>whoami</code>容器的IP地址为<code>10.0.0.6</code>、<code>10.0.0.3</code>，对应的VIP为<code>10.0.0.2</code>：</p>
+<pre><code>ubuntu@swarm-manager:~$ docker ps
+CONTAINER ID        IMAGE                                                                                    COMMAND             CREATED             STATUS              PORTS               NAMES
+35e229a6a2bd        jwilder/whoami@sha256:c621c699e1becc851a27716df9773fa9a3f6bccb331e6702330057a688fd1d5a   &quot;/app/http&quot;         12 minutes ago      Up 12 minutes       8000/tcp            whoami.2.6nghi6p0i9gha04ol892roor2
+ubuntu@swarm-manager:~$ docker exec 35e229a6a2bd ip a
+61: eth0@if62: &lt;BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN&gt; mtu 1450 qdisc noqueue state UP
+link/ether 02:42:0a:00:00:06 brd ff:ff:ff:ff:ff:ff
+inet 10.0.0.6/24 scope global eth0
+   valid_lft forever preferred_lft forever
+inet 10.0.0.2/32 scope global eth0
+   valid_lft forever preferred_lft forever
+inet6 fe80::42:aff:fe00:6/64 scope link
+   valid_lft forever preferred_lft forever
+
+
+ubuntu@swarm-worker1:~$ docker ps
+CONTAINER ID        IMAGE                                                                                    COMMAND             CREATED             STATUS              PORTS               NAMES
+e6560538dfce        jwilder/whoami@sha256:c621c699e1becc851a27716df9773fa9a3f6bccb331e6702330057a688fd1d5a   &quot;/app/http&quot;         28 minutes ago      Up 28 minutes       8000/tcp            whoami.1.xfi5wuypwuocwytmozixtvjg9
+ubuntu@swarm-worker1:~$ docker exec e6560538dfce ip a
+43: eth0@if44: &lt;BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN&gt; mtu 1450 qdisc noqueue state UP
+link/ether 02:42:0a:00:00:03 brd ff:ff:ff:ff:ff:ff
+inet 10.0.0.3/24 scope global eth0
+   valid_lft forever preferred_lft forever
+inet 10.0.0.2/32 scope global eth0
+   valid_lft forever preferred_lft forever
+inet6 fe80::42:aff:fe00:3/64 scope link
+   valid_lft forever preferred_lft forever
+</code></pre><p>VIP和容器的IP地址的关联是通过<a href="http://www.linuxvirtualserver.org/" target="_blank" rel="noopener">LVS</a>实现的。</p>
+<h4 id="Ingress"><a href="#Ingress" class="headerlink" title="Ingress"></a>Ingress</h4><p>Ingress可以为Swarm提供外部的负载均衡，当部署在Swarm集群的一个服务，服务的端口号被暴露在Swarm的各个节点，外部访问直接访问Swarm的任意一个节点，即可方位到对应的服务。</p>
+<p>如图：当外部请求在Docker host3上请求web服务时，但是在Docker host3上并没有部署对应的服务，这时Swarm会通过Ingress将请求转化到Docker host1或Docker host2。Docker host1或Docker host2内部通过IPVS负载均衡访问到具体容器的服务：</p>
+<p><img src="/images/docker/ingress.png" alt="ingress.png"></p>
+<p>如下，使用上面的<code>whoami</code>的例子，创建两个service，可以看到两个service部署在swarm-manager、swarm-worker1:</p>
+<pre><code>ubuntu@swarm-manager:~$ docker service ls
+ID            NAME    MODE        REPLICAS  IMAGE
+o56u12e455yx  whoami  replicated  2/2       jwilder/whoami:latest
+ubuntu@swarm-manager:~$ docker service ps whoami
+ID            NAME      IMAGE                  NODE           DESIRED STATE  CURRENT STATE              ERROR  PORTS
+xfi5wuypwuoc  whoami.1  jwilder/whoami:latest  swarm-worker1  Running        Running about an hour ago
+6nghi6p0i9gh  whoami.2  jwilder/whoami:latest  swarm-manager  Running        Running 56 minutes ago
+</code></pre><p>swarm-worker2节点虽然没有部署whoami的服务，但是访问也可以访问whoami的服务，这就是Ingress由实现：</p>
+<pre><code>ubuntu@swarm-worker2:~$ curl 127.0.0.1:8000
+I&apos;m 35e229a6a2bd
+ubuntu@swarm-worker2:~$ curl 127.0.0.1:8000
+I&apos;m e6560538dfce
+ubuntu@swarm-worker2:~$ curl 127.0.0.1:8000
+I&apos;m 35e229a6a2bd
+</code></pre><p>如下，查看本地iptables的转发规则：</p>
+<pre><code>ubuntu@swarm-worker2:~$ sudo iptables -nL -t nat
+Chain DOCKER-INGRESS (2 references)
+target     prot opt source               destination
+DNAT       tcp  --  0.0.0.0/0            0.0.0.0/0            tcp dpt:8000 to:172.18.0.2:8000
+RETURN     all  --  0.0.0.0/0            0.0.0.0/0
+</code></pre><p>可以看出，在DOCKER-INGRESS网络访问8000端口的服务会转发到<code>172.18.0.2:8000</code></p>
+<p>如下可以看出<code>172.18.0.2</code>是和docker_gwbridge网络是处于同一个<code>network namespace</code>的：</p>
+<pre><code>ubuntu@swarm-worker2:~$ ip a
+5: docker_gwbridge: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default
+link/ether 02:42:ee:b8:d3:c6 brd ff:ff:ff:ff:ff:ff
+inet 172.18.0.1/16 scope global docker_gwbridge
+   valid_lft forever preferred_lft forever
+inet6 fe80::42:eeff:feb8:d3c6/64 scope link
+   valid_lft forever preferred_lft forever
+
+
+ubuntu@swarm-worker2:~$ docker network inspect docker_gwbridge
+&quot;Containers&quot;: {
+        &quot;ingress-sbox&quot;: {
+            &quot;Name&quot;: &quot;gateway_ingress-sbox&quot;,
+            &quot;EndpointID&quot;: &quot;3961d073a92a60be853fcdf948928ba5aca50048df104d042983dae5f21b05e3&quot;,
+            &quot;MacAddress&quot;: &quot;02:42:ac:12:00:02&quot;,
+            &quot;IPv4Address&quot;: &quot;172.18.0.2/16&quot;,
+            &quot;IPv6Address&quot;: &quot;&quot;
+        }
+    },
+</code></pre><p>进入ingress-sbox <code>network namespace</code>，执行<code>ip a</code>命令，可以看到<code>172.18.0.2</code>地址：</p>
+<pre><code>ubuntu@swarm-worker2:~$ sudo ls /var/run//images/docker/netns
+1-m2k86yipxx  ingress_sbox
+ubuntu@swarm-worker2:~$ sudo nsenter --net=/var/run//images/docker/netns/ingress_sbox
+root@swarm-worker2:~#
+root@swarm-worker2:~# ip a
+1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1
+link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+inet 127.0.0.1/8 scope host lo
+   valid_lft forever preferred_lft forever
+inet6 ::1/128 scope host
+   valid_lft forever preferred_lft forever
+8: eth0@if9: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1450 qdisc noqueue state UP group default
+    link/ether 02:42:0a:ff:00:05 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 10.255.0.5/16 scope global eth0
+    valid_lft forever preferred_lft forever
+    inet6 fe80::42:aff:feff:5/64 scope link
+    valid_lft forever preferred_lft forever
+10: eth1@if11: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default
+    link/ether 02:42:ac:12:00:02 brd ff:ff:ff:ff:ff:ff link-netnsid 1
+    inet 172.18.0.2/16 scope global eth1
+    valid_lft forever preferred_lft forever
+    inet6 fe80::42:acff:fe12:2/64 scope link
+    valid_lft forever preferred_lft forever
+</code></pre><p>执行命令<code>sudo apt-get install ipvsadm</code>，安装ipvs的管理工具，在ingress-sbox执行如下命令：</p>
+<pre><code>root@swarm-worker2:~# iptables -nL -t mangle
+Chain PREROUTING (policy ACCEPT)
+target     prot opt source               destination
+MARK       tcp  --  0.0.0.0/0            0.0.0.0/0            tcp dpt:8000 MARK set 0x116
+
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination
+
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination
+MARK       all  --  0.0.0.0/0            10.255.0.2           MARK set 0x116
+
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination
+root@swarm-worker2:~# ipvsadm -l
+IP Virtual Server version 1.2.1 (size=4096)
+Prot LocalAddress:Port Scheduler Flags
+-&gt; RemoteAddress:Port           Forward Weight ActiveConn InActConn
+FWM  278 rr
+-&gt; 10.255.0.6:0                 Masq    1      0          0
+-&gt; 10.255.0.7:0                 Masq    1      0          0
+</code></pre><p>ingress_sbox将8000端口的数据MARK到了0x116（对应十进制278）、使用<code>ipvsadm -l</code>可以看到278对应的IP地址为: <code>10.255.0.6</code>、<code>10.255.0.7</code>，这就是容器对应的IP地址：</p>
+<pre><code>ubuntu@swarm-manager:~$ docker ps
+CONTAINER ID        IMAGE                                                                                    COMMAND             CREATED             STATUS              PORTS               NAMES
+35e229a6a2bd        jwilder/whoami@sha256:c621c699e1becc851a27716df9773fa9a3f6bccb331e6702330057a688fd1d5a   &quot;/app/http&quot;         About an hour ago   Up About an hour    8000/tcp            whoami.2.6nghi6p0i9gha04ol892roor2
+ubuntu@swarm-manager:~$ docker exec 35e229a6a2bd ip a
+56: eth2@if57: &lt;BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN&gt; mtu 1450 qdisc noqueue state UP
+    link/ether 02:42:0a:ff:00:07 brd ff:ff:ff:ff:ff:ff
+    inet 10.255.0.7/16 scope global eth2
+    valid_lft forever preferred_lft forever
+    inet 10.255.0.2/32 scope global eth2
+    valid_lft forever preferred_lft forever
+    inet6 fe80::42:aff:feff:7/64 scope link
+    valid_lft forever preferred_lft forever
+
+
+
+ubuntu@swarm-worker1:~$ docker ps
+CONTAINER ID        IMAGE                                                                                    COMMAND             CREATED             STATUS              PORTS               NAMES
+e6560538dfce        jwilder/whoami@sha256:c621c699e1becc851a27716df9773fa9a3f6bccb331e6702330057a688fd1d5a   &quot;/app/http&quot;         About an hour ago   Up About an hour    8000/tcp            whoami.1.xfi5wuypwuocwytmozixtvjg9
+ubuntu@swarm-worker1:~$ docker exec e6560538dfce ip a
+47: eth2@if48: &lt;BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN&gt; mtu 1450 qdisc noqueue state UP
+    link/ether 02:42:0a:ff:00:06 brd ff:ff:ff:ff:ff:ff
+    inet 10.255.0.6/16 scope global eth2
+    valid_lft forever preferred_lft forever
+    inet 10.255.0.2/32 scope global eth2
+    valid_lft forever preferred_lft forever
+    inet6 fe80::42:aff:feff:6/64 scope link
+    valid_lft forever preferred_lft forever
+</code></pre><h3 id="Docker-Secret"><a href="#Docker-Secret" class="headerlink" title="Docker Secret"></a>Docker Secret</h3><p>如果需要对一些敏感的信息，如用户名密码、数据库密码等，可以使用Docker Secret对数据进行加密。</p>
+<ul>
+<li><p>Secret存储在Swarm的Manager节点中</p>
+</li>
+<li><p>Secret可以授权给一个service，这个service就可以使用这个Secret</p>
+</li>
+</ul>
+<h4 id="创建Secret"><a href="#创建Secret" class="headerlink" title="创建Secret"></a>创建Secret</h4><p>创建Secret可以通过文件或标准输入。</p>
+<h5 id="通过文件创建"><a href="#通过文件创建" class="headerlink" title="通过文件创建"></a>通过文件创建</h5><p>如下通过password文件创建一个<code>my-pw</code>的Secret</p>
+<pre><code>ubuntu@swarm-manager:~$ cat password
+admin123
+ubuntu@swarm-manager:~$ docker secret create my-pw password
+q4gjv8wbevw3ep7lt6u8wvjtu
+ubuntu@swarm-manager:~$ rm -rf password
+</code></pre><h5 id="通过标准输入创建"><a href="#通过标准输入创建" class="headerlink" title="通过标准输入创建"></a>通过标准输入创建</h5><pre><code>ubuntu@swarm-manager:~$ echo &quot;admin123&quot; | docker secret create my-pw2 -
+jou51ev01lg9l6mngyqp4dg3c
+</code></pre><h4 id="查看Secret"><a href="#查看Secret" class="headerlink" title="查看Secret"></a>查看Secret</h4><pre><code>ubuntu@swarm-manager:~$ docker secret ls
+ID                          NAME                CREATED             UPDATED
+jou51ev01lg9l6mngyqp4dg3c   my-pw2              22 seconds ago      22 seconds ago
+q4gjv8wbevw3ep7lt6u8wvjtu   my-pw               4 minutes ago       4 minutes ago
+</code></pre><h4 id="删除Secret"><a href="#删除Secret" class="headerlink" title="删除Secret"></a>删除Secret</h4><pre><code>ubuntu@swarm-manager:~$ docker secret rm my-pw2
+jou51ev01lg9l6mngyqp4dg3c
+ubuntu@swarm-manager:~$ docker secret ls
+ID                          NAME                CREATED             UPDATED
+q4gjv8wbevw3ep7lt6u8wvjtu   my-pw               5 minutes ago       5 minutes ago
+</code></pre><h4 id="使用Secret"><a href="#使用Secret" class="headerlink" title="使用Secret"></a>使用Secret</h4><p>在创建service时，可以通过<code>--secret</code>指定需要使用的secret：</p>
+<pre><code>ubuntu@swarm-manager:~$ docker service create --name client --secret my-pw busybox sh -c &quot;while true; do sleep 3600; done&quot;
+ic06w88supfz3e1ib5405fe22
+ubuntu@swarm-manager:~$
+ubuntu@swarm-manager:~$ docker service ps client
+ID            NAME      IMAGE           NODE           DESIRED STATE  CURRENT STATE           ERROR  PORTS
+iqgj9261jpld  client.1  busybox:latest  swarm-worker1  Running        Running 57 seconds ago
+</code></pre><p>创建了上面的client service后，就可以使用指定的<code>my-pw</code>的secret:</p>
+<pre><code>ubuntu@swarm-worker1:~$ docker ps
+CONTAINER ID        IMAGE                                                                             COMMAND                  CREATED             STATUS              PORTS               NAMES
+0a352c3b6b24        busybox@sha256:2a03a6059f21e150ae84b0973863609494aad70f0a80eaeb64bddd8d92465812   &quot;sh -c &apos;while true...&quot;   2 minutes ago       Up 2 minutes                            client.1.iqgj9261jpldxx2yon0cuh5zs
+ubuntu@swarm-worker1:~$ docker exec -it 0a35 sh
+/ # cd /run/secrets/
+/run/secrets # ls
+my-pw
+/run/secrets # cat my-pw
+admin123
+</code></pre><p>如下是在创建Mysql Service指定使用<code>my-pw</code>的secret，作为root的密码，输入密码admin123即可进入mysql：</p>
+<pre><code>ubuntu@swarm-manager:~$ docker service create --name db --secret my-pw -e MYSQL_ROOT_PASSWORD_FILE=/run/secrets/my-pw mysql
+kbvk5o9x0igw72eb6qtrvxcd9
+ubuntu@swarm-manager:~$ docker service ps db
+ID            NAME  IMAGE         NODE           DESIRED STATE  CURRENT STATE          ERROR  PORTS
+5y5t18sf4qlf  db.1  mysql:latest  swarm-manager  Running        Running 3 minutes ago
+ubuntu@swarm-manager:~$ docker ps
+CONTAINER ID        IMAGE                                                                           COMMAND                  CREATED             STATUS              PORTS                 NAMES
+77d809bbccd0        mysql@sha256:811483efcd38de17d93193b4b4bc4ba290a931215c4c8512cbff624e5967a7dd   &quot;docker-entrypoint...&quot;   3 minutes ago       Up 3 minutes        3306/tcp, 33060/tcp   db.1.5y5t18sf4qlfju69h0rmnh21g
+ubuntu@swarm-manager:~$ docker exec -it 77d8 sh
+# mysql -u root -p
+Enter password:
+</code></pre><h3 id="Service-Update"><a href="#Service-Update" class="headerlink" title="Service Update"></a>Service Update</h3><p>Docker Swarm支持滚动更新，在更新的过程中，总是有副本在运行的，可以保证了业务的连续性。</p>
+<p>创建一个<code>app.py</code>的python程序：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">    flask demo</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"></span><br><span class="line">__author__ = <span class="string">'heqingliang'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/', methods=['GET', 'POST'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">'Hello Docker, version 2.0'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">    app.run(host=<span class="string">"0.0.0.0"</span>, port=<span class="number">5000</span>, debug=<span class="keyword">True</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+<p>使用如下Dockerfile:</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> python</span><br><span class="line"><span class="keyword">LABEL</span> maintainer="heqingliang_gzus@163.com"</span><br><span class="line">RUN pip install flask</span><br><span class="line">COPY app.py /app/</span><br><span class="line">WORKDIR /app</span><br><span class="line">EXPOSE 5000</span><br><span class="line">CMD ["python", "app.py"]</span><br></pre></td></tr></table></figure>
+<p>创建一个flask-demo:1.0的image：</p>
+<pre><code>ubuntu@swarm-manager:~/flask$ docker build -t flask-demo:1.0 .
+</code></pre><p>将上面的version 1.0，改为version 2.0，创建一个flask-demo:2.0的image：</p>
+<pre><code>ubuntu@swarm-manager:~/flask$ docker build -t flask-demo:2.0 .
+</code></pre><p>创建一个overlay的demo网络：</p>
+<pre><code>docker network create -d overlay demo
+</code></pre><p>使用flask-demo:1.0创建一个service:</p>
+<pre><code>ubuntu@swarm-manager:~/flask$ docker service create --name web -p 5000:5000 --network demo flask-demo:1.0
+ubuntu@swarm-manager:~/flask$ docker service ps web
+ID            NAME   IMAGE           NODE           DESIRED STATE  CURRENT STATE          ERROR  PORTS
+lh4znay97v76  web.1  flask-demo:1.0  swarm-worker1  Running        Running 2 seconds ago
+</code></pre><p>如果要对service进行更新，需要保证service的个数在2个以上，才能保证业务不中断，如下将service sacle为2个：</p>
+<pre><code>ubuntu@swarm-manager:~/flask$ docker service scale web=2
+ubuntu@swarm-manager:~/flask$ docker service ps web
+ID            NAME   IMAGE           NODE           DESIRED STATE  CURRENT STATE                   ERROR  PORTS
+lh4znay97v76  web.1  flask-demo:1.0  swarm-worker1  Running        Running 3 minutes ago
+tf101bckttcm  web.2  flask-demo:1.0  swarm-worker2  Running        Running less than a second ago
+</code></pre><p>在worker1节点上，使用如下脚本，一直访问web的服务，在更新的过程中，看服务是否会中断：</p>
+<pre><code>ubuntu@swarm-worker1:~/flask$ sh -c &quot;while true; do curl 127.0.0.1:5000 &amp;&amp; sleep 1; done&quot;
+Hello Docker, version 1.0
+</code></pre><p>使用flask-demo:2.0的image，更新web服务，等待一段时间，可以看到worker1节点访问的服务更新到了2.0：</p>
+<pre><code>ubuntu@swarm-manager:~/flask$ docker service update --image flask-demo:2.0 web
+
+# worker1 节点
+Hello Docker, version 2.0
+</code></pre><p>查看service的状态，可以看到，flask-demo:1.0状态为Shutdown，flask-demo:2.0状态为Running：</p>
+<pre><code>ubuntu@swarm-manager:~/flask$ docker service ps web
+ID            NAME       IMAGE           NODE           DESIRED STATE  CURRENT STATE           ERROR  PORTS
+xlb8qurxht5o  web.1      flask-demo:2.0  swarm-worker2  Running        Running 3 minutes ago
+v0rhw47u1v3x   \_ web.1  flask-demo:1.0  swarm-worker2  Shutdown       Shutdown 3 minutes ago
+uieqy7m9pxzn  web.2      flask-demo:2.0  swarm-worker1  Running        Running 3 minutes ago
+siuaivldjfz6   \_ web.2  flask-demo:1.0  swarm-worker1  Shutdown       Shutdown 3 minutes ago
+</code></pre><p>当使用docker stack更新服务时，只需要改变docker-compose.yml文件，还是执行<code>docker stack deploy</code>命令，Swarm会根据docker-compose.yml文件变化，进行服务的更新。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/09/docker_swarm_01/" rel="next" title="Docker Swarm">
+                <i class="fa fa-chevron-left"></i> Docker Swarm
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">54</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#dcoker-Stack"><span class="nav-number">1.</span> <span class="nav-text">dcoker Stack</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#visualizer"><span class="nav-number">1.1.</span> <span class="nav-text">visualizer</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Routing-Mesh"><span class="nav-number">2.</span> <span class="nav-text">Routing Mesh</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#VIP"><span class="nav-number">2.1.</span> <span class="nav-text">VIP</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Ingress"><span class="nav-number">2.2.</span> <span class="nav-text">Ingress</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Docker-Secret"><span class="nav-number">3.</span> <span class="nav-text">Docker Secret</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#创建Secret"><span class="nav-number">3.1.</span> <span class="nav-text">创建Secret</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#通过文件创建"><span class="nav-number">3.1.1.</span> <span class="nav-text">通过文件创建</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#通过标准输入创建"><span class="nav-number">3.1.2.</span> <span class="nav-text">通过标准输入创建</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#查看Secret"><span class="nav-number">3.2.</span> <span class="nav-text">查看Secret</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#删除Secret"><span class="nav-number">3.3.</span> <span class="nav-text">删除Secret</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用Secret"><span class="nav-number">3.4.</span> <span class="nav-text">使用Secret</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Service-Update"><span class="nav-number">4.</span> <span class="nav-text">Service Update</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
