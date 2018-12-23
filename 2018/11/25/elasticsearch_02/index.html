@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="正排索引正排索引记录的是文档Id到文档内容、单词的关联关系。也就是说可以通过Id获取到文档的内容。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Elasticsearch 分词">
+<meta property="og:url" content="http://yoursite.com/2018/11/25/elasticsearch_02/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="正排索引正排索引记录的是文档Id到文档内容、单词的关联关系。也就是说可以通过Id获取到文档的内容。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/elastic/analyzer_order.png">
+<meta property="og:image" content="http://yoursite.com/images/elastic/standard.png">
+<meta property="og:image" content="http://yoursite.com/images/elastic/simple.png">
+<meta property="og:image" content="http://yoursite.com/images/elastic/whitespace.png">
+<meta property="og:image" content="http://yoursite.com/images/elastic/stop.png">
+<meta property="og:image" content="http://yoursite.com/images/elastic/keyword.png">
+<meta property="og:image" content="http://yoursite.com/images/elastic/pattern.png">
+<meta property="og:updated_time" content="2018-12-23T05:33:21.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Elasticsearch 分词">
+<meta name="twitter:description" content="正排索引正排索引记录的是文档Id到文档内容、单词的关联关系。也就是说可以通过Id获取到文档的内容。">
+<meta name="twitter:image" content="http://yoursite.com/images/elastic/analyzer_order.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/25/elasticsearch_02/"/>
+
+
+
+
+
+  <title>Elasticsearch 分词 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/25/elasticsearch_02/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Elasticsearch 分词</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-25T00:00:00+08:00">
+                2018-11-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<h3 id="正排索引"><a href="#正排索引" class="headerlink" title="正排索引"></a>正排索引</h3><p>正排索引记录的是文档Id到文档内容、单词的关联关系。也就是说可以通过Id获取到文档的内容。</p>
+<a id="more"></a>
+<p>如下记录着文档ID为1、2分别对应的文档内容：</p>
+<table>
+<thead>
+<tr>
+<th>文档 ID</th>
+<th style="text-align:left">文档内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td style="text-align:left">The quick brown fox jumped over the lazy dog</td>
+</tr>
+<tr>
+<td>2</td>
+<td style="text-align:left">Quick brown foxes leap over lazy dogs in summer</td>
+</tr>
+</tbody>
+</table>
+<h3 id="倒排索引"><a href="#倒排索引" class="headerlink" title="倒排索引"></a>倒排索引</h3><p>倒排索引记录的是单词到文档Id的关联关系。也就是说通过单词搜索到文档Id。</p>
+<p>如下是将上面的内容进行分词后，创建的一个倒排索引列表：</p>
+<table>
+<thead>
+<tr>
+<th>单词</th>
+<th style="text-align:left">文档ID列表</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Quick</td>
+<td style="text-align:left">2</td>
+</tr>
+<tr>
+<td>The</td>
+<td style="text-align:left">1</td>
+</tr>
+<tr>
+<td>brown</td>
+<td style="text-align:left">1,2</td>
+</tr>
+<tr>
+<td>dog</td>
+<td style="text-align:left">1</td>
+</tr>
+<tr>
+<td>dogs</td>
+<td style="text-align:left">2</td>
+</tr>
+<tr>
+<td>fox</td>
+<td style="text-align:left">1</td>
+</tr>
+<tr>
+<td>foxes</td>
+<td style="text-align:left">2</td>
+</tr>
+<tr>
+<td>in</td>
+<td style="text-align:left">2</td>
+</tr>
+<tr>
+<td>jumped</td>
+<td style="text-align:left">1</td>
+</tr>
+<tr>
+<td>lazy</td>
+<td style="text-align:left">1,2</td>
+</tr>
+<tr>
+<td>leap</td>
+<td style="text-align:left">2</td>
+</tr>
+<tr>
+<td>over</td>
+<td style="text-align:left">1,2</td>
+</tr>
+<tr>
+<td>quick</td>
+<td style="text-align:left">1</td>
+</tr>
+<tr>
+<td>summer</td>
+<td style="text-align:left">2</td>
+</tr>
+<tr>
+<td>the</td>
+<td style="text-align:left">1</td>
+</tr>
+</tbody>
+</table>
+<h4 id="查询流程"><a href="#查询流程" class="headerlink" title="查询流程"></a>查询流程</h4><p>使用倒排索引查询包含<code>brown</code>的文档：</p>
+<ul>
+<li><p>通过倒排索引获得<code>brown</code>对应的文档ID为1和2</p>
+</li>
+<li><p>通过正排索引查询1和3的完整内容</p>
+</li>
+<li><p>返回用户最终结果</p>
+</li>
+</ul>
+<h4 id="倒排索引组成"><a href="#倒排索引组成" class="headerlink" title="倒排索引组成"></a>倒排索引组成</h4><p>倒排索引是搜索引擎的核心，主要包含两部分：</p>
+<ul>
+<li><p>单词词典（Term Dictionary）</p>
+</li>
+<li><p>倒排列表（Posting List）</p>
+</li>
+</ul>
+<h5 id="单词词典"><a href="#单词词典" class="headerlink" title="单词词典"></a>单词词典</h5><p>单词词典（Term Dictionary）是倒排索引的重要组成，</p>
+<ul>
+<li><p>记录所有文档的单词，一般比较大</p>
+</li>
+<li><p>记录单词到倒排列表的关联信息</p>
+</li>
+</ul>
+<p>单词字典的实现一般是用B+ Tree</p>
+<h5 id="倒排列表"><a href="#倒排列表" class="headerlink" title="倒排列表"></a>倒排列表</h5><p>倒排列表（Posting List）记录了单词对应的文档集合，由倒排索引项（Posting）组成。</p>
+<p>排索引项（Posting）主要包含如下信息：</p>
+<ul>
+<li><p>文档ID， 用于获取原始信息</p>
+</li>
+<li><p>单词频率（TF，Term Frequency），记录该单词在文档中出现的次数，用于后续的相关性算分</p>
+</li>
+<li><p>位置（Position），记录单词在文档的分词位置</p>
+</li>
+<li><p>偏移（Offset），记录单词在文档的开始和结束位置</p>
+</li>
+</ul>
+<p>如<code>brown</code>单词对应的倒排列表如下：</p>
+<table>
+<thead>
+<tr>
+<th>文档ID</th>
+<th style="text-align:left">单词频率</th>
+<th style="text-align:left">位置</th>
+<th style="text-align:left">偏移</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td style="text-align:left">1</td>
+<td style="text-align:left">2</td>
+<td style="text-align:left"><10, 14=""></10,></td>
+</tr>
+<tr>
+<td>2</td>
+<td style="text-align:left">1</td>
+<td style="text-align:left">1</td>
+<td style="text-align:left"><6, 10=""></6,></td>
+</tr>
+</tbody>
+</table>
+<h3 id="分词"><a href="#分词" class="headerlink" title="分词"></a>分词</h3><p>分词是指将文本转换成一系列单词（term or token）的过程，也可以叫做文本分析，在elasticsearch里面称为Analysis。</p>
+<h4 id="分词器"><a href="#分词器" class="headerlink" title="分词器"></a>分词器</h4><p>分词器是elasticsearch中专门处理分词的组件，英文为Analyzer，它的组成如下：</p>
+<ul>
+<li><p><strong>Character Filters：</strong>  针对原始文本进行处理，比如去除html特殊标记符</p>
+</li>
+<li><p><strong>Tokenizer：</strong> 将原始文本按照一定规格切分为单词</p>
+</li>
+<li><p><strong>Token Filters：</strong> 针对tokenizer处理的单词再加工，比如转换成小写、删除或新增等处理</p>
+</li>
+</ul>
+<h4 id="分词器调用的顺序"><a href="#分词器调用的顺序" class="headerlink" title="分词器调用的顺序"></a>分词器调用的顺序</h4><p>上面三个分词的组件调用的是有顺序，最先调用的是Character Filters、然后是Tokenizer、最后是Token Filters：</p>
+<p><img src="/images/elastic/analyzer_order.png" alt="analyzer_order.png"></p>
+<h4 id="Analyze-API"><a href="#Analyze-API" class="headerlink" title="Analyze API"></a>Analyze API</h4><p>elasticsearch提供了一个测试分词的api接口，方便验证分词效果。</p>
+<ul>
+<li><p>可以直接指定analyzer进行测试</p>
+</li>
+<li><p>可以直接指定索引中的字段进行测试</p>
+</li>
+<li><p>可以自定义分词器进行测试</p>
+</li>
+</ul>
+<h5 id="直接指定analyzer进行测试"><a href="#直接指定analyzer进行测试" class="headerlink" title="直接指定analyzer进行测试"></a>直接指定analyzer进行测试</h5><p>如下指定analyzer为standard，对文本<code>hello world</code>进行分词：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">POST _analyze</span><br><span class="line">&#123;</span><br><span class="line">    <span class="attr">"analyzer"</span>: <span class="string">"standard"</span>,</span><br><span class="line">    <span class="attr">"text"</span>: <span class="string">"hello wrold!"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>服务器返回以下结果，<code>token</code>：分词的结果、<code>start_offset</code>：起始偏移、<code>end_offset</code>：结束偏移、<code>position</code>：分词位置。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"tokens"</span> : [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"hello"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">0</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">5</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">0</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"wrold"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">6</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">11</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">1</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="指定索引中的字段进行测试"><a href="#指定索引中的字段进行测试" class="headerlink" title="指定索引中的字段进行测试"></a>指定索引中的字段进行测试</h5><p>当创建好索引后发现某一字段的查询和预期不一样，就可以对这个字段进行分词测试。</p>
+<p>如下对<code>test_index</code>的<code>username</code>字段进行测试：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">POST test_index/_analyze</span><br><span class="line">&#123;</span><br><span class="line">    <span class="attr">"field"</span>: <span class="string">"username"</span>,</span><br><span class="line">    <span class="attr">"text"</span>: <span class="string">"hello world!"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出的结果和上面是一样的。</p>
+<h5 id="预定义分词器"><a href="#预定义分词器" class="headerlink" title="预定义分词器"></a>预定义分词器</h5><p>elasticsearch内置了很多分词器，如：Standard、Simple、Whitespace、Stop、Keyword、Pattern、Language，可以直接使用。</p>
+<h5 id="Standard"><a href="#Standard" class="headerlink" title="Standard"></a>Standard</h5><p>默认分词器，具有按词切分、支持多语言、转化为小写等特点。</p>
+<p>standerd将stop word默认关闭了，stop word就是例如and、the、or这种词，可以通过配置将它打开。这些词还是会在分词后保留。</p>
+<p>如下图，输入文本 <code>The 2 Quick Brown-Foxes jumped over the lazy dog&#39;s bone.</code>，经过standerd分词器分词后的结果为：<code>[the, 2, quick, brown, foxes, over, the, lazy, dog&#39;s, bone]</code></p>
+<p><img src="/images/elastic/standard.png" alt="standard.png"></p>
+<p>进行测试时，把analyzer设置为standard即可：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">POST _analyze</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"analyzer"</span>: <span class="string">"standard"</span>,</span><br><span class="line">  <span class="attr">"text"</span>: <span class="string">"The 2 Quick Brown-Foxes jumped over the lazy dog's bone."</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>服务器返回的结果为：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"tokens"</span> : [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"the"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">0</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">3</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">0</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"2"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">4</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">5</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;NUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">1</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"quick"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">6</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">11</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">2</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"brown"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">12</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">17</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">3</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"foxes"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">18</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">23</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">4</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"jumped"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">24</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">30</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">5</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"over"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">31</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">35</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">6</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"the"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">36</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">39</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">7</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"lazy"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">40</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">44</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">8</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"dog's"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">45</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">50</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">9</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"bone"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">51</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">55</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">10</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="simple"><a href="#simple" class="headerlink" title="simple"></a>simple</h5><p>按照非字母切分、小写处理特点。</p>
+<p>如下图，上面的文本调用simple分词器，输出的结果：</p>
+<p><img src="/images/elastic/simple.png" alt="simple.png"></p>
+<p>进行测试时，把analyzer设置为simple即可：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">POST _analyze</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"analyzer"</span>: <span class="string">"simple"</span>,</span><br><span class="line">  <span class="attr">"text"</span>: <span class="string">"The 2 Quick Brown-Foxes jumped over the lazy dog's bone."</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="whitespace"><a href="#whitespace" class="headerlink" title="whitespace"></a>whitespace</h6><p>按照空格切分。</p>
+<p>如下图，上面的文本调用whitespace分词器，输出的结果：</p>
+<p><img src="/images/elastic/whitespace.png" alt="whitespace.png"></p>
+<p>进行测试时，把analyzer设置为whitespace即可：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">POST _analyze</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"analyzer"</span>: <span class="string">"whitespace"</span>,</span><br><span class="line">  <span class="attr">"text"</span>: <span class="string">"The 2 Quick Brown-Foxes jumped over the lazy dog's bone."</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="stop"><a href="#stop" class="headerlink" title="stop"></a>stop</h6><p>和simple分词器相比，多了stop word处理，比如英文的：the、an、中文的：的、这等stop word都会被去除。</p>
+<p>如下图，上面的文本调用stop分词器，输出的结果：</p>
+<p><img src="/images/elastic/stop.png" alt="stop.png"></p>
+<p>进行测试时，把analyzer设置为stop即可：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">POST _analyze</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"analyzer"</span>: <span class="string">"stop"</span>,</span><br><span class="line">  <span class="attr">"text"</span>: <span class="string">"The 2 Quick Brown-Foxes jumped over the lazy dog's bone."</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="keyword"><a href="#keyword" class="headerlink" title="keyword"></a>keyword</h6><p>不分词，直接将输入作为一个单词输出。</p>
+<p>如下图，上面的文本调用keyword分词器，输出的结果：</p>
+<p><img src="/images/elastic/keyword.png" alt="keyword.png"></p>
+<p>进行测试时，把analyzer设置为keyword即可：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">POST _analyze</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"analyzer"</span>: <span class="string">"keyword"</span>,</span><br><span class="line">  <span class="attr">"text"</span>: <span class="string">"The 2 Quick Brown-Foxes jumped over the lazy dog's bone."</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="pattern"><a href="#pattern" class="headerlink" title="pattern"></a>pattern</h6><p>通过正则表达式自定义分隔符，默认是\W+，即非字词的符号作为分隔符，小写转化 。</p>
+<p><img src="/images/elastic/pattern.png" alt="pattern.png"></p>
+<p>进行测试时，把analyzer设置为pattern即可：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">POST _analyze</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"analyzer"</span>: <span class="string">"pattern"</span>,</span><br><span class="line">  <span class="attr">"text"</span>: <span class="string">"The 2 Quick Brown-Foxes jumped over the lazy dog's bone."</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="中文分词"><a href="#中文分词" class="headerlink" title="中文分词"></a>中文分词</h6><p>常见的中文分词器有：<a href="https://github.com/medcl/elasticsearch-analysis-ik" target="_blank" rel="noopener">ik</a>、<a href="https://www.elastic.co/guide/en/elasticsearch/plugins/current/analysis-smartcn.html" target="_blank" rel="noopener">smartcn</a>等。</p>
+<p>在这里以ik为例，首先使用下面的命令，安装ik分词器：</p>
+<pre><code>[heql@ubuntu elasticsearch-6.5.0]$ ./bin/elasticsearch-plugin install https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v6.5.0/elasticsearch-analysis-ik-6.5.0.zip
+</code></pre><p>重新启动Elastic，就会自动加载这个新安装的插件。</p>
+<p>新建一个Index，指定需要使用ik分词的字段。如下在创建profile Index时，指定<code>user</code>、<code>title</code>、<code>desc</code>字段的analyzer(分词器)、search_analyzer(搜索词的分词器)为<code>ik_max_word</code>分词器：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">PUT /profile</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"mappings"</span>: &#123;</span><br><span class="line">    <span class="attr">"person"</span>: &#123;</span><br><span class="line">      <span class="attr">"properties"</span>: &#123;</span><br><span class="line">        <span class="attr">"user"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"text"</span>,</span><br><span class="line">          <span class="attr">"analyzer"</span>: <span class="string">"ik_max_word"</span>,</span><br><span class="line">          <span class="attr">"search_analyzer"</span>: <span class="string">"ik_max_word"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"title"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"text"</span>,</span><br><span class="line">          <span class="attr">"analyzer"</span>: <span class="string">"ik_max_word"</span>,</span><br><span class="line">          <span class="attr">"search_analyzer"</span>: <span class="string">"ik_max_word"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"desc"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"text"</span>,</span><br><span class="line">          <span class="attr">"analyzer"</span>: <span class="string">"ik_max_word"</span>,</span><br><span class="line">          <span class="attr">"search_analyzer"</span>: <span class="string">"ik_max_word"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="自定义分词"><a href="#自定义分词" class="headerlink" title="自定义分词"></a>自定义分词</h5><p>当自带的分词无法满足需求的时候，就需要自定义分词。</p>
+<p>自定义分词就是通过Character Filters、Tokenizer和Token Filter实现。</p>
+<h6 id="Character-Filters"><a href="#Character-Filters" class="headerlink" title="Character Filters"></a>Character Filters</h6><p>在Tokenizer之前对原始文本进行处理，比如增加、删除或替换的字符等。</p>
+<p>自带的Character Filters有如下：</p>
+<ul>
+<li><p>html_strip：去除html标签和转换html字体</p>
+</li>
+<li><p>Mapping：进行字符串替换</p>
+</li>
+<li><p>Pattern Replace：进行正则匹配替换</p>
+</li>
+</ul>
+<p>如下，指定测试的<code>char_filter</code>为<code>html_strip</code>，分词器为<code>keyword</code>，表示不分词：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">POST _analyze</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"tokenizer"</span>: <span class="string">"keyword"</span>,</span><br><span class="line">  <span class="attr">"char_filter"</span>: [<span class="string">"html_strip"</span>],</span><br><span class="line">  <span class="attr">"text"</span>: <span class="string">"&lt;p&gt;I&amp;apos;m so &lt;b&gt;happy&lt;/b&gt;!&lt;/p&gt;"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>服务器返回如下结果：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"tokens"</span> : [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">""</span><span class="string">"</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">I'm so happy!</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">"</span><span class="string">""</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">0</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">32</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"word"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">0</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="Tokenizer"><a href="#Tokenizer" class="headerlink" title="Tokenizer"></a>Tokenizer</h6><p>将原始文本按照一定的规则切分称为单词。</p>
+<p>自带的Tokenizer如下：</p>
+<ul>
+<li><p>standard：按照单词切割</p>
+</li>
+<li><p>letter：按照非字符切割</p>
+</li>
+<li><p>whitespace：按照空格切割</p>
+</li>
+<li><p>UAX URL Eamil 按照standard切割，但不会分割邮箱和url</p>
+</li>
+<li><p>NGram和Edge NGram：连词分割</p>
+</li>
+<li><p>path_hierarchy：按照文件路径进行分割</p>
+</li>
+</ul>
+<p>如下，指定测试的<code>Tokenizer</code>为<code>path_hierarchy</code>，对路径<code>/home/heql/elasticsearch-6.5.0</code>进行切分：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">POST _analyze</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"tokenizer"</span>: <span class="string">"path_hierarchy"</span>, </span><br><span class="line">  <span class="attr">"text"</span>: <span class="string">"/home/heql/elasticsearch-6.5.0"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>服务器返回的结果如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"tokens"</span> : [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"/home"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">0</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">5</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"word"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">0</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"/home/heql"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">0</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">10</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"word"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">0</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"/home/heql/elasticsearch-6.5.0"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">0</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">30</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"word"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">0</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="Token-Filter"><a href="#Token-Filter" class="headerlink" title="Token Filter"></a>Token Filter</h6><p>是对于Tokenizer输出的单词（term）进行增加、删除、修改等操作。</p>
+<p>自带的Token Filter如下：</p>
+<ul>
+<li><p>lowercase：将所有term转化为小写</p>
+</li>
+<li><p>stop：删除stop word</p>
+</li>
+<li><p>NGram和Edge NGram：连词分割</p>
+</li>
+<li><p>Synonym：添加近义词的term</p>
+</li>
+</ul>
+<p>filter可以有多个并按照指定的顺序执行</p>
+<p>如下， filter指定使用stop、lowercase、ngram。这里是指定每4位切割一次，min_gram和max_gram分别指定最小和最大的切割位数。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">POST _analyze</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"text"</span>: <span class="string">"a Hello,world!"</span>,</span><br><span class="line">  <span class="attr">"tokenizer"</span>: <span class="string">"standard"</span>,</span><br><span class="line">  <span class="attr">"filter"</span>: [</span><br><span class="line">    <span class="string">"stop"</span>,</span><br><span class="line">    <span class="string">"lowercase"</span>,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"type"</span>: <span class="string">"ngram"</span>,</span><br><span class="line">      <span class="attr">"min_gram"</span>: <span class="number">4</span>,</span><br><span class="line">      <span class="attr">"max_gram"</span>: <span class="number">4</span></span><br><span class="line">    &#125;  </span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>服务器返回的结果如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"tokens"</span> : [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"hell"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">2</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">7</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">1</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"ello"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">2</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">7</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">1</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"worl"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">8</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">13</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">2</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"orld"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">8</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">13</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">2</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="自定义分词的API"><a href="#自定义分词的API" class="headerlink" title="自定义分词的API"></a>自定义分词的API</h6><p>自定义分词需要在索引的配置中设定。</p>
+<p>如下定义一个my_custom_analyzer分词器，character filter使用html strip、tokenizer使用standard、token filter使用lowarcase和ascii folding：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">PUT test_index</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"settings"</span>: &#123;</span><br><span class="line">    <span class="attr">"analysis"</span>: &#123;</span><br><span class="line">      <span class="attr">"analyzer"</span>: &#123;</span><br><span class="line">        <span class="attr">"my_custom_analyzer"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"custom"</span>,</span><br><span class="line">          <span class="attr">"tokenizer"</span>: <span class="string">"standard"</span>,</span><br><span class="line"></span><br><span class="line">          <span class="attr">"char_filter"</span>: [</span><br><span class="line">            <span class="string">"html_strip"</span></span><br><span class="line">          ],</span><br><span class="line">          <span class="attr">"filter"</span>: [</span><br><span class="line">            <span class="string">"lowercase"</span>,</span><br><span class="line">            <span class="string">"asciifolding"</span></span><br><span class="line">          ]</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如下，使用自定义分词器：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">POST test_index/_analyze</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"analyzer"</span>: <span class="string">"my_custom_analyzer"</span>,</span><br><span class="line">  <span class="attr">"text"</span>: <span class="string">"Is this &lt;b&gt;a box&lt;/b&gt;?"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>服务器返回的结果如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"tokens"</span> : [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"is"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">0</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">2</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">0</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"this"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">3</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">7</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">1</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"a"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">11</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">12</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">2</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"box"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">13</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">20</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"&lt;ALPHANUM&gt;"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">3</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下面character filter使用自定义的mapping：emoticons、 tokenizer使用自定义的punctuation、filter使用自定义的english_stop：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">PUT test_index2</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"settings"</span>: &#123;</span><br><span class="line">    <span class="attr">"analysis"</span>: &#123;</span><br><span class="line">      <span class="attr">"analyzer"</span>: &#123;</span><br><span class="line">        <span class="attr">"my_custom_analyzer"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"custom"</span>,</span><br><span class="line">          <span class="attr">"char_filter"</span>: [</span><br><span class="line">            <span class="string">"emoticons"</span></span><br><span class="line">          ],</span><br><span class="line">          <span class="attr">"tokenizer"</span>: <span class="string">"punctuation"</span>,</span><br><span class="line">          <span class="attr">"filter"</span>: [</span><br><span class="line">            <span class="string">"lowercase"</span>,</span><br><span class="line">            <span class="string">"english_stop"</span></span><br><span class="line">          ]</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="attr">"tokenizer"</span>: &#123;</span><br><span class="line">        <span class="attr">"punctuation"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"pattern"</span>,</span><br><span class="line">          <span class="attr">"pattern"</span>: <span class="string">"[.,!?]"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="attr">"char_filter"</span>: &#123;</span><br><span class="line">        <span class="attr">"emoticons"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"mapping"</span>,</span><br><span class="line">          <span class="attr">"mappings"</span>: [</span><br><span class="line">            <span class="string">":) =&gt; _happy_"</span>,</span><br><span class="line">            <span class="string">":( =&gt; _sad_"</span></span><br><span class="line">          ]</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="attr">"filter"</span>: &#123;</span><br><span class="line">        <span class="attr">"english_stop"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"stop"</span>,</span><br><span class="line">          <span class="attr">"stopwords"</span>: <span class="string">"_english_"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如下，使用上面的分词器：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">POST test_index2/_analyze</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"analyzer"</span>: <span class="string">"my_custom_analyzer"</span>,</span><br><span class="line">  <span class="attr">"text"</span>: <span class="string">"I'm a :) person, and you?"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>服务器返回的结果如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"tokens"</span> : [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">"i'm a _happy_ person"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">0</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">15</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"word"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">0</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"token"</span> : <span class="string">" and you"</span>,</span><br><span class="line">      <span class="attr">"start_offset"</span> : <span class="number">16</span>,</span><br><span class="line">      <span class="attr">"end_offset"</span> : <span class="number">24</span>,</span><br><span class="line">      <span class="attr">"type"</span> : <span class="string">"word"</span>,</span><br><span class="line">      <span class="attr">"position"</span> : <span class="number">1</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="分词使用说明"><a href="#分词使用说明" class="headerlink" title="分词使用说明"></a>分词使用说明</h4><p>分词一般会在以下的情况下使用：</p>
+<ul>
+<li><p><strong>索引时分词：</strong> 创建或更新文档的时候，会对相应的文档进行分词处理。</p>
+</li>
+<li><p><strong>查询时分词：</strong> 查询时，会对查询语句进行分词</p>
+</li>
+</ul>
+<p>明确字段是否需要分词，不需要分词的字段就将type设置为 keyword，可以节省空间和提高写性能。</p>
+<h5 id="索引时分词"><a href="#索引时分词" class="headerlink" title="索引时分词"></a>索引时分词</h5><p>索引时分词是通过配置Index Mapping中每个字段的analyzer属性实现的，不指定分词时，默认使用standard。</p>
+<h5 id="查询时分词"><a href="#查询时分词" class="headerlink" title="查询时分词"></a>查询时分词</h5><p>查询时分词的指定方式有如下几种：</p>
+<ul>
+<li><p>查询的时候通过analyzer指定分词器</p>
+</li>
+<li><p>通过Index Mapping设置search_analyzer实现</p>
+</li>
+</ul>
+<p>一般不需要特别指定查询时分词器，如果不指定，查询时默认使用的是索引时分词器。如果指定的查询时分词器和索引时的分词器不一致，可能出现无法匹配的情况。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/24/elasticsearch_01/" rel="next" title="Elasticsearch 基本操作(CRUD)">
+                <i class="fa fa-chevron-left"></i> Elasticsearch 基本操作(CRUD)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/11/30/elasticsearch_03/" rel="prev" title="Elasticsearch Mapping">
+                Elasticsearch Mapping <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">61</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#正排索引"><span class="nav-number">1.</span> <span class="nav-text">正排索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#倒排索引"><span class="nav-number">2.</span> <span class="nav-text">倒排索引</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查询流程"><span class="nav-number">2.1.</span> <span class="nav-text">查询流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#倒排索引组成"><span class="nav-number">2.2.</span> <span class="nav-text">倒排索引组成</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#单词词典"><span class="nav-number">2.2.1.</span> <span class="nav-text">单词词典</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#倒排列表"><span class="nav-number">2.2.2.</span> <span class="nav-text">倒排列表</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分词"><span class="nav-number">3.</span> <span class="nav-text">分词</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#分词器"><span class="nav-number">3.1.</span> <span class="nav-text">分词器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分词器调用的顺序"><span class="nav-number">3.2.</span> <span class="nav-text">分词器调用的顺序</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Analyze-API"><span class="nav-number">3.3.</span> <span class="nav-text">Analyze API</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#直接指定analyzer进行测试"><span class="nav-number">3.3.1.</span> <span class="nav-text">直接指定analyzer进行测试</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#指定索引中的字段进行测试"><span class="nav-number">3.3.2.</span> <span class="nav-text">指定索引中的字段进行测试</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#预定义分词器"><span class="nav-number">3.3.3.</span> <span class="nav-text">预定义分词器</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Standard"><span class="nav-number">3.3.4.</span> <span class="nav-text">Standard</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#simple"><span class="nav-number">3.3.5.</span> <span class="nav-text">simple</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#whitespace"><span class="nav-number">3.3.5.1.</span> <span class="nav-text">whitespace</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#stop"><span class="nav-number">3.3.5.2.</span> <span class="nav-text">stop</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#keyword"><span class="nav-number">3.3.5.3.</span> <span class="nav-text">keyword</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#pattern"><span class="nav-number">3.3.5.4.</span> <span class="nav-text">pattern</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#中文分词"><span class="nav-number">3.3.5.5.</span> <span class="nav-text">中文分词</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#自定义分词"><span class="nav-number">3.3.6.</span> <span class="nav-text">自定义分词</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#Character-Filters"><span class="nav-number">3.3.6.1.</span> <span class="nav-text">Character Filters</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#Tokenizer"><span class="nav-number">3.3.6.2.</span> <span class="nav-text">Tokenizer</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#Token-Filter"><span class="nav-number">3.3.6.3.</span> <span class="nav-text">Token Filter</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#自定义分词的API"><span class="nav-number">3.3.6.4.</span> <span class="nav-text">自定义分词的API</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分词使用说明"><span class="nav-number">3.4.</span> <span class="nav-text">分词使用说明</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#索引时分词"><span class="nav-number">3.4.1.</span> <span class="nav-text">索引时分词</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#查询时分词"><span class="nav-number">3.4.2.</span> <span class="nav-text">查询时分词</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

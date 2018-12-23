@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="在Elasticsearch中，mapping是类似于关系型数据库中的表结构定义。主要作用如下：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Elasticsearch Mapping">
+<meta property="og:url" content="http://yoursite.com/2018/11/30/elasticsearch_03/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="在Elasticsearch中，mapping是类似于关系型数据库中的表结构定义。主要作用如下：">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/elastic/dynamic_mapping.png">
+<meta property="og:updated_time" content="2018-12-23T05:33:18.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Elasticsearch Mapping">
+<meta name="twitter:description" content="在Elasticsearch中，mapping是类似于关系型数据库中的表结构定义。主要作用如下：">
+<meta name="twitter:image" content="http://yoursite.com/images/elastic/dynamic_mapping.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/30/elasticsearch_03/"/>
+
+
+
+
+
+  <title>Elasticsearch Mapping | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/30/elasticsearch_03/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Elasticsearch Mapping</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-30T00:00:00+08:00">
+                2018-11-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在Elasticsearch中，mapping是类似于关系型数据库中的表结构定义。主要作用如下：</p>
+<a id="more"></a>
+<ul>
+<li><p>定义index下的字段名</p>
+</li>
+<li><p>定义字段类型，比如数值型、浮点型、布尔型等</p>
+</li>
+<li><p>定义倒排索引相关的设置，比如是否索引、记录position等</p>
+</li>
+</ul>
+<h3 id="查看mapping"><a href="#查看mapping" class="headerlink" title="查看mapping"></a>查看mapping</h3><p>使用如下命令，可以查看<code>test_index</code>的mapping:</p>
+<pre><code>GET test_index/_mapping
+</code></pre><p>服务器返回如下内容，<code>properties</code>表示字段的属性，<code>type</code>表示字段的类型：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"test_index"</span> : &#123;</span><br><span class="line">    <span class="attr">"mappings"</span> : &#123;</span><br><span class="line">      <span class="attr">"person"</span> : &#123;</span><br><span class="line">        <span class="attr">"properties"</span> : &#123;</span><br><span class="line">          <span class="attr">"age"</span> : &#123;</span><br><span class="line">            <span class="attr">"type"</span> : <span class="string">"long"</span></span><br><span class="line">          &#125;,</span><br><span class="line">          <span class="attr">"username"</span> : &#123;</span><br><span class="line">            <span class="attr">"type"</span> : <span class="string">"text"</span>,</span><br><span class="line">            <span class="attr">"fields"</span> : &#123;</span><br><span class="line">              <span class="attr">"keyword"</span> : &#123;</span><br><span class="line">                <span class="attr">"type"</span> : <span class="string">"keyword"</span>,</span><br><span class="line">                <span class="attr">"ignore_above"</span> : <span class="number">256</span></span><br><span class="line">              &#125;</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="自定义mapping"><a href="#自定义mapping" class="headerlink" title="自定义mapping"></a>自定义mapping</h3><p>在创建index时，可以设置mapping。mapping中的字段类型一旦设置，禁止直接修改，因为lucene实现的倒排索引生成后不允许修改。应该重新建立新的索引，然后做reindex操作。</p>
+<h4 id="dynamic参数"><a href="#dynamic参数" class="headerlink" title="dynamic参数"></a>dynamic参数</h4><p>但是可以新增字段，通过<code>dynamic</code>参数来控制字段的新增，这个参数的值如下：</p>
+<ul>
+<li><p>true：默认值，表示允许选自动新增字段</p>
+</li>
+<li><p>false：不允许自动新增字段，但是文档可以正常写入，但无法对字段进行查询等操作</p>
+</li>
+<li><p>strict：严格模式，文档不能写入，报错</p>
+</li>
+</ul>
+<p>如下创建一个my_index，包含<code>title</code>、<code>name</code>、<code>age</code>字段：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">PUT my_index</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"mappings"</span>: &#123;</span><br><span class="line">    <span class="attr">"doc"</span>: &#123;</span><br><span class="line">      <span class="attr">"dynamic"</span>: <span class="literal">false</span>,</span><br><span class="line">      <span class="attr">"properties"</span>: &#123;</span><br><span class="line">        <span class="attr">"title"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"text"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"name"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"keyword"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"age"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"integer"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如下写入一个文档，这里在mapping设置中，<code>”dynamic”: false</code>，表示在写入文档时，如果写入字段不存在也不会报错。<code>desc</code>字段就是不存在的字段：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">PUT my_index/doc/1</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"title"</span>: <span class="string">"hello, world"</span>,</span><br><span class="line">  <span class="attr">"desc"</span>: <span class="string">"nothing here"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但无法对<code>desc</code>字段进行查询:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /my_index/doc/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match"</span>: &#123;</span><br><span class="line">      <span class="attr">"desc"</span>: <span class="string">"here"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>服务器返回如下内容：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"took"</span> : <span class="number">1</span>,</span><br><span class="line">  <span class="attr">"timed_out"</span> : <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">"_shards"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">5</span>,</span><br><span class="line">    <span class="attr">"successful"</span> : <span class="number">5</span>,</span><br><span class="line">    <span class="attr">"skipped"</span> : <span class="number">0</span>,</span><br><span class="line">    <span class="attr">"failed"</span> : <span class="number">0</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"hits"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">0</span>,</span><br><span class="line">    <span class="attr">"max_score"</span> : <span class="literal">null</span>,</span><br><span class="line">    <span class="attr">"hits"</span> : [ ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果将<code>dynamic</code>设置为<code>strict</code>模式，写入上面mapping中没有定义的<code>desc</code>字段时，写入将会失败:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"error"</span>: &#123;</span><br><span class="line">    <span class="attr">"root_cause"</span>: [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"type"</span>: <span class="string">"strict_dynamic_mapping_exception"</span>,</span><br><span class="line">        <span class="attr">"reason"</span>: <span class="string">"mapping set to strict, dynamic introduction of [desc] within [doc] is not allowed"</span></span><br><span class="line">      &#125;</span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">"type"</span>: <span class="string">"strict_dynamic_mapping_exception"</span>,</span><br><span class="line">    <span class="attr">"reason"</span>: <span class="string">"mapping set to strict, dynamic introduction of [desc] within [doc] is not allowed"</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"status"</span>: <span class="number">400</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="copy-to参数"><a href="#copy-to参数" class="headerlink" title="copy_to参数"></a>copy_to参数</h4><p>是将该字段的值复制到目标字段，实现类似_all的作用。字段不会出现在_source中，只能用来搜索。</p>
+<p>如下，创建一个index，将<code>first_name</code>和<code>last_name</code>的内容复制到<code>full_name</code>：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">PUT my_index</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"mappings"</span>: &#123;</span><br><span class="line">    <span class="attr">"doc"</span>: &#123;</span><br><span class="line">      <span class="attr">"properties"</span>: &#123;</span><br><span class="line">        <span class="attr">"first_name"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"text"</span>,</span><br><span class="line">          <span class="attr">"copy_to"</span>: <span class="string">"full_name"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"last_name"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"text"</span>,</span><br><span class="line">          <span class="attr">"copy_to"</span>: <span class="string">"full_name"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"full_name"</span> : &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"text"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后创建一个新的文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">PUT my_index/doc/1</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"first_name"</span>: <span class="string">"john"</span>,</span><br><span class="line">  <span class="attr">"last_name"</span>: <span class="string">"smith"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如下，查询<code>full_name</code>字段中包含关键字<code>john smith</code>的文档，必须同时包含两个关键字才返回：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET my_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match"</span>: &#123;</span><br><span class="line">      <span class="attr">"full_name"</span>: &#123;</span><br><span class="line">        <span class="attr">"query"</span>: <span class="string">"john smith"</span>,</span><br><span class="line">        <span class="attr">"operator"</span>: <span class="string">"and"</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>服务器返回如下结果：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"took"</span> : <span class="number">18</span>,</span><br><span class="line">  <span class="attr">"timed_out"</span> : <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">"_shards"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">5</span>,</span><br><span class="line">    <span class="attr">"successful"</span> : <span class="number">5</span>,</span><br><span class="line">    <span class="attr">"skipped"</span> : <span class="number">0</span>,</span><br><span class="line">    <span class="attr">"failed"</span> : <span class="number">0</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"hits"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">1</span>,</span><br><span class="line">    <span class="attr">"max_score"</span> : <span class="number">0.5753642</span>,</span><br><span class="line">    <span class="attr">"hits"</span> : [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"my_index"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"1"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="number">0.5753642</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"first_name"</span> : <span class="string">"john"</span>,</span><br><span class="line">          <span class="attr">"last_name"</span> : <span class="string">"smith"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="index参数"><a href="#index参数" class="headerlink" title="index参数"></a>index参数</h4><p>index参数作用是控制当前字段是否被索引，默认为true，false表示不记录，即不可被搜索。</p>
+<p>当在elasticsearch中存储了一些不想要被检索的字段如身份证、手机等，对于这些字段就可以设置index为false，这样有一定的安全性还可以节省空间。</p>
+<p>如下，设置<code>cookie</code>字段的index为false：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">PUT my_index</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"mappings"</span>: &#123;</span><br><span class="line">    <span class="attr">"doc"</span>: &#123;</span><br><span class="line">      <span class="attr">"properties"</span>: &#123;</span><br><span class="line">        <span class="attr">"cookie"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"text"</span>,</span><br><span class="line">          <span class="attr">"index"</span>: <span class="literal">false</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>创建一个文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PUT my_index/doc/1</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"cookie"</span>: <span class="string">"name=mike"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>查询<code>cookie</code>字段时，服务器将会报错：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET my_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match"</span>: &#123;</span><br><span class="line">      <span class="attr">"cookie"</span>: <span class="string">"mike"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="index-options参数"><a href="#index-options参数" class="headerlink" title="index_options参数"></a>index_options参数</h4><p><code>index_options</code>的作用是用于控制倒排索引记录的内容，有如下四种配置：</p>
+<ul>
+<li><p>docs：只记录doc id</p>
+</li>
+<li><p>freqs：记录doc id 和term frequencies</p>
+</li>
+<li><p>positions：记录doc id、 term frequencies和term position</p>
+</li>
+<li><p>offsets：记录doc id、 term frequencies、term position、character offsets</p>
+</li>
+</ul>
+<p>text类型的默认配置为positions，其他类型默认为docs。记录的内容越多，占据的空间越大。</p>
+<h4 id="null-value参数"><a href="#null-value参数" class="headerlink" title="null_value参数"></a>null_value参数</h4><p>当字段遇到null值的时候的处理策略，默认为null，即空值，此时Elasticsearch会忽略该值。可以通过这个参数设置某个字段的默认值。</p>
+<p>如下将<code>cookie</code>的字段默认值设置为<code>NULL</code>:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">PUT my_index</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"mappings"</span>: &#123;</span><br><span class="line">    <span class="attr">"doc"</span>: &#123;</span><br><span class="line">      <span class="attr">"properties"</span>: &#123;</span><br><span class="line">        <span class="attr">"cookie"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"keyword"</span>,</span><br><span class="line">          <span class="attr">"null_value"</span>: <span class="string">"NULL"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h3><h4 id="基本数据类型"><a href="#基本数据类型" class="headerlink" title="基本数据类型"></a>基本数据类型</h4><ul>
+<li><p>字符串型：text、keyword（不会分词）</p>
+</li>
+<li><p>数值型：long、integer、short、byte、double、float、half_float等</p>
+</li>
+<li><p>日期类型：date</p>
+</li>
+<li><p>布尔类型：boolean</p>
+</li>
+<li><p>二进制类型：binary</p>
+</li>
+<li><p>范围类型：integer_range、float_range、long_range、double_range、date_range</p>
+</li>
+</ul>
+<h4 id="复杂数据类型"><a href="#复杂数据类型" class="headerlink" title="复杂数据类型"></a>复杂数据类型</h4><ul>
+<li><p>数组类型：array</p>
+</li>
+<li><p>对象类型：object</p>
+</li>
+<li><p>嵌套类型：nested object</p>
+</li>
+<li><p>地理位置数据类型：geo_point、geo_shape</p>
+</li>
+<li><p>专用类型：ip（记录ip地址）、completion（实现自动补全）、token_count（记录分词数）、murmur3（记录字符串hash值）</p>
+</li>
+</ul>
+<h3 id="Dynamic-mapping"><a href="#Dynamic-mapping" class="headerlink" title="Dynamic mapping"></a>Dynamic mapping</h3><p>在写入文档的时候如果index不存在的话elasticsearch会自动创建这个索引， elasticsearch是依靠json文档的字段类型来实现自动识别字段类型的：</p>
+<p><img src="/images/elastic/dynamic_mapping.png" alt="dynamic_mapping.png"></p>
+<p>创建如下index的文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">PUT /test_index/doc/1</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"username"</span>: <span class="string">"tom"</span>,</span><br><span class="line">  <span class="attr">"age"</span>: <span class="number">14</span>,</span><br><span class="line">  <span class="attr">"birth"</span>: <span class="string">"1988-10-10"</span>,</span><br><span class="line">  <span class="attr">"married"</span>: <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">"year"</span>: <span class="string">"18"</span>,</span><br><span class="line">  <span class="attr">"tags"</span>: [<span class="string">"boy"</span>, <span class="string">"fashion"</span>],</span><br><span class="line">  <span class="attr">"money"</span>: <span class="number">100.1</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>elasticsearch根据文档创建mapping，对应的mapping如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"test_index"</span> : &#123;</span><br><span class="line">    <span class="attr">"mappings"</span> : &#123;</span><br><span class="line">      <span class="attr">"doc"</span> : &#123;</span><br><span class="line">        <span class="attr">"properties"</span> : &#123;</span><br><span class="line">          <span class="attr">"age"</span> : &#123;</span><br><span class="line">            <span class="attr">"type"</span> : <span class="string">"long"</span></span><br><span class="line">          &#125;,</span><br><span class="line">          <span class="attr">"birth"</span> : &#123;</span><br><span class="line">            <span class="attr">"type"</span> : <span class="string">"date"</span></span><br><span class="line">          &#125;,</span><br><span class="line">          <span class="attr">"married"</span> : &#123;</span><br><span class="line">            <span class="attr">"type"</span> : <span class="string">"boolean"</span></span><br><span class="line">          &#125;,</span><br><span class="line">          <span class="attr">"money"</span> : &#123;</span><br><span class="line">            <span class="attr">"type"</span> : <span class="string">"float"</span></span><br><span class="line">          &#125;,</span><br><span class="line">          <span class="attr">"tags"</span> : &#123;</span><br><span class="line">            <span class="attr">"type"</span> : <span class="string">"text"</span>,</span><br><span class="line">            <span class="attr">"fields"</span> : &#123;</span><br><span class="line">              <span class="attr">"keyword"</span> : &#123;</span><br><span class="line">                <span class="attr">"type"</span> : <span class="string">"keyword"</span>,</span><br><span class="line">                <span class="attr">"ignore_above"</span> : <span class="number">256</span></span><br><span class="line">              &#125;</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;,</span><br><span class="line">          <span class="attr">"username"</span> : &#123;</span><br><span class="line">            <span class="attr">"type"</span> : <span class="string">"text"</span>,</span><br><span class="line">            <span class="attr">"fields"</span> : &#123;</span><br><span class="line">              <span class="attr">"keyword"</span> : &#123;</span><br><span class="line">                <span class="attr">"type"</span> : <span class="string">"keyword"</span>,</span><br><span class="line">                <span class="attr">"ignore_above"</span> : <span class="number">256</span></span><br><span class="line">              &#125;</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;,</span><br><span class="line">          <span class="attr">"year"</span> : &#123;</span><br><span class="line">            <span class="attr">"type"</span> : <span class="string">"text"</span>,</span><br><span class="line">            <span class="attr">"fields"</span> : &#123;</span><br><span class="line">              <span class="attr">"keyword"</span> : &#123;</span><br><span class="line">                <span class="attr">"type"</span> : <span class="string">"keyword"</span>,</span><br><span class="line">                <span class="attr">"ignore_above"</span> : <span class="number">256</span></span><br><span class="line">              &#125;</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="date-detection"><a href="#date-detection" class="headerlink" title="date_detection"></a>date_detection</h4><p>通过配置<code>date_detection</code>可以关闭日期自动识别机制（默认开启），<code>dynamic_date_formats</code>可以自定义日期类型 。</p>
+<p>日期的自动识别可以自行配置日期的格式，默认情况下是：</p>
+<pre><code>[&quot;strict_date_opeional_time&quot;, &quot;yyyy/MM/dd HH:mm:ss Z||yyyy/MM/dd Z&quot;]
+</code></pre><p><code>strict_date_opeional_time</code>是ISO 标准的日期格式，完整的格式如下：</p>
+<pre><code>YYYY-MM-DDhh:mm:ssTZD(eg:1997-07-16y19:20:30+01:00)
+</code></pre><p>如下定义一个日期的类型为<code>MM/dd/yyyy</code>:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">PUT test_index</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"mappings"</span>: &#123;</span><br><span class="line">    <span class="attr">"doc"</span>: &#123;</span><br><span class="line">      <span class="attr">"dynamic_date_formats"</span>: [<span class="string">"MM/dd/yyyy"</span>]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>新建文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PUT test_index/doc/1</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"create_time"</span>: <span class="string">"11/27/2018"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>查看mapping，可以看到<code>create_time</code>被识别为<code>date</code>类型：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"test_index"</span> : &#123;</span><br><span class="line">    <span class="attr">"mappings"</span> : &#123;</span><br><span class="line">      <span class="attr">"doc"</span> : &#123;</span><br><span class="line">        <span class="attr">"dynamic_date_formats"</span> : [</span><br><span class="line">          <span class="string">"MM/dd/yyyy"</span></span><br><span class="line">        ],</span><br><span class="line">        <span class="attr">"properties"</span> : &#123;</span><br><span class="line">          <span class="attr">"create_time"</span> : &#123;</span><br><span class="line">            <span class="attr">"type"</span> : <span class="string">"date"</span>,</span><br><span class="line">            <span class="attr">"format"</span> : <span class="string">"MM/dd/yyyy"</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="numeric-detection"><a href="#numeric-detection" class="headerlink" title="numeric_detection"></a>numeric_detection</h4><p>字符串为数字的时候，默认不会自动识别为整型，<code>numeric_detection</code>可以开启字符串中数字的自动识别。</p>
+<p>如下开启可数字的自动识别：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">PUT test_index</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"mappings"</span>: &#123;</span><br><span class="line">    <span class="attr">"doc"</span>: &#123;</span><br><span class="line">      <span class="attr">"numeric_detection"</span>: <span class="literal">true</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>新建文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">PUT test_index/doc/1</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"my_float"</span>: <span class="string">"1.0"</span>,</span><br><span class="line">  <span class="attr">"my_integer"</span>: <span class="string">"1"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>查看mapping，<code>my_float</code>设置为float、<code>my_integer</code>设置为integer：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"test_index"</span> : &#123;</span><br><span class="line">    <span class="attr">"mappings"</span> : &#123;</span><br><span class="line">      <span class="attr">"doc"</span> : &#123;</span><br><span class="line">        <span class="attr">"numeric_detection"</span> : <span class="literal">true</span>,</span><br><span class="line">        <span class="attr">"properties"</span> : &#123;</span><br><span class="line">          <span class="attr">"my_float"</span> : &#123;</span><br><span class="line">            <span class="attr">"type"</span> : <span class="string">"float"</span></span><br><span class="line">          &#125;,</span><br><span class="line">          <span class="attr">"my_integer"</span> : &#123;</span><br><span class="line">            <span class="attr">"type"</span> : <span class="string">"long"</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Dynamic-Templates"><a href="#Dynamic-Templates" class="headerlink" title="Dynamic Templates"></a>Dynamic Templates</h4><p>Dynamic Templates意为动态模板，它的作用是允许根据elasticsearch自动识别的数据类型、字段名等来动态设定字段类型。</p>
+<p>可以实现的效果如下：</p>
+<ul>
+<li><p>所有字符串类型都设置为keyword类型，即默认不分词</p>
+</li>
+<li><p>所有以message开头的字段都设置为text类型，即分词</p>
+</li>
+<li><p>所有以long_开头的字段都设置为long类型</p>
+</li>
+<li><p>所有自动匹配为double类型的都设定为float类型，以节省空间</p>
+</li>
+</ul>
+<p>匹配规则参数：</p>
+<ul>
+<li><p>match_mapping_type：匹配elasticsearch自动识别的字段类型，如boolean、long等</p>
+</li>
+<li><p>match、unmatch：匹配字段名</p>
+</li>
+<li><p>path_match、path_unmatch：匹配路径</p>
+</li>
+</ul>
+<p>如下，将以message开头的字段且为string的匹配设置为text类型，其余设置为keyword：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">PUT test_index</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"mappings"</span>: &#123;</span><br><span class="line">    <span class="attr">"doc"</span>: &#123;</span><br><span class="line">      <span class="attr">"dynamic_templates"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">"message_as_text"</span>: &#123;</span><br><span class="line">            <span class="attr">"match_mapping_type"</span>: <span class="string">"string"</span>,</span><br><span class="line">            <span class="attr">"match"</span>: <span class="string">"message"</span>,</span><br><span class="line">            <span class="attr">"mapping"</span>: &#123;</span><br><span class="line">              <span class="attr">"type"</span>: <span class="string">"text"</span></span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">"strings_as_keywords"</span>: &#123;</span><br><span class="line">            <span class="attr">"match_mapping_type"</span>: <span class="string">"string"</span>,</span><br><span class="line">            <span class="attr">"mapping"</span>: &#123;</span><br><span class="line">              <span class="attr">"type"</span>: <span class="string">"keyword"</span></span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>写入文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">PUT test_index/doc/1</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"name"</span>: <span class="string">"tom"</span>,</span><br><span class="line">  <span class="attr">"message"</span>: <span class="string">"handsome boy"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>查看mapping，可以看到message被设置为了text类型，name还是keyword:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"test_index"</span> : &#123;</span><br><span class="line">    <span class="attr">"mappings"</span> : &#123;</span><br><span class="line">      <span class="attr">"doc"</span> : &#123;</span><br><span class="line">        <span class="attr">"dynamic_templates"</span> : [</span><br><span class="line">          &#123;</span><br><span class="line">            <span class="attr">"message_as_text"</span> : &#123;</span><br><span class="line">              <span class="attr">"match"</span> : <span class="string">"message"</span>,</span><br><span class="line">              <span class="attr">"match_mapping_type"</span> : <span class="string">"string"</span>,</span><br><span class="line">              <span class="attr">"mapping"</span> : &#123;</span><br><span class="line">                <span class="attr">"type"</span> : <span class="string">"text"</span></span><br><span class="line">              &#125;</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">            <span class="attr">"strings_as_keywords"</span> : &#123;</span><br><span class="line">              <span class="attr">"match_mapping_type"</span> : <span class="string">"string"</span>,</span><br><span class="line">              <span class="attr">"mapping"</span> : &#123;</span><br><span class="line">                <span class="attr">"type"</span> : <span class="string">"keyword"</span></span><br><span class="line">              &#125;</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        ],</span><br><span class="line">        <span class="attr">"properties"</span> : &#123;</span><br><span class="line">          <span class="attr">"message"</span> : &#123;</span><br><span class="line">            <span class="attr">"type"</span> : <span class="string">"text"</span></span><br><span class="line">          &#125;,</span><br><span class="line">          <span class="attr">"name"</span> : &#123;</span><br><span class="line">            <span class="attr">"type"</span> : <span class="string">"keyword"</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="自定义mapping的建议"><a href="#自定义mapping的建议" class="headerlink" title="自定义mapping的建议"></a>自定义mapping的建议</h3><p>自定义mapping 的步骤：</p>
+<ol>
+<li>写一条文档到elasticsearch的临时索引中，获取es自动生成的mapping</li>
+<li>修改第一步得到的mapping，自定义相关配置</li>
+<li>使用第2步的mapping创建所需的索引</li>
+</ol>
+<p>假设需要存入如下数据的文档，首先将文档写入临时的index中：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">PUT test_index/doc/1</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"referre"</span>: <span class="string">"-"</span>,</span><br><span class="line">  <span class="attr">"response_code"</span>: <span class="string">"200"</span>,</span><br><span class="line">  <span class="attr">"remote_ip"</span>: <span class="string">"172.0.0.1"</span>,</span><br><span class="line">  <span class="attr">"method"</span>: <span class="string">"POST"</span>,</span><br><span class="line">  <span class="attr">"username"</span>: <span class="string">"-"</span>,</span><br><span class="line">  <span class="attr">"http_version"</span>: <span class="string">"1.1"</span>,</span><br><span class="line">  <span class="attr">"body_sent"</span>: &#123;</span><br><span class="line">    <span class="attr">"bytes"</span>: <span class="string">"0"</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"url"</span>: <span class="string">"/helloworld"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后查看elasticsearch自动生成的mapping：</p>
+<pre><code>GET test_index/_mapping
+</code></pre><p>现在希望将bytes设置为整型，url设置为text类型，其他都使用keyword（将上一步的输出复制过来就好）：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">PUT product_index</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"mappings"</span>: &#123;</span><br><span class="line">    <span class="attr">"doc"</span>: &#123;</span><br><span class="line">      <span class="attr">"properties"</span>: &#123;</span><br><span class="line">        <span class="attr">"body_sent"</span>: &#123;</span><br><span class="line">          <span class="attr">"properties"</span>: &#123;</span><br><span class="line">            <span class="attr">"bytes"</span>: &#123;</span><br><span class="line">              <span class="attr">"type"</span>: <span class="string">"long"</span></span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"http_version"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"keyword"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"method"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"keyword"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"referre"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"keyword"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"remote_ip"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"keyword"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"response_code"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"keyword"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"url"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"text"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"username"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"keyword"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后就可以向实际的索引中写入文档了：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">PUT product_index/doc/1</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"referre"</span>: <span class="string">"-"</span>,</span><br><span class="line">  <span class="attr">"response_code"</span>: <span class="string">"200"</span>,</span><br><span class="line">  <span class="attr">"remote_ip"</span>: <span class="string">"172.0.0.1"</span>,</span><br><span class="line">  <span class="attr">"method"</span>: <span class="string">"POST"</span>,</span><br><span class="line">  <span class="attr">"username"</span>: <span class="string">"-"</span>,</span><br><span class="line">  <span class="attr">"http_version"</span>: <span class="string">"1.1"</span>,</span><br><span class="line">  <span class="attr">"body_sent"</span>: &#123;</span><br><span class="line">    <span class="attr">"bytes"</span>: <span class="string">"0"</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"url"</span>: <span class="string">"/helloworld"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上边的设置方法很直接，但是当字段比较多的时候显得复杂，可以使用动态模板进行匹配，这里使用动态模板匹配所有字符串都设置为keyword类型，需要单独设置类型的在下面另行指出：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">PUT product_index</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"mappings"</span>: &#123;</span><br><span class="line">    <span class="attr">"doc"</span>: &#123;</span><br><span class="line">      <span class="attr">"dynamic_templates"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">"strings"</span>: &#123;</span><br><span class="line">            <span class="attr">"match_mapping_type"</span>: <span class="string">"string"</span>,</span><br><span class="line">            <span class="attr">"mapping"</span>: &#123;</span><br><span class="line">              <span class="attr">"type"</span>: <span class="string">"keyword"</span></span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      ],</span><br><span class="line">      <span class="attr">"properties"</span>: &#123;</span><br><span class="line">        <span class="attr">"body_sent"</span>: &#123;</span><br><span class="line">          <span class="attr">"properties"</span>: &#123;</span><br><span class="line">            <span class="attr">"bytes"</span>: &#123;</span><br><span class="line">              <span class="attr">"type"</span>: <span class="string">"long"</span></span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"url"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"text"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"username"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"keyword"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/25/elasticsearch_02/" rel="next" title="Elasticsearch 分词">
+                <i class="fa fa-chevron-left"></i> Elasticsearch 分词
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/01/elasticsearch_04/" rel="prev" title="Elasticsearch 查询">
+                Elasticsearch 查询 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">61</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#查看mapping"><span class="nav-number">1.</span> <span class="nav-text">查看mapping</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义mapping"><span class="nav-number">2.</span> <span class="nav-text">自定义mapping</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#dynamic参数"><span class="nav-number">2.1.</span> <span class="nav-text">dynamic参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#copy-to参数"><span class="nav-number">2.2.</span> <span class="nav-text">copy_to参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#index参数"><span class="nav-number">2.3.</span> <span class="nav-text">index参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#index-options参数"><span class="nav-number">2.4.</span> <span class="nav-text">index_options参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#null-value参数"><span class="nav-number">2.5.</span> <span class="nav-text">null_value参数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据类型"><span class="nav-number">3.</span> <span class="nav-text">数据类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基本数据类型"><span class="nav-number">3.1.</span> <span class="nav-text">基本数据类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#复杂数据类型"><span class="nav-number">3.2.</span> <span class="nav-text">复杂数据类型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dynamic-mapping"><span class="nav-number">4.</span> <span class="nav-text">Dynamic mapping</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#date-detection"><span class="nav-number">4.1.</span> <span class="nav-text">date_detection</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#numeric-detection"><span class="nav-number">4.2.</span> <span class="nav-text">numeric_detection</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dynamic-Templates"><span class="nav-number">4.3.</span> <span class="nav-text">Dynamic Templates</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义mapping的建议"><span class="nav-number">5.</span> <span class="nav-text">自定义mapping的建议</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Elasticsearch查询主要有两种形式：URI Search、Request Body Search。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Elasticsearch 查询">
+<meta property="og:url" content="http://yoursite.com/2018/12/01/elasticsearch_04/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="Elasticsearch查询主要有两种形式：URI Search、Request Body Search。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/elastic/query_filter.png">
+<meta property="og:updated_time" content="2018-12-23T05:33:12.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Elasticsearch 查询">
+<meta name="twitter:description" content="Elasticsearch查询主要有两种形式：URI Search、Request Body Search。">
+<meta name="twitter:image" content="http://yoursite.com/images/elastic/query_filter.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/12/01/elasticsearch_04/"/>
+
+
+
+
+
+  <title>Elasticsearch 查询 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/01/elasticsearch_04/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Elasticsearch 查询</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-01T00:00:00+08:00">
+                2018-12-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Elasticsearch查询主要有两种形式：URI Search、Request Body Search。</p>
+<a id="more"></a>
+<p><strong>URI Search：</strong> 操作简单，方便通过命令行测试，但是仅包含部分查询语法。</p>
+<pre><code>GET /my_index/_search?q=user:tom
+</code></pre><p><strong>Request Body Search：</strong> es提供的完备查询语法Query DSL。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">GET /my_index/_search</span><br><span class="line">&#123;</span><br><span class="line">    <span class="attr">"query"</span>: &#123;</span><br><span class="line">        <span class="attr">"term"</span>: &#123;<span class="attr">"user"</span>: <span class="string">"tom"</span>&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="URI-Search"><a href="#URI-Search" class="headerlink" title="URI Search"></a>URI Search</h3><p>URI Search就是通过拼接关键字来进行搜索的，常用的参数如下：</p>
+<ul>
+<li><p>q：指定查询语句，语法遵循 Query String Syntax</p>
+</li>
+<li><p>df：q中不指定字段时默认的查询字段，如果不指定，es会查询所有字段</p>
+</li>
+<li><p>sort：排序</p>
+</li>
+<li><p>timeout：指定超时时间，默认不超时</p>
+</li>
+<li><p>from，size：用于分页</p>
+</li>
+</ul>
+<p>如下语句是查询user字段包含tom的文档，结果按照age升序排列，返回5~14个文档，如果超过1s没有结束，则以超时结束：</p>
+<pre><code>GET /my_index/_search?q=tom&amp;df=user&amp;sort=age:asc&amp;from=4&amp;size=10&amp;timeout=1s
+</code></pre><h4 id="Query-String-Syntax"><a href="#Query-String-Syntax" class="headerlink" title="Query String Syntax"></a>Query String Syntax</h4><p>使用下面的命令，创建文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">POST test_search_index/doc/_bulk</span><br><span class="line">&#123;<span class="attr">"index"</span>:&#123;<span class="attr">"_id"</span>:<span class="string">"1"</span>&#125;&#125;</span><br><span class="line">&#123;<span class="attr">"username"</span>:<span class="string">"alfred way"</span>,<span class="attr">"job"</span>:<span class="string">"java engineer"</span>,<span class="attr">"age"</span>:<span class="number">18</span>,<span class="attr">"birth"</span>:<span class="string">"1990-01-02"</span>,<span class="attr">"isMarried"</span>:<span class="literal">false</span>&#125;</span><br><span class="line">&#123;<span class="attr">"index"</span>:&#123;<span class="attr">"_id"</span>:<span class="string">"2"</span>&#125;&#125;</span><br><span class="line">&#123;<span class="attr">"username"</span>:<span class="string">"alfred"</span>,<span class="attr">"job"</span>:<span class="string">"java senior engineer and java specialist"</span>,<span class="attr">"age"</span>:<span class="number">28</span>,<span class="attr">"birth"</span>:<span class="string">"1980-05-07"</span>,<span class="attr">"isMarried"</span>:<span class="literal">true</span>&#125;</span><br><span class="line">&#123;<span class="attr">"index"</span>:&#123;<span class="attr">"_id"</span>:<span class="string">"3"</span>&#125;&#125;</span><br><span class="line">&#123;<span class="attr">"username"</span>:<span class="string">"lee"</span>,<span class="attr">"job"</span>:<span class="string">"java and ruby engineer"</span>,<span class="attr">"age"</span>:<span class="number">22</span>,<span class="attr">"birth"</span>:<span class="string">"1985-08-07"</span>,<span class="attr">"isMarried"</span>:<span class="literal">false</span>&#125;</span><br><span class="line">&#123;<span class="attr">"index"</span>:&#123;<span class="attr">"_id"</span>:<span class="string">"4"</span>&#125;&#125;</span><br><span class="line">&#123;<span class="attr">"username"</span>:<span class="string">"alfred junior way"</span>,<span class="attr">"job"</span>:<span class="string">"ruby engineer"</span>,<span class="attr">"age"</span>:<span class="number">23</span>,<span class="attr">"birth"</span>:<span class="string">"1989-08-07"</span>,<span class="attr">"isMarried"</span>:<span class="literal">false</span>&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="泛查询"><a href="#泛查询" class="headerlink" title="泛查询"></a>泛查询</h5><p>不指定字段查询，等效于在所有字段去匹配该term。</p>
+<pre><code>GET test_search_index/_search?q=alfred
+</code></pre><p>因3个文档的<code>username</code>字段都包含<code>alfred</code>，所以上面的查询将返回3个文档。</p>
+<p>如果需要查看查询语句的执行过程（为了方便调优查询语句），可以设置<code>profile</code>为true:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search?q=alfred</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"profile"</span>: <span class="string">"true"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>服务器将会返回查询语句的执行过程：</p>
+<pre><code>&quot;description&quot; : &quot;&quot;&quot;(MatchNoDocsQuery(&quot;failed [isMarried] query, caused by illegal_argument_exception:[Can&apos;t parse boolean value [alfred], expected [true] or [false]]&quot;) | username.keyword:alfred | MatchNoDocsQuery(&quot;failed [birth] query, caused by parse_exception:[failed to parse date field [alfred] with format [strict_date_optional_time||epoch_millis]]&quot;) | job:alfred | MatchNoDocsQuery(&quot;failed [age] query, caused by number_format_exception:[For input string: &quot;alfred&quot;]&quot;) | username:alfred | job.keyword:alfred)&quot;&quot;&quot;
+</code></pre><h5 id="指定字段"><a href="#指定字段" class="headerlink" title="指定字段"></a>指定字段</h5><p>如下语句指定在username字段查询:</p>
+<pre><code>GET test_search_index/_search?q=username:alfred
+</code></pre><p>返回的结果和上面的泛查询是一样的。</p>
+<h5 id="term-与-pharse"><a href="#term-与-pharse" class="headerlink" title="term 与 pharse"></a>term 与 pharse</h5><p>如下查询alfred way等效于 alfred OR way：</p>
+<pre><code>GET test_search_index/_search?q=username:alfred way
+</code></pre><p>因查询的是username字段中包含alfred OR way的文档，结果是3个文档都返回。</p>
+<p>如下查询加了双引号，表示查询的”alfred way” 词语，要求先后顺序：</p>
+<pre><code>GET test_search_index/_search?q=username:&quot;alfred way&quot;
+</code></pre><p>返回的文档id为1的结果。</p>
+<h5 id="Group-分组设定"><a href="#Group-分组设定" class="headerlink" title="Group 分组设定"></a>Group 分组设定</h5><p>可以使用括号指定匹配的规则：</p>
+<p>如下相当于查询username字段中包含alfred OR way的文档：</p>
+<pre><code>GET test_search_index/_search?q=username:(alfred way)
+</code></pre><p>结果是3个文档都会返回。</p>
+<h5 id="布尔操作符"><a href="#布尔操作符" class="headerlink" title="布尔操作符"></a>布尔操作符</h5><h6 id="AND-amp-amp-、OR-、NOT"><a href="#AND-amp-amp-、OR-、NOT" class="headerlink" title="AND(&amp;&amp;)、OR(||)、NOT(!)"></a>AND(&amp;&amp;)、OR(||)、NOT(!)</h6><ul>
+<li><p>username:(tom NOT lee)</p>
+</li>
+<li><p>注意大写，不能小写</p>
+</li>
+</ul>
+<p>如下查询的是在username字段中包含alfred，way使用的是泛查询：</p>
+<pre><code>GET test_search_index/_search?q=username:alfred AND way
+</code></pre><p>返回的是3个文档。</p>
+<p>如下查询的是在username字段中包含alfred和way的文档：</p>
+<pre><code>GET test_search_index/_search?q=username:(alfred AND way)
+</code></pre><p>返回2个文档，id为2的文档不会返回。</p>
+<p>如下查询的是在username字段中包含alfred不包含way的文档：</p>
+<pre><code>GET test_search_index/_search?q=username:(alfred NOT way)
+</code></pre><p>只返回id为2的文档。</p>
+<h6 id="must、must-not"><a href="#must、must-not" class="headerlink" title="must、must_not"></a>must、must_not</h6><p>+、-分别对应must和must_not</p>
+<ul>
+<li><p>username:(tom +lee -alfred)</p>
+</li>
+<li><p>+在url中会被解析为空格，要使用encode后的结果：%2B。</p>
+</li>
+</ul>
+<p>如下是查询username字段中包含alfred但必须包含way的文档：</p>
+<pre><code>GET test_search_index/_search?q=username:(alfred %2Bway)
+</code></pre><p>返回的是id为1、4的文档。</p>
+<h5 id="范围查询"><a href="#范围查询" class="headerlink" title="范围查询"></a>范围查询</h5><p>范围查询支持数值和日期。</p>
+<p>区间写法，闭区间用<code>[]</code>，开区间用<code>{}</code>：</p>
+<ul>
+<li><p>age:[1 TO 10] 意为 1&lt;= age &lt;= 10</p>
+</li>
+<li><p>age:[1 TO 10} 意为 1&lt;= age &lt; 10</p>
+</li>
+<li><p>age:[1 TO } 意为 age &gt;= 1</p>
+</li>
+<li><p>age:[* TO 10} 意为 age &lt;= 10</p>
+</li>
+</ul>
+<p>算术符号写法：</p>
+<ul>
+<li><p>age:&gt;=1</p>
+</li>
+<li><p>age:(&gt;=1 &amp;&amp; &lt;=10)或者age:(+&gt;=1 +&lt;=10)</p>
+</li>
+</ul>
+<p>如下查询的是username字段包含alfred或age大于20的文档：</p>
+<pre><code>GET test_search_index/_search?q=username:alfred age:&gt;20
+</code></pre><p>返回的结果是全部的4个文档。</p>
+<p>如下查询的是username字段包含alfred并且age大于20的文档：</p>
+<pre><code>GET test_search_index/_search?q=username:alfred AND age:&gt;20
+</code></pre><p>返回的结果是id为2和4的文档。</p>
+<p>如下查询的是birth在1980至1990的文档：</p>
+<pre><code>GET test_search_index/_search?q=birth:(&gt;1980 AND &lt;1990)
+</code></pre><p>返回的结果是id为2、3、4的文档。</p>
+<h5 id="通配符查询"><a href="#通配符查询" class="headerlink" title="通配符查询"></a>通配符查询</h5><p>? 代表1个字符，<em>代表0或多个字符，如<code>username:t?m</code>、`username:tom</em><code>、</code>username:t*m`。</p>
+<ul>
+<li><p>通配符匹配执行效率低，且占用较多内存，不建议使用。</p>
+</li>
+<li><p>如无特殊要求，不要将<code>?</code>、<code>*</code>放在最前面。</p>
+</li>
+</ul>
+<p>如下查询的是在username字段中以alf开头的所有文档：</p>
+<pre><code>GET test_search_index/_search?q=username:alf*
+</code></pre><h5 id="正则表达式"><a href="#正则表达式" class="headerlink" title="正则表达式"></a>正则表达式</h5><p>es的查询也支持正则表达式匹配：<code>username:/[mb]oat/</code>。</p>
+<p>如下的查询将会返回全部的4个文档：</p>
+<pre><code>GET test_search_index/_search?q=username:/[a]?l.*/
+</code></pre><h5 id="模糊匹配"><a href="#模糊匹配" class="headerlink" title="模糊匹配"></a>模糊匹配</h5><p>如<code>username:roam~1</code>: 匹配与roam差一个字符的词，比如foam、roams等。</p>
+<p>如下查询将会匹配username字段中包含alfred的文档：</p>
+<pre><code>GET test_search_index/_search?q=username:alfed~1
+GET test_search_index/_search?q=username:alfd~2
+</code></pre><h5 id="近似度查询"><a href="#近似度查询" class="headerlink" title="近似度查询"></a>近似度查询</h5><p>如<code>&quot;fox quick&quot;~5</code>以term为单位进行差异比较，比如<code>&quot;quick fox&quot;</code>、<code>&quot;quick brown fox&quot;</code>都会被匹配。</p>
+<p>如下查询将会返回id为1、2、3的文档：</p>
+<pre><code>GET test_search_index/_search?q=job:&quot;java engineer&quot;~3
+</code></pre><h3 id="Request-Body-Search"><a href="#Request-Body-Search" class="headerlink" title="Request Body Search"></a>Request Body Search</h3><p>Request Body Search 就是将http request body 发送到es，主要参数如下：</p>
+<ul>
+<li><p>query：符合 Query DSL语法</p>
+</li>
+<li><p>from，size</p>
+</li>
+<li><p>timeout</p>
+</li>
+<li><p>sort</p>
+</li>
+</ul>
+<h4 id="Query-DSL"><a href="#Query-DSL" class="headerlink" title="Query DSL"></a>Query DSL</h4><p>这是一个基于JSON定义的查询语言，主要包含两种类型：</p>
+<ul>
+<li><p><strong>字段查询：</strong> 如 term、match、range等，只针对某一字段进行查询</p>
+</li>
+<li><p><strong>复合查询：</strong> 如bool查询等，包含一个或多个字段类查询或复合查询语句</p>
+</li>
+</ul>
+<h5 id="字段类查询"><a href="#字段类查询" class="headerlink" title="字段类查询"></a>字段类查询</h5><ul>
+<li><p><strong>全文匹配：</strong> 针对text类型的字段进行全文检索，会对查询语句先进行分词处理。如match、match_phrase等query类型。</p>
+</li>
+<li><p><strong>单词匹配：</strong> 不会对查询语句做分词处理，直接去匹配字段的倒排索引，如term、terms、range等query类型</p>
+</li>
+</ul>
+<h6 id="match-query"><a href="#match-query" class="headerlink" title="match query"></a>match query</h6><p>如下查询首先会对<code>&quot;alfred way&quot;</code>进行分词，返回的是包含alfred或way的文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match"</span>: &#123;</span><br><span class="line">      <span class="attr">"username"</span>: <span class="string">"alfred way"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如服务器会返回以下3个文档：<code>took</code>: 查询耗时、<code>hits.total</code>：返回的文档个数、<code>_score</code>：文档相关度得分：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"took"</span> : <span class="number">52</span>,</span><br><span class="line">  <span class="attr">"timed_out"</span> : <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">"_shards"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">5</span>,</span><br><span class="line">    <span class="attr">"successful"</span> : <span class="number">5</span>,</span><br><span class="line">    <span class="attr">"skipped"</span> : <span class="number">0</span>,</span><br><span class="line">    <span class="attr">"failed"</span> : <span class="number">0</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"hits"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">3</span>,</span><br><span class="line">    <span class="attr">"max_score"</span> : <span class="number">0.7268042</span>,</span><br><span class="line">    <span class="attr">"hits"</span> : [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_index"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"4"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="number">0.7268042</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"username"</span> : <span class="string">"alfred junior way"</span>,</span><br><span class="line">          <span class="attr">"job"</span> : <span class="string">"ruby engineer"</span>,</span><br><span class="line">          <span class="attr">"age"</span> : <span class="number">23</span>,</span><br><span class="line">          <span class="attr">"birth"</span> : <span class="string">"1989-08-07"</span>,</span><br><span class="line">          <span class="attr">"isMarried"</span> : <span class="literal">false</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_index"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"1"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="number">0.5753642</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"username"</span> : <span class="string">"alfred way"</span>,</span><br><span class="line">          <span class="attr">"job"</span> : <span class="string">"java engineer"</span>,</span><br><span class="line">          <span class="attr">"age"</span> : <span class="number">18</span>,</span><br><span class="line">          <span class="attr">"birth"</span> : <span class="string">"1990-01-02"</span>,</span><br><span class="line">          <span class="attr">"isMarried"</span> : <span class="literal">false</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_index"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"2"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="number">0.22920427</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"username"</span> : <span class="string">"alfred"</span>,</span><br><span class="line">          <span class="attr">"job"</span> : <span class="string">"java senior engineer and java specialist"</span>,</span><br><span class="line">          <span class="attr">"age"</span> : <span class="number">28</span>,</span><br><span class="line">          <span class="attr">"birth"</span> : <span class="string">"1980-05-07"</span>,</span><br><span class="line">          <span class="attr">"isMarried"</span> : <span class="literal">true</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过设置match query的<code>operator</code>参数可以控制单词间的匹配关系，可选项为or和and，默认为or。</p>
+<p>如下查询，返回的是username字段中同时包含alfred和way的文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match"</span>: &#123;</span><br><span class="line">      <span class="attr">"username"</span>: &#123;</span><br><span class="line">        <span class="attr">"query"</span>: <span class="string">"alfred way"</span>,</span><br><span class="line">        <span class="attr">"operator"</span>: <span class="string">"and"</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过设置<code>minimum_should_match</code>参数可以控制需要匹配的单词数。</p>
+<p>如下查询，返回的是job字段至少包含java、ruby、engineer的2个以上单词匹配的文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match"</span>: &#123;</span><br><span class="line">      <span class="attr">"job"</span>: &#123;</span><br><span class="line">        <span class="attr">"query"</span>: <span class="string">"java ruby engineer"</span>,</span><br><span class="line">        <span class="attr">"minimum_should_match"</span>: <span class="number">2</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="match-phrase-query"><a href="#match-phrase-query" class="headerlink" title="match phrase query"></a>match phrase query</h6><p>按词语查询，对待查询的词语有顺序要求：</p>
+<p>如下查询的是job字段包含<code>&quot;java engineer&quot;</code>的文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match_phrase"</span>: &#123;</span><br><span class="line">      <span class="attr">"job"</span>: <span class="string">"java engineer"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过<code>slop</code>参数可以控制单词间的间隔：</p>
+<p>如下查询的是job字段java和engineer相隔0个或1个单词的文档，如：<code>java engineer</code>、<code>java senior engineer</code>：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match_phrase"</span>: &#123;</span><br><span class="line">      <span class="attr">"job"</span>: &#123;</span><br><span class="line">        <span class="attr">"query"</span>: <span class="string">"java engineer"</span>,</span><br><span class="line">        <span class="attr">"slop"</span>: <span class="number">1</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="query-string-query"><a href="#query-string-query" class="headerlink" title="query string query"></a>query string query</h6><p>类似于 URI search中的q参数查询：</p>
+<p>如下查询的是username字段中包含alfred和way的文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"query_string"</span>: &#123;</span><br><span class="line">      <span class="attr">"default_field"</span>: <span class="string">"username"</span>,</span><br><span class="line">      <span class="attr">"query"</span>: <span class="string">"alfred AND way"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过<code>fields</code>参数可以设置对多个字段进行查询：</p>
+<p>如下查询的是username和job字段，条件是包含alfred或同时包含java和ruby：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"query_string"</span>: &#123;</span><br><span class="line">      <span class="attr">"fields"</span>: [</span><br><span class="line">        <span class="string">"username"</span>,</span><br><span class="line">        <span class="string">"job"</span></span><br><span class="line">      ],</span><br><span class="line">      <span class="attr">"query"</span>: <span class="string">"alfred OR (java AND ruby)"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="simple-query-string-query"><a href="#simple-query-string-query" class="headerlink" title="simple query string query"></a>simple query string query</h6><p>类似于query string，但是会忽略掉错误的查询语法，并且仅支持部分的查询语法。不能使用 AND,OR,NOT等关键词:</p>
+<ul>
+<li><p><code>+</code> 代替 AND</p>
+</li>
+<li><p><code>|</code> 代替 OR</p>
+</li>
+<li><p><code>-</code> 代替 NOT</p>
+</li>
+</ul>
+<p>如下查询的username字段中包含alfred和way的文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"simple_query_string"</span>: &#123;</span><br><span class="line">      <span class="attr">"query"</span>: <span class="string">"alfred + way"</span>,</span><br><span class="line">      <span class="attr">"fields"</span>: [<span class="string">"username"</span>]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="term-query"><a href="#term-query" class="headerlink" title="term query"></a>term query</h6><p>将查询语句作为整个单词进行查询，即不对查询语句做分词。</p>
+<p>如下查询的是username字段中包含alfred的文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"term"</span>: &#123;</span><br><span class="line">      <span class="attr">"username"</span>: <span class="string">"alfred"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如下查询的是username字段中包含<code>&quot;alfred way&quot;</code>的文档，返回的文档将会是0个，因为username倒排索引并没有存储<code>&quot;alfred way&quot;</code>词语，而是存储的是<code>&quot;alfred way&quot;</code>分词后的结果：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"term"</span>: &#123;</span><br><span class="line">      <span class="attr">"username"</span>: <span class="string">"alfred way"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="terms-query"><a href="#terms-query" class="headerlink" title="terms query"></a>terms query</h6><p>一次传入多个单词进行查询。</p>
+<p>如下查询的是username字段中包含alfred和way的文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"terms"</span>: &#123;</span><br><span class="line">      <span class="attr">"username"</span>: [</span><br><span class="line">        <span class="string">"alfred"</span>,</span><br><span class="line">        <span class="string">"way"</span></span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="range-query"><a href="#range-query" class="headerlink" title="range query"></a>range query</h6><p>范围查询主要针对日期和数值类型：gt（大于）、gte（大于等于）、lt（小于）、lte（小于等于）</p>
+<p>如下查询的是age在10-20之间的文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"range"</span>: &#123;</span><br><span class="line">      <span class="attr">"age"</span>: &#123;</span><br><span class="line">        <span class="attr">"gte"</span>: <span class="number">10</span>,</span><br><span class="line">        <span class="attr">"lte"</span>: <span class="number">20</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如下查询的是birth大于等于<code>1990-01-01</code>的文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"range"</span>: &#123;</span><br><span class="line">      <span class="attr">"birth"</span>: &#123;</span><br><span class="line">        <span class="attr">"gte"</span>: <span class="string">"1990-01-01"</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="Date-Math"><a href="#Date-Math" class="headerlink" title="Date Math"></a>Date Math</h6><p>Date Math是针对日期的一种更友好的计算格式，可以实现最近几天、最近几个小时等功能：</p>
+<pre><code>now-1d
+</code></pre><p><code>now</code>表示当前时间，也可以是具体的日期，如：2018-01-01，使用具体日期的时候需要用||做隔离。<code>-1d</code>表示减一天、<code>+1h</code>表示加1个小时、<code>/d</code>将时间舍入到天</p>
+<p>主要的时间单位有：y（year）、M（months）、w（week）、d（days）、h（hours）、m（minutes）、s（seconds）</p>
+<p>假设now为<code>2018-01-02 12:00:00</code>，那么如下的计算结果实际为：</p>
+<table>
+<thead>
+<tr>
+<th>计算公式</th>
+<th style="text-align:left">实际结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>now+1h</td>
+<td style="text-align:left">2018-01-02 13:00:00</td>
+</tr>
+<tr>
+<td>now-1h</td>
+<td style="text-align:left">2018-01-02 11:00:00</td>
+</tr>
+<tr>
+<td>now-1h/d</td>
+<td style="text-align:left">2018-01-02 00:00:00</td>
+</tr>
+<tr>
+<td>2017-01-01\</td>
+<td style="text-align:left">\</td>
+<td>+1M/d</td>
+<td>2017-02-01 00:00:00</td>
+</tr>
+</tbody>
+</table>
+<p>如下查询的是birth距离当前日期30年的文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"range"</span>: &#123;</span><br><span class="line">      <span class="attr">"birth"</span>: &#123;</span><br><span class="line">        <span class="attr">"gte"</span>: <span class="string">"now-30y"</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如下查询的是birth距离2010年20年的文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"range"</span>: &#123;</span><br><span class="line">      <span class="attr">"birth"</span>: &#123;</span><br><span class="line">        <span class="attr">"gte"</span>: <span class="string">"2010||-20y"</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="复合查询"><a href="#复合查询" class="headerlink" title="复合查询"></a>复合查询</h5><p>复合查询是指包含字段类查询或复合查询的类型，主要有以下几种：</p>
+<ul>
+<li><p>constant_score query</p>
+</li>
+<li><p>bool query</p>
+</li>
+<li><p>dis_max query</p>
+</li>
+<li><p>function_score query</p>
+</li>
+<li><p>boosting query</p>
+</li>
+</ul>
+<h6 id="constant-score-query"><a href="#constant-score-query" class="headerlink" title="constant_score query"></a>constant_score query</h6><p>constant_score query将其内部的查询结果文档得分都设定为1或者boost的值，多用于结合bool查询实现自定义得分。</p>
+<p>如下查询返回的结果中的<code>_score</code>将会设置为<code>1.0</code>：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"constant_score"</span>: &#123;</span><br><span class="line">      <span class="attr">"filter"</span>: &#123;</span><br><span class="line">        <span class="attr">"match"</span>: &#123;</span><br><span class="line">          <span class="attr">"username"</span>: <span class="string">"alfred"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="bool-query"><a href="#bool-query" class="headerlink" title="bool query"></a>bool query</h6><p>bool query由一个或多个bool子句组成，主要包含以下4个：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align:left"></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>filter</td>
+<td style="text-align:left">只过滤符合条件的文档，不计算相关性得分</td>
+</tr>
+<tr>
+<td>must</td>
+<td style="text-align:left">文档必须符合must中的所有条件，会影响相关性得分</td>
+</tr>
+<tr>
+<td>must_not</td>
+<td style="text-align:left">文档必须不符合must_not中的所有条件</td>
+</tr>
+<tr>
+<td>should</td>
+<td style="text-align:left">文档可以符合should中的条件，会影响相关性得分</td>
+</tr>
+</tbody>
+</table>
+<h6 id="filter"><a href="#filter" class="headerlink" title="filter"></a>filter</h6><p>filter查询只返回符合条件的文档而不关心相关性，不进行相关性算分。</p>
+<ul>
+<li><p>es对filter有智能缓存，所以其执行效率很高</p>
+</li>
+<li><p>做简单查询而不考虑相关性算分的时候，推荐使用filter代替query等</p>
+</li>
+</ul>
+<p>如下查询服务器返回的<code>_score</code>为0，表示不计算相关性算分：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"bool"</span>: &#123;</span><br><span class="line">      <span class="attr">"filter"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">"term"</span>: &#123;</span><br><span class="line">            <span class="attr">"username"</span>: <span class="string">"alfred"</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="must"><a href="#must" class="headerlink" title="must"></a>must</h6><p>must指定了必须符合的条件。</p>
+<p>如下查询的username包含alfred并且job包含specialist关键词的文档列表，es会对结果进行相关性算分：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"bool"</span>: &#123;</span><br><span class="line">      <span class="attr">"must"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">"match"</span>: &#123;</span><br><span class="line">            <span class="attr">"username"</span>: <span class="string">"alfred"</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">"match"</span>: &#123;</span><br><span class="line">            <span class="attr">"job"</span>: <span class="string">"specialist"</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="must-not"><a href="#must-not" class="headerlink" title="must_not"></a>must_not</h6><p>must_not是指排除must_not中符合条件的文档。</p>
+<p>如下查询job中包含java关键词但不包含ruby关键词的文档列表：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"bool"</span>: &#123;</span><br><span class="line">      <span class="attr">"must"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">"match"</span>: &#123;</span><br><span class="line">            <span class="attr">"job"</span>: <span class="string">"java"</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      ],</span><br><span class="line">      <span class="attr">"must_not"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">"match"</span>: &#123;</span><br><span class="line">            <span class="attr">"job"</span>: <span class="string">"ruby"</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="should"><a href="#should" class="headerlink" title="should"></a>should</h6><p>should的使用有两种情况：</p>
+<ul>
+<li><p>bool查询中只包含should，不包含must查询</p>
+</li>
+<li><p>bool查询中同时包含should和must查询</p>
+</li>
+</ul>
+<p>只包含should时，文档必须满足至少一个条件，可以通过<code>minimum_should_match</code>可以控制满足条件的个数或者百分比。</p>
+<p>如下查询的是job中必须包含java、ruby、specialist两个或两个以上匹配的文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"bool"</span>: &#123;</span><br><span class="line">      <span class="attr">"should"</span>: [</span><br><span class="line">        &#123;<span class="attr">"term"</span>: &#123;<span class="attr">"job"</span>: <span class="string">"java"</span>&#125;&#125;,</span><br><span class="line">        &#123;<span class="attr">"term"</span>: &#123;<span class="attr">"job"</span>: <span class="string">"ruby"</span>&#125;&#125;,</span><br><span class="line">        &#123;<span class="attr">"term"</span>: &#123;<span class="attr">"job"</span>: <span class="string">"specialist"</span>&#125;&#125;</span><br><span class="line">      ],</span><br><span class="line">      <span class="attr">"minimum_should_match"</span>: <span class="number">2</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>同时包含should和must时，文档不必满足should中的条件，但是如果满足条件，会增加相关性得分。</p>
+<p>如下查询username包含alfred的文档，同时将job包含ruby的文档排在前面：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"bool"</span>: &#123;</span><br><span class="line">      <span class="attr">"must"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">"term"</span>: &#123;</span><br><span class="line">            <span class="attr">"username"</span>: <span class="string">"alfred"</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      ],</span><br><span class="line">      <span class="attr">"should"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">"term"</span>: &#123;</span><br><span class="line">            <span class="attr">"job"</span>: <span class="string">"ruby"</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="query-context-和-filter-context的区别"><a href="#query-context-和-filter-context的区别" class="headerlink" title="query context 和 filter context的区别"></a>query context 和 filter context的区别</h5><p>当一个查询语句位于Query或者Filter上下文时，es执行的结果会不同，对比如下：</p>
+<p><img src="/images/elastic/query_filter.png" alt="query_filter.png"></p>
+<h5 id="count"><a href="#count" class="headerlink" title="count"></a>count</h5><p>用于返回符合条件的文档数:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_count</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match"</span>: &#123;</span><br><span class="line">      <span class="attr">"username"</span>: <span class="string">"alfred"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="source-filtering"><a href="#source-filtering" class="headerlink" title="source filtering"></a>source filtering</h5><p>过滤返回结果中_source的字段，节省网络开销。</p>
+<p>可以在URL参数_source中指定返回的字段：</p>
+<pre><code>GET test_search_index/_search?_source=username
+</code></pre><p>禁止返回_source：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"_source"</span>: <span class="literal">false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>返回部分字段：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"_source"</span>: [<span class="string">"username"</span>, <span class="string">"age"</span>]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/30/elasticsearch_03/" rel="next" title="Elasticsearch Mapping">
+                <i class="fa fa-chevron-left"></i> Elasticsearch Mapping
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/02/elasticsearch_05/" rel="prev" title="Elasticsearch search的运行机制、排序、分页与遍历">
+                Elasticsearch search的运行机制、排序、分页与遍历 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">61</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#URI-Search"><span class="nav-number">1.</span> <span class="nav-text">URI Search</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Query-String-Syntax"><span class="nav-number">1.1.</span> <span class="nav-text">Query String Syntax</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#泛查询"><span class="nav-number">1.1.1.</span> <span class="nav-text">泛查询</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#指定字段"><span class="nav-number">1.1.2.</span> <span class="nav-text">指定字段</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#term-与-pharse"><span class="nav-number">1.1.3.</span> <span class="nav-text">term 与 pharse</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Group-分组设定"><span class="nav-number">1.1.4.</span> <span class="nav-text">Group 分组设定</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#布尔操作符"><span class="nav-number">1.1.5.</span> <span class="nav-text">布尔操作符</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#AND-amp-amp-、OR-、NOT"><span class="nav-number">1.1.5.1.</span> <span class="nav-text">AND(&&)、OR(||)、NOT(!)</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#must、must-not"><span class="nav-number">1.1.5.2.</span> <span class="nav-text">must、must_not</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#范围查询"><span class="nav-number">1.1.6.</span> <span class="nav-text">范围查询</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#通配符查询"><span class="nav-number">1.1.7.</span> <span class="nav-text">通配符查询</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#正则表达式"><span class="nav-number">1.1.8.</span> <span class="nav-text">正则表达式</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#模糊匹配"><span class="nav-number">1.1.9.</span> <span class="nav-text">模糊匹配</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#近似度查询"><span class="nav-number">1.1.10.</span> <span class="nav-text">近似度查询</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Request-Body-Search"><span class="nav-number">2.</span> <span class="nav-text">Request Body Search</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Query-DSL"><span class="nav-number">2.1.</span> <span class="nav-text">Query DSL</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#字段类查询"><span class="nav-number">2.1.1.</span> <span class="nav-text">字段类查询</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#match-query"><span class="nav-number">2.1.1.1.</span> <span class="nav-text">match query</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#match-phrase-query"><span class="nav-number">2.1.1.2.</span> <span class="nav-text">match phrase query</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#query-string-query"><span class="nav-number">2.1.1.3.</span> <span class="nav-text">query string query</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#simple-query-string-query"><span class="nav-number">2.1.1.4.</span> <span class="nav-text">simple query string query</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#term-query"><span class="nav-number">2.1.1.5.</span> <span class="nav-text">term query</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#terms-query"><span class="nav-number">2.1.1.6.</span> <span class="nav-text">terms query</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#range-query"><span class="nav-number">2.1.1.7.</span> <span class="nav-text">range query</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#Date-Math"><span class="nav-number">2.1.1.8.</span> <span class="nav-text">Date Math</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#复合查询"><span class="nav-number">2.1.2.</span> <span class="nav-text">复合查询</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#constant-score-query"><span class="nav-number">2.1.2.1.</span> <span class="nav-text">constant_score query</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#bool-query"><span class="nav-number">2.1.2.2.</span> <span class="nav-text">bool query</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#filter"><span class="nav-number">2.1.2.3.</span> <span class="nav-text">filter</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#must"><span class="nav-number">2.1.2.4.</span> <span class="nav-text">must</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#must-not"><span class="nav-number">2.1.2.5.</span> <span class="nav-text">must_not</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#should"><span class="nav-number">2.1.2.6.</span> <span class="nav-text">should</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#query-context-和-filter-context的区别"><span class="nav-number">2.1.3.</span> <span class="nav-text">query context 和 filter context的区别</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#count"><span class="nav-number">2.1.4.</span> <span class="nav-text">count</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#source-filtering"><span class="nav-number">2.1.5.</span> <span class="nav-text">source filtering</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

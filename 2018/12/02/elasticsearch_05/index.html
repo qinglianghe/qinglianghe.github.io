@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="search 的运行机制es在search执行的时候实际分两个阶段，称为Query-then-Fetch:">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Elasticsearch search的运行机制、排序、分页与遍历">
+<meta property="og:url" content="http://yoursite.com/2018/12/02/elasticsearch_05/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="search 的运行机制es在search执行的时候实际分两个阶段，称为Query-then-Fetch:">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/elastic/search_query.png">
+<meta property="og:image" content="http://yoursite.com/images/elastic/search_fetch.png">
+<meta property="og:updated_time" content="2018-12-23T05:32:56.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Elasticsearch search的运行机制、排序、分页与遍历">
+<meta name="twitter:description" content="search 的运行机制es在search执行的时候实际分两个阶段，称为Query-then-Fetch:">
+<meta name="twitter:image" content="http://yoursite.com/images/elastic/search_query.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/12/02/elasticsearch_05/"/>
+
+
+
+
+
+  <title>Elasticsearch search的运行机制、排序、分页与遍历 | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/02/elasticsearch_05/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Elasticsearch search的运行机制、排序、分页与遍历</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-02T00:00:00+08:00">
+                2018-12-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="search-的运行机制"><a href="#search-的运行机制" class="headerlink" title="search 的运行机制"></a>search 的运行机制</h3><p>es在search执行的时候实际分两个阶段，称为<code>Query-then-Fetch</code>:</p>
+<a id="more"></a>
+<ul>
+<li><p>Query阶段</p>
+</li>
+<li><p>Fetch阶段</p>
+</li>
+</ul>
+<h4 id="Query阶段"><a href="#Query阶段" class="headerlink" title="Query阶段"></a>Query阶段</h4><p>如下图：</p>
+<p><img src="/images/elastic/search_query.png" alt="search_query.png"></p>
+<ol>
+<li><p>node3（此时是Coordinating Node角色）在接收到用户的search请求后，会先执行Query阶段</p>
+</li>
+<li><p>node3 在6个主副分片中随机选择3个分片，发送search request</p>
+</li>
+<li><p>被选中的3个分片会分别执行查询并排序，每个node会返回<code>from+size</code>个文档id和排序值</p>
+</li>
+<li><p>node3 整合3个分片返回的<code>from+size</code>个文档id，根据排序后选取from到<code>from+size</code>的文档id</p>
+</li>
+</ol>
+<h4 id="Fetch阶段"><a href="#Fetch阶段" class="headerlink" title="Fetch阶段"></a>Fetch阶段</h4><p>如下图：</p>
+<p><img src="/images/elastic/search_fetch.png" alt="search_fetch.png"></p>
+<p>node3 会根据上面Query阶段获取的文档id列表去对应的shard上获取文档详情数据：</p>
+<ol>
+<li><p>node3 向相关的分片发送multi_get请求</p>
+</li>
+<li><p>3个分片返回文档详细数据</p>
+</li>
+<li><p>node3 拼接返回的结果并返回给客户</p>
+</li>
+</ol>
+<h4 id="相关性算分问题"><a href="#相关性算分问题" class="headerlink" title="相关性算分问题"></a>相关性算分问题</h4><ul>
+<li><p>相关性算分在shard与shard间是相互独立的，也就意味着同一个term的IDF等值在不同shard上是不同的。文档的相关性算分和它所处的shard相关。</p>
+</li>
+<li><p>在文档数量不多时，会导致相关性算分严重不准的情况</p>
+</li>
+</ul>
+<p>如下创建3个文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">POST test_search_relevance/doc</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"name"</span>: <span class="string">"hello"</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">POST test_search_relevance/doc</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"name"</span>: <span class="string">"hello, world"</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">POST test_search_relevance/doc</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"name"</span>: <span class="string">"hello, world! a beautiful world"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在es中如果没有设置shard的大小，默认值为5，执行如下命令可以查看当前shard的大小：<code>&quot;number_of_shards&quot; : &quot;5&quot;</code></p>
+<pre><code>GET test_search_relevance
+</code></pre><p>如下查询是返回name字段包含hello的文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_relevance/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: <span class="string">"hello"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>返回的结果如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"took"</span> : <span class="number">6</span>,</span><br><span class="line">  <span class="attr">"timed_out"</span> : <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">"_shards"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">5</span>,</span><br><span class="line">    <span class="attr">"successful"</span> : <span class="number">5</span>,</span><br><span class="line">    <span class="attr">"skipped"</span> : <span class="number">0</span>,</span><br><span class="line">    <span class="attr">"failed"</span> : <span class="number">0</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"hits"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">3</span>,</span><br><span class="line">    <span class="attr">"max_score"</span> : <span class="number">0.2876821</span>,</span><br><span class="line">    <span class="attr">"hits"</span> : [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_relevance"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"ftwL2WcBYCH0M0p_Twyu"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="number">0.2876821</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"name"</span> : <span class="string">"hello, world! a beautiful world"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_relevance"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"fNwL2WcBYCH0M0p_KAwi"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="number">0.21110918</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"name"</span> : <span class="string">"hello"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_relevance"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"fdwL2WcBYCH0M0p_RQwV"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="number">0.16044298</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"name"</span> : <span class="string">"hello, world"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到返回的文档中<code>hello, world! a beautiful world</code>的文档排在最前面，而不是<code>hello</code>的文档。</p>
+<p>查看上面查询的相关性算分过程：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_relevance/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"explain"</span>: <span class="string">"true"</span>,</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: <span class="string">"hello"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从返回的结果可以看到<code>hello, world! a beautiful world</code>在第2个分片上： <code>&quot;_shard&quot; : &quot;[test_search_relevance][2]&quot;</code>，文档频率为1： <code>value&quot; : 1.0,</code>。其余的两个文档都在第0个分片上：<code>&quot;_shard&quot; : &quot;[test_search_relevance][0]&quot;</code>，文档频率为1： <code>value&quot; : 2.0</code>。因为相关性算分是在不同的shard独立计算的，所以会出现<code>hello, world! a beautiful world</code>文档排在前面。</p>
+<p>解决这个问题如下两种：</p>
+<ul>
+<li><p>设置分片数为1，从根本上排除问题，在文档数量不多的时候可以考虑该方案，比如百万到千万级别的文档数量</p>
+</li>
+<li><p>是使用 DFS Query-then-Fetch查询方式</p>
+</li>
+</ul>
+<h5 id="设置分片数为1"><a href="#设置分片数为1" class="headerlink" title="设置分片数为1"></a>设置分片数为1</h5><p>如下将number_of_shards设置为1：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">DELETE test_search_relevance</span><br><span class="line">PUT test_search_relevance</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"settings"</span>: &#123;</span><br><span class="line">    <span class="attr">"index"</span>: &#123;</span><br><span class="line">      <span class="attr">"number_of_shards"</span>: <span class="number">1</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>写入上面的文档后，再执行查询，可以看到查询如下的结果，<code>hello</code>的文档排在最前面：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"took"</span> : <span class="number">3</span>,</span><br><span class="line">  <span class="attr">"timed_out"</span> : <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">"_shards"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">1</span>,</span><br><span class="line">    <span class="attr">"successful"</span> : <span class="number">1</span>,</span><br><span class="line">    <span class="attr">"skipped"</span> : <span class="number">0</span>,</span><br><span class="line">    <span class="attr">"failed"</span> : <span class="number">0</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"hits"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">3</span>,</span><br><span class="line">    <span class="attr">"max_score"</span> : <span class="number">0.17940095</span>,</span><br><span class="line">    <span class="attr">"hits"</span> : [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_relevance"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"f9wj2WcBYCH0M0p_Bwy8"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="number">0.17940095</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"name"</span> : <span class="string">"hello"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_relevance"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"gNwj2WcBYCH0M0p_DwyI"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="number">0.14874382</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"name"</span> : <span class="string">"hello, world"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_relevance"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"gdwj2WcBYCH0M0p_HgzK"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="number">0.09833273</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"name"</span> : <span class="string">"hello, world! a beautiful world"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>查看上面查询的相关性算分过程，可以看到3个文档都在同一个分片上，文档频率为1： <code>value&quot; : 3.0</code>。</p>
+<h5 id="DFS-Query-then-Fetch查询"><a href="#DFS-Query-then-Fetch查询" class="headerlink" title="DFS Query-then-Fetch查询"></a>DFS Query-then-Fetch查询</h5><p>DFS Query-then-Fetch 是在拿到所有文档后再重新完整的计算一次相关性算分，耗费更多的cpu和内存，执行性能也比较低，一般不建议使用。</p>
+<p>如下使用DFS Query-then-Fetch进行查询：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_relevance/_search?search_type=dfs_query_then_fetch</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match"</span>: &#123;</span><br><span class="line">      <span class="attr">"name"</span>: <span class="string">"hello"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>返回的结果是<code>hello</code>的文档排在最前面。</p>
+<h3 id="排序"><a href="#排序" class="headerlink" title="排序"></a>排序</h3><p>es默认会采用相关性算分排序，用户可以通过设定sort参数来设定排序规则。</p>
+<p>如下是按照birth由大到小进行文档排序：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match"</span>: &#123;</span><br><span class="line">      <span class="attr">"username"</span>: <span class="string">"alfred"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"sort"</span>: &#123;</span><br><span class="line">    <span class="attr">"birth"</span>: <span class="string">"desc"</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>服务器将会返回如下内容，可以看到相关性算分<code>_score</code>字段值为null，因为上面的查询是按照birth字段进行排序的，所以相关性算分则无意义：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"took"</span> : <span class="number">48</span>,</span><br><span class="line">  <span class="attr">"timed_out"</span> : <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">"_shards"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">5</span>,</span><br><span class="line">    <span class="attr">"successful"</span> : <span class="number">5</span>,</span><br><span class="line">    <span class="attr">"skipped"</span> : <span class="number">0</span>,</span><br><span class="line">    <span class="attr">"failed"</span> : <span class="number">0</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"hits"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">3</span>,</span><br><span class="line">    <span class="attr">"max_score"</span> : <span class="literal">null</span>,</span><br><span class="line">    <span class="attr">"hits"</span> : [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_index"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"1"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="literal">null</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"username"</span> : <span class="string">"alfred way"</span>,</span><br><span class="line">          <span class="attr">"job"</span> : <span class="string">"java engineer"</span>,</span><br><span class="line">          <span class="attr">"age"</span> : <span class="number">18</span>,</span><br><span class="line">          <span class="attr">"birth"</span> : <span class="string">"1990-01-02"</span>,</span><br><span class="line">          <span class="attr">"isMarried"</span> : <span class="literal">false</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"sort"</span> : [</span><br><span class="line">          <span class="number">631238400000</span></span><br><span class="line">        ]</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_index"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"4"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="literal">null</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"username"</span> : <span class="string">"alfred junior way"</span>,</span><br><span class="line">          <span class="attr">"job"</span> : <span class="string">"ruby engineer"</span>,</span><br><span class="line">          <span class="attr">"age"</span> : <span class="number">23</span>,</span><br><span class="line">          <span class="attr">"birth"</span> : <span class="string">"1989-08-07"</span>,</span><br><span class="line">          <span class="attr">"isMarried"</span> : <span class="literal">false</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"sort"</span> : [</span><br><span class="line">          <span class="number">618451200000</span></span><br><span class="line">        ]</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_index"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"2"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="literal">null</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"username"</span> : <span class="string">"alfred"</span>,</span><br><span class="line">          <span class="attr">"job"</span> : <span class="string">"java senior engineer and java specialist"</span>,</span><br><span class="line">          <span class="attr">"age"</span> : <span class="number">28</span>,</span><br><span class="line">          <span class="attr">"birth"</span> : <span class="string">"1980-05-07"</span>,</span><br><span class="line">          <span class="attr">"isMarried"</span> : <span class="literal">true</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"sort"</span> : [</span><br><span class="line">          <span class="number">326505600000</span></span><br><span class="line">        ]</span><br><span class="line">      &#125;</span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>排序的时候，也可以使用多个字段进行排序，如下按照birth降序排序、如果birth相同，则按照_score排序，如果birth和_score都相同，则按照文档的id排序：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match"</span>: &#123;</span><br><span class="line">      <span class="attr">"username"</span>: <span class="string">"alfred"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"sort"</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"birth"</span>: <span class="string">"desc"</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"_score"</span>: <span class="string">"desc"</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"_doc"</span>: <span class="string">"desc"</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="字符串排序"><a href="#字符串排序" class="headerlink" title="字符串排序"></a>字符串排序</h4><p>按照字符串排序比较特殊，因为es有text和keyword两种类型，因为text类型是会分词的，如果直接对text类型进行排序，es将会报错。</p>
+<p>如下对text类型的username字段进行排序：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"sort"</span>: &#123;</span><br><span class="line">    <span class="attr">"username"</span>: <span class="string">"desc"</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>服务器将会如下出错内容：</p>
+<pre><code>reason&quot;: &quot;Fielddata is disabled on text fields by default. Set fielddata=true on [username] in order to load fielddata in memory by uninverting the inverted index. Note that this can however use significant memory. Alternatively use a keyword field instead.&quot;
+</code></pre><p>如下是使用username中子字段的类型keyword，进行排序，服务器则会返回排序后的结果：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"sort"</span>: &#123;</span><br><span class="line">    <span class="attr">"username.keyword"</span>: <span class="string">"desc"</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="fielddata"><a href="#fielddata" class="headerlink" title="fielddata"></a>fielddata</h5><p>如果要对text类型进行排序，可以开启fielddata，默认是关闭的（可以随时打开或关闭），此时字符串是按照分词后的term排序，但是排序的结果往往很难符合预期，一般是对分词做聚合分析的时候开启。</p>
+<p>fielddata只针对text类型，如果用于其他类型将会报错。</p>
+<p>如下是开启username中的fielddata：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">PUT test_search_index/_mapping/doc</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"properties"</span>: &#123;</span><br><span class="line">    <span class="attr">"username"</span>: &#123;</span><br><span class="line">      <span class="attr">"type"</span>: <span class="string">"text"</span>,</span><br><span class="line">      <span class="attr">"fielddata"</span>: <span class="string">"true"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>此时再对username进行排序：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"sort"</span>: &#123;</span><br><span class="line">    <span class="attr">"username"</span>: <span class="string">"desc"</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>返回的结果如下，是按照分词后的结果<code>[way, way, lee, alfred]</code>进行排序的：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"took"</span> : <span class="number">43</span>,</span><br><span class="line">  <span class="attr">"timed_out"</span> : <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">"_shards"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">5</span>,</span><br><span class="line">    <span class="attr">"successful"</span> : <span class="number">5</span>,</span><br><span class="line">    <span class="attr">"skipped"</span> : <span class="number">0</span>,</span><br><span class="line">    <span class="attr">"failed"</span> : <span class="number">0</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"hits"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">4</span>,</span><br><span class="line">    <span class="attr">"max_score"</span> : <span class="literal">null</span>,</span><br><span class="line">    <span class="attr">"hits"</span> : [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_index"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"4"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="literal">null</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"username"</span> : <span class="string">"alfred junior way"</span>,</span><br><span class="line">          <span class="attr">"job"</span> : <span class="string">"ruby engineer"</span>,</span><br><span class="line">          <span class="attr">"age"</span> : <span class="number">23</span>,</span><br><span class="line">          <span class="attr">"birth"</span> : <span class="string">"1989-08-07"</span>,</span><br><span class="line">          <span class="attr">"isMarried"</span> : <span class="literal">false</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"sort"</span> : [</span><br><span class="line">          <span class="string">"way"</span></span><br><span class="line">        ]</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_index"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"1"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="literal">null</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"username"</span> : <span class="string">"alfred way"</span>,</span><br><span class="line">          <span class="attr">"job"</span> : <span class="string">"java engineer"</span>,</span><br><span class="line">          <span class="attr">"age"</span> : <span class="number">18</span>,</span><br><span class="line">          <span class="attr">"birth"</span> : <span class="string">"1990-01-02"</span>,</span><br><span class="line">          <span class="attr">"isMarried"</span> : <span class="literal">false</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"sort"</span> : [</span><br><span class="line">          <span class="string">"way"</span></span><br><span class="line">        ]</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_index"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"3"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="literal">null</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"username"</span> : <span class="string">"lee"</span>,</span><br><span class="line">          <span class="attr">"job"</span> : <span class="string">"java and ruby engineer"</span>,</span><br><span class="line">          <span class="attr">"age"</span> : <span class="number">22</span>,</span><br><span class="line">          <span class="attr">"birth"</span> : <span class="string">"1985-08-07"</span>,</span><br><span class="line">          <span class="attr">"isMarried"</span> : <span class="literal">false</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"sort"</span> : [</span><br><span class="line">          <span class="string">"lee"</span></span><br><span class="line">        ]</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_index"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"2"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="literal">null</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"username"</span> : <span class="string">"alfred"</span>,</span><br><span class="line">          <span class="attr">"job"</span> : <span class="string">"java senior engineer and java specialist"</span>,</span><br><span class="line">          <span class="attr">"age"</span> : <span class="number">28</span>,</span><br><span class="line">          <span class="attr">"birth"</span> : <span class="string">"1980-05-07"</span>,</span><br><span class="line">          <span class="attr">"isMarried"</span> : <span class="literal">true</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"sort"</span> : [</span><br><span class="line">          <span class="string">"alfred"</span></span><br><span class="line">        ]</span><br><span class="line">      &#125;</span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="分页与遍历"><a href="#分页与遍历" class="headerlink" title="分页与遍历"></a>分页与遍历</h3><p>es提供了3种方式来解决分页与遍历的问题：</p>
+<ul>
+<li><p>from/size</p>
+</li>
+<li><p>scroll</p>
+</li>
+<li><p>search_after</p>
+</li>
+</ul>
+<h4 id="from-size"><a href="#from-size" class="headerlink" title="from/size"></a>from/size</h4><p>from: 指明开始位置、size：指明获取总数</p>
+<p>深度分页会存在的问题：如在数据分片存储的情况下如何获取前1000个文档？</p>
+<p>如下是从0开始获取2个文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"from"</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">"size"</span>: <span class="number">2</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当获取从990~1000（from: 990、size: 10）的文档时，会在每个分片上都先获取1000个文档，然后在由Coordinating Node聚合所有分片的结果后再排序选取前1000个文档。</p>
+<p>页数越深，处理文档越多，占用内存越多，耗时越长。尽量避免深度分页，es通过<code>index.max.result.window</code>限定最多到10000条数据。</p>
+<p>如下指定从10000开始的位置查询2个文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"from"</span>: <span class="number">10000</span>,</span><br><span class="line">  <span class="attr">"size"</span>: <span class="number">2</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>es将会返回如下错误：</p>
+<pre><code>&quot;reason&quot;: &quot;Result window is too large, from + size must be less than or equal to: [10000] but was [10002]. See the scroll api for a more efficient way to request large data sets. This limit can be set by changing the [index.max_result_window] index level setting.&quot;
+</code></pre><h4 id="scroll"><a href="#scroll" class="headerlink" title="scroll"></a>scroll</h4><p>以快照的方式来避免深度分页的问题：</p>
+<ul>
+<li><p>不能用来做实时搜索，因为数据不是实时的</p>
+</li>
+<li><p>尽量不要用复杂的sort条件，使用_doc最高效</p>
+</li>
+<li><p>使用稍微复杂</p>
+</li>
+</ul>
+<p>使用scroll时需要发起1个scroll search，es在收到该请求后会根据查询条件创建文档id合集的快照，返回一个scroll id，然后用户再使用这个scroll id来获取文档集合。</p>
+<p>如下是使用scroll查询文档，<code>scroll=5m</code>表示快照的有效时间：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search?scroll=5m</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"size"</span>: <span class="number">1</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>es将会返回如下内容:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"_scroll_id"</span> : <span class="string">"DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAB9FFm1lOGN4ckVTVG0tTUV1NF9yV213YkEAAAAAAAAfQRZtZThjeHJFU1RtLU1FdTRfcldtd2JBAAAAAAAAH0IWbWU4Y3hyRVNUbS1NRXU0X3JXbXdiQQAAAAAAAB9DFm1lOGN4ckVTVG0tTUV1NF9yV213YkEAAAAAAAAfRBZtZThjeHJFU1RtLU1FdTRfcldtd2JB"</span>,</span><br><span class="line">  <span class="attr">"took"</span> : <span class="number">1</span>,</span><br><span class="line">  <span class="attr">"timed_out"</span> : <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">"_shards"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">5</span>,</span><br><span class="line">    <span class="attr">"successful"</span> : <span class="number">5</span>,</span><br><span class="line">    <span class="attr">"skipped"</span> : <span class="number">0</span>,</span><br><span class="line">    <span class="attr">"failed"</span> : <span class="number">0</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"hits"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">4</span>,</span><br><span class="line">    <span class="attr">"max_score"</span> : <span class="number">1.0</span>,</span><br><span class="line">    <span class="attr">"hits"</span> : [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_index"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"2"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="number">1.0</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"username"</span> : <span class="string">"alfred"</span>,</span><br><span class="line">          <span class="attr">"job"</span> : <span class="string">"java senior engineer and java specialist"</span>,</span><br><span class="line">          <span class="attr">"age"</span> : <span class="number">28</span>,</span><br><span class="line">          <span class="attr">"birth"</span> : <span class="string">"1980-05-07"</span>,</span><br><span class="line">          <span class="attr">"isMarried"</span> : <span class="literal">true</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>要获取下一个文档时，需要指定scroll_id为上面es返回的scroll_id：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">POST _search/scroll</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"scroll"</span>: <span class="string">"5m"</span>,</span><br><span class="line">  <span class="attr">"scroll_id"</span>: <span class="string">"DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAB9FFm1lOGN4ckVTVG0tTUV1NF9yV213YkEAAAAAAAAfQRZtZThjeHJFU1RtLU1FdTRfcldtd2JBAAAAAAAAH0IWbWU4Y3hyRVNUbS1NRXU0X3JXbXdiQQAAAAAAAB9DFm1lOGN4ckVTVG0tTUV1NF9yV213YkEAAAAAAAAfRBZtZThjeHJFU1RtLU1FdTRfcldtd2JB"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过这样的迭代，一直遍历到hits为空，即可把所有的文档都遍历完。</p>
+<p>因为scroll是以快照生成数据集的，不是实时的，如果在使用scroll遍历文档时，如果有新的文档写入，scroll将不会返回该文档。同理删除文档时，scroll会遍历出过期的文档。</p>
+<p>过多的scroll调用会占用大量的内存，可以通过clear删除过多的scroll快照。</p>
+<p>如下是删除指定scroll_id：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">DELETE /_search/scroll</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"scroll_id"</span>: [</span><br><span class="line">    <span class="string">"DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAB9FFm1lOGN4ckVTVG0tTUV1NF9yV213YkEAAAAAAAAfQRZtZThjeHJFU1RtLU1FdTRfcldtd2JBAAAAAAAAH0IWbWU4Y3hyRVNUbS1NRXU0X3JXbXdiQQAAAAAAAB9DFm1lOGN4ckVTVG0tTUV1NF9yV213YkEAAAAAAAAfRBZtZThjeHJFU1RtLU1FdTRfcldtd2JB"</span>  </span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如下是删除所有的scroll：</p>
+<pre><code>DELETE /_search/scroll/_all
+</code></pre><h4 id="search-after"><a href="#search-after" class="headerlink" title="search after"></a>search after</h4><p>通过唯一排序值定位将每次要处理文档数控制在size内，避免深度分页的性能问题。提供实时的下一页文档获取功能，缺点是不能使用from参数，即不能指定页数，只能下一页、不能上上一页。</p>
+<ul>
+<li><p>第一步为正常的搜索，但要指定sort值，并保证值唯一</p>
+</li>
+<li><p>第二步为使用上一步最后一个文档的sort值进行查询</p>
+</li>
+</ul>
+<p>如下指定sort值为age和_id：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"size"</span>: <span class="number">1</span>,</span><br><span class="line">  <span class="attr">"sort"</span>: &#123;</span><br><span class="line">    <span class="attr">"age"</span>: <span class="string">"desc"</span>,</span><br><span class="line">    <span class="attr">"_id"</span>: <span class="string">"desc"</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>es返回如下结果：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"took"</span> : <span class="number">36</span>,</span><br><span class="line">  <span class="attr">"timed_out"</span> : <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">"_shards"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">5</span>,</span><br><span class="line">    <span class="attr">"successful"</span> : <span class="number">5</span>,</span><br><span class="line">    <span class="attr">"skipped"</span> : <span class="number">0</span>,</span><br><span class="line">    <span class="attr">"failed"</span> : <span class="number">0</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"hits"</span> : &#123;</span><br><span class="line">    <span class="attr">"total"</span> : <span class="number">4</span>,</span><br><span class="line">    <span class="attr">"max_score"</span> : <span class="literal">null</span>,</span><br><span class="line">    <span class="attr">"hits"</span> : [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">"_index"</span> : <span class="string">"test_search_index"</span>,</span><br><span class="line">        <span class="attr">"_type"</span> : <span class="string">"doc"</span>,</span><br><span class="line">        <span class="attr">"_id"</span> : <span class="string">"2"</span>,</span><br><span class="line">        <span class="attr">"_score"</span> : <span class="literal">null</span>,</span><br><span class="line">        <span class="attr">"_source"</span> : &#123;</span><br><span class="line">          <span class="attr">"username"</span> : <span class="string">"alfred"</span>,</span><br><span class="line">          <span class="attr">"job"</span> : <span class="string">"java senior engineer and java specialist"</span>,</span><br><span class="line">          <span class="attr">"age"</span> : <span class="number">28</span>,</span><br><span class="line">          <span class="attr">"birth"</span> : <span class="string">"1980-05-07"</span>,</span><br><span class="line">          <span class="attr">"isMarried"</span> : <span class="literal">true</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"sort"</span> : [</span><br><span class="line">          <span class="number">28</span>,</span><br><span class="line">          <span class="string">"2"</span></span><br><span class="line">        ]</span><br><span class="line">      &#125;</span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下次查询时，需要使用上面返回的<code>&quot;sort&quot; : [28,&quot;2&quot;]</code>：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"size"</span>: <span class="number">1</span>,</span><br><span class="line">  <span class="attr">"search_after"</span>: [<span class="number">28</span>, <span class="string">"2"</span>],</span><br><span class="line">  <span class="attr">"sort"</span>: &#123;</span><br><span class="line">    <span class="attr">"age"</span>: <span class="string">"desc"</span>,</span><br><span class="line">    <span class="attr">"_id"</span>: <span class="string">"desc"</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="三种分页使用的场景"><a href="#三种分页使用的场景" class="headerlink" title="三种分页使用的场景"></a>三种分页使用的场景</h4><table>
+<thead>
+<tr>
+<th>类型</th>
+<th style="text-align:left">场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>from/size</td>
+<td style="text-align:left">需要实时获取顶部的部分文档，且需要自由翻页</td>
+</tr>
+<tr>
+<td>scroll</td>
+<td style="text-align:left">需要全部文档，如导出所有数据的功能</td>
+</tr>
+<tr>
+<td>search_after</td>
+<td style="text-align:left">需要全部文档，不需要自由翻页</td>
+</tr>
+</tbody>
+</table>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/01/elasticsearch_04/" rel="next" title="Elasticsearch 查询">
+                <i class="fa fa-chevron-left"></i> Elasticsearch 查询
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/15/elasticsearch_06/" rel="prev" title="Elasticsearch 聚合分析">
+                Elasticsearch 聚合分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">61</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#search-的运行机制"><span class="nav-number">1.</span> <span class="nav-text">search 的运行机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Query阶段"><span class="nav-number">1.1.</span> <span class="nav-text">Query阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Fetch阶段"><span class="nav-number">1.2.</span> <span class="nav-text">Fetch阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#相关性算分问题"><span class="nav-number">1.3.</span> <span class="nav-text">相关性算分问题</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#设置分片数为1"><span class="nav-number">1.3.1.</span> <span class="nav-text">设置分片数为1</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#DFS-Query-then-Fetch查询"><span class="nav-number">1.3.2.</span> <span class="nav-text">DFS Query-then-Fetch查询</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#排序"><span class="nav-number">2.</span> <span class="nav-text">排序</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#字符串排序"><span class="nav-number">2.1.</span> <span class="nav-text">字符串排序</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#fielddata"><span class="nav-number">2.1.1.</span> <span class="nav-text">fielddata</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分页与遍历"><span class="nav-number">3.</span> <span class="nav-text">分页与遍历</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#from-size"><span class="nav-number">3.1.</span> <span class="nav-text">from/size</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#scroll"><span class="nav-number">3.2.</span> <span class="nav-text">scroll</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#search-after"><span class="nav-number">3.3.</span> <span class="nav-text">search after</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#三种分页使用的场景"><span class="nav-number">3.4.</span> <span class="nav-text">三种分页使用的场景</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
