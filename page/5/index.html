@@ -232,6 +232,131 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/27/orm/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/27/orm/" itemprop="url">编写python ORM框架</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-27T00:00:00+08:00">
+                2018-05-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <hr>
+<p><code>ORM</code>全称“Object Relational Mapping”，即对象-关系映射，就是把关系数据库的一行映射为一个对象，也就是一个类对应一个表，这样，写代码更简单，不用直接操作<code>SQL</code>语句。<br>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/05/27/orm/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/28/buffer_cache_swap/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1107,6 +1232,851 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/01/logstash_02/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/01/01/logstash_02/" itemprop="url">Logstash 插件</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-01-01T00:00:00+08:00">
+                2018-01-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="input-插件"><a href="#input-插件" class="headerlink" title="input 插件"></a>input 插件</h3><p>input插件用于指定数据输入源，一个pipeline可以有多个input插件，常用的input插件主要包括：stdin、file、kafka等。</p>
+<h4 id="stdin"><a href="#stdin" class="headerlink" title="stdin"></a>stdin</h4><p>最简单的输入，从标准输入读取数据，通用配置为：</p>
+<ul>
+<li><p>codec类型为codec</p>
+</li>
+<li><p>type类型为string，自定义该事件的类型，可用于后续判断</p>
+</li>
+<li><p>tags类型为array，自定义该事件的tag，可用于后续判断</p>
+</li>
+<li><p>add_field类型为hash，为该事件添加字段</p>
+</li>
+</ul>
+<p>有如下的配置：</p>
+<pre><code>input {
+    stdin {
+        codec =&gt; &quot;plain&quot;
+        tags =&gt; [&quot;test&quot;]
+        type =&gt; &quot;std&quot;
+        add_field =&gt; {&quot;key&quot; =&gt; &quot;value&quot;}
+    }
+}
+
+output {
+    stdout {
+        codec=&gt;&quot;rubydebug&quot;
+    }
+}
+</code></pre><p>在logstash启动的时候，指定上面的配置文件：</p>
+<pre><code>echo &quot;test&quot; | bin/logstash -f test/input-stdin.conf
+</code></pre><p>输入如下内容：</p>
+<pre><code>{
+        &quot;key&quot; =&gt; &quot;value&quot;,
+    &quot;@version&quot; =&gt; &quot;1&quot;,
+        &quot;tags&quot; =&gt; [
+        [0] &quot;test&quot;
+    ],
+        &quot;host&quot; =&gt; &quot;ubuntu&quot;,
+        &quot;type&quot; =&gt; &quot;std&quot;,
+    &quot;@timestamp&quot; =&gt; 2018-12-31T09:45:07.935Z,
+    &quot;message&quot; =&gt; &quot;test&quot;
+}
+</code></pre><h3 id="file"><a href="#file" class="headerlink" title="file"></a>file</h3><p>从文件中读取数据，如常见的日志文件。</p>
+<ul>
+<li><p>文件内容只被读取一次，每次读取的位置会记录在sincedb中，重启logstash时，会从sincedb中获取记录的文件位置</p>
+</li>
+<li><p>会定时检查文件是否有更新，以保证即使读取到文件的新内容</p>
+</li>
+<li><p>定时检查新文件，以发现新文件并进行读取</p>
+</li>
+<li><p>读取文件内容时，使用的是inode，如果文件发生了归档操作，不会影响当前的内容被读取</p>
+</li>
+</ul>
+<h4 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h4><table>
+<thead>
+<tr>
+<th>配置项</th>
+<th style="text-align:left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>path</td>
+<td style="text-align:left">类型为数组，指明读取的文件路径，基于glob匹配语法，如：path =&gt; [“/var/log/<em>*/</em>.log”, “/var/log/message”]</td>
+</tr>
+<tr>
+<td>exclue</td>
+<td style="text-align:left">类型为数组，排除不想监听的文件规则，基于glob匹配语法，如：exclude =&gt; “.gz”</td>
+</tr>
+<tr>
+<td>sincedb_path</td>
+<td style="text-align:left">类型为字符串，记录sincedb文件路径</td>
+</tr>
+<tr>
+<td>start_postion</td>
+<td style="text-align:left">类型为字符串，beginning or end，是否从头读取文件</td>
+</tr>
+<tr>
+<td>start_interval</td>
+<td style="text-align:left">类型为数值，单位为秒，定时检查文件是否有更新，默认为1秒</td>
+</tr>
+<tr>
+<td>discover_interval</td>
+<td style="text-align:left">类型为数值，单位为秒，定时检查文件是否有新文件待读取，默认为15秒</td>
+</tr>
+<tr>
+<td>ignore_older</td>
+<td style="text-align:left">类型为数值，单位为秒，扫描文件列表时，如果该文件从上次更改时间超过设定的时长，则不做处理，但依然会监控是否有新内容，默认关闭</td>
+</tr>
+<tr>
+<td>close_older</td>
+<td style="text-align:left">类型为数值，单位为秒，如果监听的文件在超过该设定时间内没有新内容，会被关闭文件句柄，释放资源，但依然会监控是否有新内容，默认为3600秒</td>
+</tr>
+</tbody>
+</table>
+<h4 id="glob-配置语法"><a href="#glob-配置语法" class="headerlink" title="glob 配置语法"></a>glob 配置语法</h4><p>主要包含如下几种匹配符：</p>
+<table>
+<thead>
+<tr>
+<th>匹配符</th>
+<th style="text-align:left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>*</td>
+<td style="text-align:left">匹配任意字符，但不匹配以.开头的隐藏文件，匹配隐藏文件是要使用.*来匹配</td>
+</tr>
+<tr>
+<td>**</td>
+<td style="text-align:left">递归匹配子目录</td>
+</tr>
+<tr>
+<td>?</td>
+<td style="text-align:left">匹配单一字符</td>
+</tr>
+<tr>
+<td>[]</td>
+<td style="text-align:left">匹配多个字符，比如[a-z]、[^a-z]</td>
+</tr>
+<tr>
+<td>{}</td>
+<td style="text-align:left">匹配多个单词，比如{foo, bar, hello}</td>
+</tr>
+<tr>
+<td>\</td>
+<td style="text-align:left">转义符号</td>
+</tr>
+</tbody>
+</table>
+<p>如：</p>
+<ul>
+<li><p><code>/var/log/*.log</code>：匹配<code>/var/log</code>目录下的<code>.log</code>结尾的文件</p>
+</li>
+<li><p><code>/var/log/**/*.log</code>：匹配<code>/var/log</code>所有子目录下<code>.log</code>结尾的文件</p>
+</li>
+<li><p><code>/var/log/{app1, app2, app3}/*.log</code>：匹配<code>/var/log</code>目录下的app1、app2、app3目录中以<code>.log</code>结尾的文件</p>
+</li>
+</ul>
+<p>有如下配置文件，logstash会从<code>/var/log/access.log</code>、<code>/var/log/err.log</code>从读取内容：</p>
+<pre><code>input {
+    file {
+        path =&gt; [&quot;/var/log/access.log&quot;, &quot;/var/log/err.log&quot;]
+    }
+    type =&gt; &quot;web&quot;,
+    start_position =&gt; &quot;beginning&quot;
+}
+</code></pre><p><code>start_position =&gt; &quot;beginning&quot;</code>表示第一次读取文件的时候是从头开始读，但是如果logstash的sincedb中有记录了上次读取的文件位置，则会从sincedb记录的上次读取的文件位置中读取文件内容。</p>
+<p>在调试的时候每次重启logstash需要从头读取文件的内容，可以使用如下的配置：</p>
+<pre><code>input {
+    file {
+        path =&gt; [&quot;/var/log/access.log&quot;, &quot;/var/log/err.log&quot;]
+    }
+    sincedb =&gt; &quot;/dev/null&quot;,
+    start_position =&gt; &quot;beginning&quot;
+    ignore_older =&gt; 0
+    close_older =&gt; 5
+    discover_interval =&gt; 1
+}
+</code></pre><h3 id="kafka"><a href="#kafka" class="headerlink" title="kafka"></a>kafka</h3><p>kafka在logstash中使用也是比较常用的，一般使用如下：</p>
+<pre><code>input {
+    kafka {
+        zk_connect =&gt; &quot;kafka:2181&quot;
+        group_id =&gt; &quot;logstash&quot;
+        topic_id =&gt; &quot;apache_logs&quot;
+        consumer_threads =&gt; 16
+    }
+}
+</code></pre><h3 id="codec-插件"><a href="#codec-插件" class="headerlink" title="codec 插件"></a>codec 插件</h3><p>codec插件作用input和output插件，负责将数据在与logstash event之间转换，常见的codec有：</p>
+<table>
+<thead>
+<tr>
+<th>插件</th>
+<th style="text-align:left">作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>plain</td>
+<td style="text-align:left">读取原始的内容</td>
+</tr>
+<tr>
+<td>dots</td>
+<td style="text-align:left">将内容简化为点进行输出</td>
+</tr>
+<tr>
+<td>rubydebug</td>
+<td style="text-align:left">将logstash events按照ruby格式输出，方便调试</td>
+</tr>
+<tr>
+<td>line</td>
+<td style="text-align:left">处理带有换行符的内容</td>
+</tr>
+<tr>
+<td>json</td>
+<td style="text-align:left">处理json格式的内容</td>
+</tr>
+<tr>
+<td>multiline</td>
+<td style="text-align:left">处理多行数据的内容</td>
+</tr>
+</tbody>
+</table>
+<h4 id="line"><a href="#line" class="headerlink" title="line"></a>line</h4><p>如下是使用<code>codec =&gt; line</code> 从stdin读取数据，然后再按照<code>rubydebug</code>进行输出：</p>
+<pre><code>bin/logstash -e &quot;input { stdin { codec=&gt;line }} output { stdout { codec=&gt;rubydebug }}&quot;
+</code></pre><p>输入如下内容：</p>
+<pre><code>hello, world
+</code></pre><p>输入如下rubydebug内容：</p>
+<pre><code>{
+    &quot;message&quot; =&gt; &quot;hello, world&quot;,
+    &quot;@version&quot; =&gt; &quot;1&quot;,
+    &quot;@timestamp&quot; =&gt; 2018-12-31T12:28:04.647Z,
+        &quot;host&quot; =&gt; &quot;ubuntu&quot;
+}
+</code></pre><h4 id="dots"><a href="#dots" class="headerlink" title="dots"></a>dots</h4><p>如果不想看到logstash的输出，只想看到输出的进度，可以将output的codec设置为dots。</p>
+<p>如下是使用<code>codec =&gt; line</code> 从stdin读取数据，然后再按照<code>dots</code>进行输出,：</p>
+<pre><code>bin/logstash -e &quot;input { stdin { codec=&gt;line }} output { stdout { codec=&gt;dots }}&quot;
+</code></pre><h4 id="json"><a href="#json" class="headerlink" title="json"></a>json</h4><p>如下是使用<code>codec =&gt; json</code> 从stdin读取数据，然后再按照<code>rubydebug</code>进行输出</p>
+<pre><code>bin/logstash -e &quot;input { stdin { codec=&gt;json }} output { stdout { codec=&gt;rubydebug }}&quot;
+</code></pre><p>输入如下的json内容：</p>
+<pre><code>{&quot;name&quot;: &quot;elk&quot;, &quot;age&quot;: 5}
+</code></pre><p>输入如下rubydebug内容：</p>
+<pre><code>{
+        &quot;age&quot; =&gt; 5,
+    &quot;@version&quot; =&gt; &quot;1&quot;,
+    &quot;@timestamp&quot; =&gt; 2018-12-31T12:36:14.430Z,
+        &quot;host&quot; =&gt; &quot;ubuntu&quot;,
+        &quot;name&quot; =&gt; &quot;elk&quot;
+}
+</code></pre><h4 id="multiline"><a href="#multiline" class="headerlink" title="multiline"></a>multiline</h4><p>当一个event的message由多行组成时，需要使用该codec，常见的情况是堆栈日志信息的处理，如：</p>
+<pre><code>Exception in thread &quot;main.java.lang.NullPointerException&quot;
+    at com.example.myproject.Book.getTitle(Book.java:16)
+    at com.example.myproject.Author.getBookTitles(Author.java:25)
+    at com.example.myproject.Bootstrap.main(Bootstrap.java:14)
+</code></pre><p>主要设置参数如下：</p>
+<ul>
+<li><p>pattern：设置行匹配的正则表达式，可以使用gork</p>
+</li>
+<li><p>what pervious|next: 如果匹配成功，那么匹配行是归属上一个事件还是下一个事件</p>
+</li>
+<li><p>negate true|false：是否对pattern的结果取反</p>
+</li>
+</ul>
+<p>使用如下配置可以匹配上面的堆栈信息：</p>
+<pre><code>input {
+    stdin {
+        codec =&gt; multiline {
+            pattern =&gt; &quot;^\s&quot;
+            what =&gt; &quot;previous&quot;
+        }
+    }
+}
+
+output {
+    stdout {
+        codec =&gt; rubydebug
+    }
+}
+</code></pre><p>输入上面的堆栈信息，将得到如下的输出信息：</p>
+<pre><code>{
+    &quot;@version&quot; =&gt; &quot;1&quot;,
+    &quot;@timestamp&quot; =&gt; 2018-12-31T12:52:55.639Z,
+        &quot;tags&quot; =&gt; [
+        [0] &quot;multiline&quot;
+    ],
+    &quot;message&quot; =&gt; &quot;Exception in thread \&quot;main.java.lang.NullPointerException\&quot;\n        at com.example.myproject.Book.getTitle(Book.java:16)\n        at com.example.myproject.Author.getBookTitles(Author.java:25)\n        at com.example.myproject.Bootstrap.main(Bootstrap.java:14)&quot;,
+        &quot;host&quot; =&gt; &quot;ubuntu&quot;
+}
+</code></pre><p>如下内容：</p>
+<pre><code>printf(&quot;%10.10|d \t %10.10|d \t %s\
+%f&quot;, w, x, y, z);
+</code></pre><p>使用下面的配置如下匹配：</p>
+<pre><code>input {
+    stdin {
+        codec =&gt; multiline {
+            pattern =&gt; &quot;\\$&quot;
+                what =&gt; &quot;next&quot;
+        }
+    }
+}
+output {
+    stdout {
+        codec =&gt; rubydebug
+    }
+}
+</code></pre><p>输入上面的内容，将得到如下的输出信息：</p>
+<pre><code>{
+        &quot;tags&quot; =&gt; [
+        [0] &quot;multiline&quot;
+    ],
+    &quot;@timestamp&quot; =&gt; 2018-12-31T13:07:07.496Z,
+        &quot;host&quot; =&gt; &quot;ubuntu&quot;,
+    &quot;@version&quot; =&gt; &quot;1&quot;,
+    &quot;message&quot; =&gt; &quot;printf(\&quot;%10.10|d \\t %10.10|d \\t %s\\\n    %f\&quot;, w, x, y, z);&quot;
+}
+</code></pre><h3 id="filter-插件"><a href="#filter-插件" class="headerlink" title="filter 插件"></a>filter 插件</h3><p>filter是logstash功能强大的主要原因，它可以对logstash event进行丰富的处理，比如解析数据、删除字段、类型转换等，常见的有如下几个：</p>
+<table>
+<thead>
+<tr>
+<th>插件</th>
+<th style="text-align:left">作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>date</td>
+<td style="text-align:left">日期解析</td>
+</tr>
+<tr>
+<td>grok</td>
+<td style="text-align:left">正则匹配解析</td>
+</tr>
+<tr>
+<td>dissect</td>
+<td style="text-align:left">分隔符解析</td>
+</tr>
+<tr>
+<td>mutate</td>
+<td style="text-align:left">对字段处理，比如重命名、删除、替换等</td>
+</tr>
+<tr>
+<td>json</td>
+<td style="text-align:left">安装json解析字段内容到指定字段中</td>
+</tr>
+<tr>
+<td>geoip</td>
+<td style="text-align:left">增加地理位置数据</td>
+</tr>
+<tr>
+<td>ruby</td>
+<td style="text-align:left">利用ruby代码来动态修改logstash event</td>
+</tr>
+</tbody>
+</table>
+<h4 id="date"><a href="#date" class="headerlink" title="date"></a>date</h4><p>将日期字符串解析为日期类型，然后替换<code>@timestamp</code>字段或者指定的其他字段。</p>
+<p>主要设置参数如下：</p>
+<ul>
+<li><p>match: 类型为数组，用于指定日期匹配的格式，可以一次指定多种日期格式， 如： match[“logdate”, “MMM dd yyyy HH:mm:ss”, “MMM d yyyy HH:mm:ss”, “ISO8601”]</p>
+</li>
+<li><p>target: 类型为字符串，用于指定赋值的字段名，默认是<code>@timestamp</code></p>
+</li>
+<li><p>timezone：类型为字符串，用于指定时区</p>
+</li>
+</ul>
+<p>有如下的配置：</p>
+<pre><code>input {
+    stdin {
+        codec =&gt; json
+    }
+}
+
+filter {
+    date {
+        match =&gt; [&quot;logdate&quot;, &quot;MMM dd yyyy HH:mm:ss&quot;]
+    }
+}
+
+output {
+    stdout {
+        codec =&gt; rubydebug
+    }
+}
+</code></pre><p>输入如下的内容：</p>
+<pre><code>{&quot;logdate&quot;: &quot;Jan 01 2019 12:02:03&quot;}
+</code></pre><p>输出如下的内容，因为我们所在的区域在东八区，所以<code>@timestamp</code>输出的内容有8个小时的差异：</p>
+<pre><code>{
+    &quot;logdate&quot; =&gt; &quot;Jan 01 2019 12:02:03&quot;,
+    &quot;@timestamp&quot; =&gt; 2019-01-01T04:02:03.000Z,
+        &quot;host&quot; =&gt; &quot;ubuntu&quot;,
+    &quot;@version&quot; =&gt; &quot;1&quot;
+}
+</code></pre><h4 id="grok"><a href="#grok" class="headerlink" title="grok"></a>grok</h4><p>grok就是一些定义好的正则表达式。</p>
+<p>grok语法如下：</p>
+<pre><code>%{SYNTAX:SEMANTIC}
+</code></pre><ul>
+<li><p>SYNTAX为grok pattern的名称，SEMANTIC为赋值字段名称</p>
+</li>
+<li><p><code>%{NUMBER:duration}</code> 可以匹配数值类型，但是grok匹配出的内容都是字符串类型，可以通过在最后指定为int或者float来强制转换类型，如：<code>%{NUMBER:duration:float}</code></p>
+</li>
+</ul>
+<p>常见的一些pattern：<a href="https://github.com/logstash-plugins/logstash-patterns-core/tree/master/patterns" target="_blank" rel="noopener">https://github.com/logstash-plugins/logstash-patterns-core/tree/master/patterns</a></p>
+<p>如下数据是nginx产生的日志：</p>
+<pre><code>217.168.17.5 - - [17/May/2015:08:05:34 +0000] &quot;GET /downloads/product_1 HTTP/1.1&quot; 200 490 &quot;-&quot; &quot;Debian APT-HTTP/1.3 (0.8.10.3)&quot;
+</code></pre><p>使用如下的gork配置可以匹配上面的数据：</p>
+<pre><code>filter {
+    grok {
+        match =&gt; {
+        &quot;message&quot; =&gt; &quot;%{IPORHOST:clientip} %{USER:ident} %{USER:auth} \[%{HTTPDATE:timestamp}\] \&quot;%{WORD:verb} %{DATA:request} HTTP/%{NUMBER:httpversion}\&quot; %{NUMBER:response:int} (?:-|%{NUMBER:bytes:int}) %{QS:referrer} %{QS:agent}&quot;
+        }
+    }
+}
+</code></pre><p>匹配后输出如下内容：</p>
+<pre><code>{
+   &quot;response&quot; =&gt; 200,
+&quot;httpversion&quot; =&gt; &quot;1.1&quot;,
+   &quot;@version&quot; =&gt; &quot;1&quot;,
+  &quot;timestamp&quot; =&gt; &quot;17/May/2015:08:05:34 +0000&quot;,
+    &quot;message&quot; =&gt; &quot;217.168.17.5 - - [17/May/2015:08:05:34 +0000] \&quot;GET /downloads/product_1 HTTP/1.1\&quot; 200 490 \&quot;-\&quot; \&quot;Debian APT-HTTP/1.3 (0.8.10.3)\&quot;&quot;,
+      &quot;ident&quot; =&gt; &quot;-&quot;,
+       &quot;verb&quot; =&gt; &quot;GET&quot;,
+    &quot;request&quot; =&gt; &quot;/downloads/product_1&quot;,
+       &quot;auth&quot; =&gt; &quot;-&quot;,
+   &quot;clientip&quot; =&gt; &quot;217.168.17.5&quot;,
+   &quot;referrer&quot; =&gt; &quot;\&quot;-\&quot;&quot;,
+       &quot;host&quot; =&gt; &quot;192.168.1.1&quot;,
+ &quot;@timestamp&quot; =&gt; 2019-01-01T03:41:22.911Z,
+      &quot;bytes&quot; =&gt; 490,
+      &quot;agent&quot; =&gt; &quot;\&quot;Debian APT-HTTP/1.3 (0.8.10.3)\&quot;&quot;
+}
+</code></pre><h5 id="自定义grok匹配"><a href="#自定义grok匹配" class="headerlink" title="自定义grok匹配"></a>自定义grok匹配</h5><h6 id="基于正则表达式匹配规则"><a href="#基于正则表达式匹配规则" class="headerlink" title="基于正则表达式匹配规则"></a>基于正则表达式匹配规则</h6><p>如下是定义了一个<code>(?&lt;service_name&gt;[0-9a-z]{10, 11})</code>:</p>
+<pre><code>filter {
+    grok {
+        match =&gt; {
+        &quot;message&quot; =&gt; &quot;(?&lt;service_name&gt;[0-9a-z]{10,11})&quot;
+        }
+    }
+}
+</code></pre><p>输入数据<code>abc1234567</code>，匹配后输出：</p>
+<pre><code>{
+    &quot;@version&quot; =&gt; &quot;1&quot;,
+&quot;service_name&quot; =&gt; &quot;abc1234567&quot;,
+        &quot;host&quot; =&gt; &quot;192.168.1.1&quot;,
+     &quot;message&quot; =&gt; &quot;abc1234567&quot;,
+  &quot;@timestamp&quot; =&gt; 2019-01-01T03:49:26.182Z
+}
+</code></pre><p>如果输入数据<code>abc123456</code>，匹配将会失败，输入如下内容：</p>
+<pre><code>{
+  &quot;@version&quot; =&gt; &quot;1&quot;,
+      &quot;host&quot; =&gt; &quot;192.168.1.1&quot;,
+   &quot;message&quot; =&gt; &quot;abc123456&quot;,
+&quot;@timestamp&quot; =&gt; 2019-01-01T03:50:55.032Z,
+      &quot;tags&quot; =&gt; [
+    [0] &quot;_grokparsefailure&quot;
+]
+}
+</code></pre><h6 id="gork-pattern"><a href="#gork-pattern" class="headerlink" title="gork pattern"></a>gork pattern</h6><p>gork也支持自定义pattern：</p>
+<ul>
+<li><p>pattern_definitions参数，以键值对的方式定义pattern名称和内容</p>
+</li>
+<li><p>pattern_dir参数，以文件的形式被读取</p>
+</li>
+</ul>
+<p>如下是把上面的正则表达式<code>[0-9a-z]{10,11}</code>定义为一个<code>SERVICE</code>的 gork pattern：</p>
+<pre><code>filter {
+    grok {
+        match =&gt; {
+        &quot;message&quot; =&gt; &quot;%{SERVICE:service_name}&quot;
+        }
+
+        pattern_definitions =&gt; {
+            &quot;SERVICE&quot; =&gt; &quot;[a-z0-9]{10,11}&quot;
+        }
+    }
+}
+</code></pre><h6 id="match-匹配多种样式"><a href="#match-匹配多种样式" class="headerlink" title="match 匹配多种样式"></a>match 匹配多种样式</h6><p>match也是支持匹配多种样式，如：</p>
+<pre><code>filter {
+    grok {
+        match =&gt; {
+            &quot;message&quot; =&gt; [ &quot;Duration: %{NUMBER: duration}&quot;, &quot;Speed: %{NUMBER: speed}&quot;]
+        }
+    }
+}
+</code></pre><h6 id="overwrite"><a href="#overwrite" class="headerlink" title="overwrite"></a>overwrite</h6><p>有如下的配置：</p>
+<pre><code>filter {
+    grok {
+        match =&gt; {
+        &quot;message&quot; =&gt; &quot;%{SERVICE:service_name} %{NUMBER:message}&quot;
+        }
+
+        pattern_definitions =&gt; {
+            &quot;SERVICE&quot; =&gt; &quot;[a-z0-9]{10,11}&quot;
+        }
+    }
+</code></pre><p>如果输入数据<code>abc123456</code>，匹配将会失败，输入如下内容：</p>
+<pre><code>{
+    &quot;@version&quot; =&gt; &quot;1&quot;,
+     &quot;message&quot; =&gt; [
+    [0] &quot;abc1234567 123&quot;,
+    [1] &quot;123&quot;
+],
+&quot;service_name&quot; =&gt; &quot;abc1234567&quot;,
+        &quot;host&quot; =&gt; &quot;192.168.1.1&quot;,
+  &quot;@timestamp&quot; =&gt; 2019-01-02T12:25:06.218Z
+}
+</code></pre><p>可以看到<code>service_name</code>的内容和<code>message[0]</code>重复了，如果想去掉<code>message[0]</code>的输出，这时就可以使用overwrite:</p>
+<pre><code>filter {
+    grok {
+        match =&gt; {
+        &quot;message&quot; =&gt; &quot;%{SERVICE:service_name} %{NUMBER:message}&quot;
+        }
+
+        overwrite =&gt; [&quot;message&quot;]
+
+        pattern_definitions =&gt; {
+            &quot;SERVICE&quot; =&gt; &quot;[a-z0-9]{10,11}&quot;
+        }
+    }
+}
+</code></pre><p>使用上面的配置，可以看到在message字段中只输出<code>123</code>：</p>
+<pre><code>{
+    &quot;@version&quot; =&gt; &quot;1&quot;,
+     &quot;message&quot; =&gt; &quot;123&quot;,
+&quot;service_name&quot; =&gt; &quot;abc1234567&quot;,
+        &quot;host&quot; =&gt; &quot;192.168.1.1&quot;,
+  &quot;@timestamp&quot; =&gt; 2019-01-02T12:29:04.079Z
+}
+</code></pre><h6 id="tag-on-failure"><a href="#tag-on-failure" class="headerlink" title="tag_on_failure"></a>tag_on_failure</h6><p>匹配失败后的输出，默认是<code>_grokparsefailure</code>。</p>
+<h6 id="grok-调试建议"><a href="#grok-调试建议" class="headerlink" title="grok 调试建议"></a>grok 调试建议</h6><p>下面的两个网站可以在线调试正则表达式：</p>
+<ul>
+<li><p><a href="https://www.debuggex.com/" target="_blank" rel="noopener">https://www.debuggex.com/</a></p>
+</li>
+<li><p><a href="http://www.regexr.com/" target="_blank" rel="noopener">http://www.regexr.com/</a></p>
+</li>
+</ul>
+<p>下面的两个网站可以在线调试grok：</p>
+<ul>
+<li><p><a href="http://grokdebug.herokuapp.com/" target="_blank" rel="noopener">http://grokdebug.herokuapp.com/</a></p>
+</li>
+<li><p><a href="http://grok.elasticsearch.cn/" target="_blank" rel="noopener">http://grok.elasticsearch.cn/</a></p>
+</li>
+</ul>
+<h4 id="dissect"><a href="#dissect" class="headerlink" title="dissect"></a>dissect</h4><p>dissect是基于分隔符来解析数据，解决grok用正则表达式解析时消耗过多cpu资源的问题。</p>
+<p>dissect的应用有一定的局限性：主要适用于每行相似且分隔符明确简单的场景。</p>
+<h5 id="匹配语法"><a href="#匹配语法" class="headerlink" title="匹配语法"></a>匹配语法</h5><p>dissect语法比较简单，有一系列字段和分隔符组成：</p>
+<ul>
+<li><p>%{} 字段</p>
+</li>
+<li><p>%{} 之间是分隔符</p>
+</li>
+</ul>
+<p>有如下数据：</p>
+<pre><code>hi - hello - 12
+</code></pre><p>如果使用如下的dissect匹配（如果不写名称，即%{}，表明忽略该值）：</p>
+<pre><code>%{a} - %{b} - %{c}
+</code></pre><p>匹配的结果为：</p>
+<pre><code>{
+    &quot;a&quot;: &quot;hi&quot;,
+    &quot;b&quot;: &quot;hello&quot;,
+    &quot;c&quot;: &quot;12&quot;
+}
+</code></pre><h5 id="追加字段"><a href="#追加字段" class="headerlink" title="追加字段"></a>追加字段</h5><p>如下配置，<code>+</code>代表该匹配值追加到<code>ts</code>字段中：</p>
+<pre><code>filter {
+    dissect {
+        mapping =&gt; {
+        &quot;message&quot; =&gt; &quot;%{ts} %{+ts} %{+ts} %{src} %{prog}[%{pid}]: %{msg}&quot;
+        }
+    }
+}
+</code></pre><p>输入如下数据：</p>
+<pre><code>Apr 16 12:20:02 localhost systemd[1]: Starting system activity accounting tool...
+</code></pre><p>匹配输出如下内容：</p>
+<pre><code>{
+  &quot;@version&quot; =&gt; &quot;1&quot;,
+   &quot;message&quot; =&gt; &quot;Apr 16 12:20:02 localhost systemd[1]: Starting system activity accounting tool...&quot;,
+       &quot;src&quot; =&gt; &quot;localhost&quot;,
+       &quot;pid&quot; =&gt; &quot;1&quot;,
+      &quot;host&quot; =&gt; &quot;192.168.1.1&quot;,
+       &quot;msg&quot; =&gt; &quot;Starting system activity accounting tool...&quot;,
+&quot;@timestamp&quot; =&gt; 2019-01-02T12:53:48.958Z,
+        &quot;ts&quot; =&gt; &quot;Apr 16 12:20:02&quot;,
+      &quot;prog&quot; =&gt; &quot;systemd&quot;
+}
+</code></pre><h5 id="改变顺序"><a href="#改变顺序" class="headerlink" title="改变顺序"></a>改变顺序</h5><p>如下配置，<code>/</code>后面的数字代表拼接的次序：</p>
+<pre><code>filter {
+    dissect {
+        mapping =&gt; {
+        &quot;message&quot; =&gt; &quot;%{+order/2} %{+order/3} %{+order/1} %{+order/4}&quot;
+        }
+    }
+}
+</code></pre><p>输入如下内容：</p>
+<pre><code>one three two go
+</code></pre><p>匹配后输出如下内容：</p>
+<pre><code>{
+  &quot;@version&quot; =&gt; &quot;1&quot;,
+   &quot;message&quot; =&gt; &quot;one three two go&quot;,
+     &quot;order&quot; =&gt; &quot;two one three go&quot;,
+      &quot;host&quot; =&gt; &quot;192.168.1.1&quot;,
+&quot;@timestamp&quot; =&gt; 2019-01-02T13:05:52.526Z
+}
+</code></pre><h5 id="匹配后赋值"><a href="#匹配后赋值" class="headerlink" title="匹配后赋值"></a>匹配后赋值</h5><p>如输入以下内容：</p>
+<pre><code>a=1&amp;b=2
+</code></pre><p>匹配后想输出如下内容：</p>
+<pre><code>{
+    &quot;a&quot;: &quot;1&quot;,
+    &quot;b&quot;: &quot;2&quot;
+}
+</code></pre><p>可以使用下面的匹配：</p>
+<pre><code>%{?key1}=%{&amp;key1}&amp;%{?key2}=%{&amp;key2}
+</code></pre><p><code>%{?}</code>代表忽略匹配值，但是赋予字段名，用于后续匹配。</p>
+<p><code>%{&amp;}</code>代表将匹配值赋予key1的匹配值。</p>
+<h5 id="convert-datatype"><a href="#convert-datatype" class="headerlink" title="convert_datatype"></a>convert_datatype</h5><p>dissect分割后的字段值都是字符串，可以使用convert_datatype属性进行类型转换：</p>
+<pre><code>filter {
+    dissect {
+        convert_datatype {
+            age =&gt; int
+        }
+    }
+}
+</code></pre><h4 id="mutate"><a href="#mutate" class="headerlink" title="mutate"></a>mutate</h4><p>可以对字段进行各种操作，比如重命名、删除、替换、更新等，主要操作如下：</p>
+<ul>
+<li><p>convert: 类型转换</p>
+</li>
+<li><p>gsub：字符串替换</p>
+</li>
+<li><p>split/join/merge：字符串切割、数组合并为字符串、数组合并为数组</p>
+</li>
+<li><p>rename：字段重命名</p>
+</li>
+<li><p>update/replace：字段内容更新或替换</p>
+</li>
+<li><p>remove_field：删除字段</p>
+</li>
+</ul>
+<h5 id="convert"><a href="#convert" class="headerlink" title="convert"></a>convert</h5><p>实现字段类型的转换，类型为hash，仅支持转换为integer、float、string、和boolean</p>
+<pre><code>filter {
+    mutate {
+        convert =&gt; {&quot;age&quot; =&gt; &quot;integer&quot;}
+    }
+}
+</code></pre><h5 id="gsub"><a href="#gsub" class="headerlink" title="gsub"></a>gsub</h5><p>对字段内容进行替换，类型为数组，每3项为一个替换配置。</p>
+<p>如下是将path字段中的<code>/</code>替换为<code>_</code>、urlparams中的<code>\</code>、<code>?</code>、<code>#</code>、<code>-</code>替换为<code>.</code>：</p>
+<pre><code>filter {
+    mutate {
+        gsub =&gt; [
+            &quot;path&quot;, &quot;/&quot;, &quot;_&quot;,
+            &quot;urlparams&quot;, &quot;[\\?#-]&quot;, &quot;.&quot;
+        ]
+    }
+}
+</code></pre><h5 id="split"><a href="#split" class="headerlink" title="split"></a>split</h5><p>如下是将jobs字段以<code>,</code>为分隔，将字符串切割为数组：</p>
+<pre><code>filter {
+    mutate {
+        split =&gt; {&quot;jobs&quot; =&gt; &apos;,&apos;}
+    }
+}
+</code></pre><h5 id="rename"><a href="#rename" class="headerlink" title="rename"></a>rename</h5><p>如下是将<code>HOSTORIP</code>字段名重命名为<code>clientip</code>:</p>
+<pre><code>filter {
+    mutate {
+        rename =&gt; {&quot;HOSTORIP&quot; =&gt; &quot;clientip&quot;}
+    }
+}
+</code></pre><h5 id="update-replace"><a href="#update-replace" class="headerlink" title="update/replace"></a>update/replace</h5><p>更新字段内容，区别在于update只在字段存在时生效，而replace在字段不存在时会执行新增字段操作:</p>
+<pre><code>filter {
+    mutate {
+        replace =&gt; {
+            &quot;message&quot; =&gt; &quot;%{source_host}: My new message&quot;
+        }
+    }
+}
+</code></pre><h5 id="remove-field"><a href="#remove-field" class="headerlink" title="remove_field"></a>remove_field</h5><p>如下表示在结果中删除<code>headers</code>字段：</p>
+<pre><code>filter {
+    mutate {
+        remove_field =&gt; &quot;headers&quot;
+    }
+}
+</code></pre><h4 id="json-1"><a href="#json-1" class="headerlink" title="json"></a>json</h4><p>将字段内容为json格式的数据进行解析，用<code>source</code>指定要更新的字段名、<code>target</code>指定解析后的存储字段，如果不指定<code>target</code>默认和message同级别：</p>
+<pre><code>filter {
+    json {
+        source =&gt; &quot;message&quot;
+        target =&gt; &quot;msg_json&quot;
+    }  
+}
+</code></pre><h4 id="geoip"><a href="#geoip" class="headerlink" title="geoip"></a>geoip</h4><p>根据ip地址转换对应的地域信息，比如经纬度、城市等，方便进行地理数据分析：</p>
+<pre><code>filter {
+    geoip {
+        source =&gt; &quot;message&quot;
+    }
+}
+</code></pre><p>输入ip地址：<code>119.75.217.26</code>，输出如下内容：</p>
+<pre><code>{
+      &quot;host&quot; =&gt; &quot;192.168.1.1&quot;,
+   &quot;message&quot; =&gt; &quot;119.75.217.26&quot;,
+  &quot;@version&quot; =&gt; &quot;1&quot;,
+     &quot;geoip&quot; =&gt; {
+       &quot;region_name&quot; =&gt; &quot;Beijing&quot;,
+          &quot;timezone&quot; =&gt; &quot;Asia/Shanghai&quot;,
+      &quot;country_name&quot; =&gt; &quot;China&quot;,
+                &quot;ip&quot; =&gt; &quot;119.75.217.26&quot;,
+     &quot;country_code2&quot; =&gt; &quot;CN&quot;,
+    &quot;continent_code&quot; =&gt; &quot;AS&quot;,
+          &quot;latitude&quot; =&gt; 39.9289,
+     &quot;country_code3&quot; =&gt; &quot;CN&quot;,
+       &quot;region_code&quot; =&gt; &quot;11&quot;,
+          &quot;location&quot; =&gt; {
+        &quot;lat&quot; =&gt; 39.9289,
+        &quot;lon&quot; =&gt; 116.3883
+    },
+         &quot;longitude&quot; =&gt; 116.3883,
+         &quot;city_name&quot; =&gt; &quot;Beijing&quot;
+},
+&quot;@timestamp&quot; =&gt; 2019-01-03T12:39:41.318Z
+}
+</code></pre><h3 id="output-插件"><a href="#output-插件" class="headerlink" title="output 插件"></a>output 插件</h3><p>负责将logstash event输出，常见的插件如下：</p>
+<ul>
+<li><p>stdout</p>
+</li>
+<li><p>file</p>
+</li>
+<li><p>elasticsearch</p>
+</li>
+</ul>
+<h4 id="stdout"><a href="#stdout" class="headerlink" title="stdout"></a>stdout</h4><p>输出到标准输出，多用于调试：</p>
+<pre><code>output {
+    stdout {
+        codec =&gt; rubydebug
+    }
+}
+</code></pre><h4 id="file-1"><a href="#file-1" class="headerlink" title="file"></a>file</h4><p>输出到文件，实现将分散在多地的文件统一到一处的需求，比如将所有web机器的web日志收集到1个文件中，从而方便查阅信息，默认输出json格式的数据，通过format可以输出原始格式：</p>
+<pre><code>output {
+    file {
+        path =&gt; &quot;/var/log/web.log&quot;
+        codec =&gt; line {
+            format =&gt; &quot;%{message}&quot;
+        }
+    }
+}
+</code></pre><h4 id="elasticsearch"><a href="#elasticsearch" class="headerlink" title="elasticsearch"></a>elasticsearch</h4><p>输出到elasticsearch：</p>
+<pre><code>output {
+    elasticsearch {
+        hosts =&gt; [&quot;192.168.1.100:9200&quot;, &quot;192.168.1.101:9200&quot;]
+        index =&gt; &quot;nginx-%{+YYYY.MM.dd}&quot;
+        template =&gt; &quot;./nginx_template.json&quot;
+        template_name =&gt; &quot;nginx_template&quot;
+        template_overwrite =&gt; true
+    }
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/28/out-of-band_data/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1219,256 +2189,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/27/nonblocking/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="heqingliang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/dva.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="heqingliang's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/12/27/nonblocking/" itemprop="url">非阻塞式I/O</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-27T00:00:00+08:00">
-                2017-12-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <hr>
-<p>套接字的默认状态是阻塞的。这就意味着当发出一个不能立即完成的套接字调用时，其进程将投入睡眠，等待相应操作完成。可能阻塞的套接字调用可分为以下四类。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/12/27/nonblocking/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/26/epoll/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="heqingliang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/dva.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="heqingliang's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/12/26/epoll/" itemprop="url">I/O复用：epoll</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-26T00:00:00+08:00">
-                2017-12-26
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <hr>
-<p><code>epoll</code>是Linux内核为处理大批量文件描述符而做了改进的<code>poll</code>，是Linux下多路复用IO接口select/poll的增强版本，它能显著提高程序在大量并发连接中只有少量活跃的情况下的系统CPU利用率。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/12/26/epoll/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1523,7 +2243,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">61</span>
+                  <span class="site-state-item-count">63</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1566,7 +2286,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>

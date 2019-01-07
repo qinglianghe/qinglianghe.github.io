@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Logstash是开源的服务器端数据处理管道，能够同时从多个来源采集数据，转换数据，然后将数据发送到Elasticsearch等存储库。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Logstash">
+<meta property="og:url" content="http://yoursite.com/2018/12/28/logstash_01/index.html">
+<meta property="og:site_name" content="heqingliang&#39;s Blog">
+<meta property="og:description" content="Logstash是开源的服务器端数据处理管道，能够同时从多个来源采集数据，转换数据，然后将数据发送到Elasticsearch等存储库。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/images/logstash/logstash_architecture.png">
+<meta property="og:image" content="http://yoursite.com/images/logstash/pipeline.png">
+<meta property="og:image" content="http://yoursite.com/images/logstash/logstash_event.png">
+<meta property="og:image" content="http://yoursite.com/images/logstash/line_codec_decode.png">
+<meta property="og:image" content="http://yoursite.com/images/logstash/json_codec_encode.png">
+<meta property="og:image" content="http://yoursite.com/images/logstash/queue.png">
+<meta property="og:image" content="http://yoursite.com/images/logstash/thread.png">
+<meta property="og:updated_time" content="2019-01-07T04:10:47.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Logstash">
+<meta name="twitter:description" content="Logstash是开源的服务器端数据处理管道，能够同时从多个来源采集数据，转换数据，然后将数据发送到Elasticsearch等存储库。">
+<meta name="twitter:image" content="http://yoursite.com/images/logstash/logstash_architecture.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/12/28/logstash_01/"/>
+
+
+
+
+
+  <title>Logstash | heqingliang's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">heqingliang's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/28/logstash_01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="heqingliang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/dva.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="heqingliang's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Logstash</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-28T00:00:00+08:00">
+                2018-12-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Logstash是开源的服务器端数据处理管道，能够同时从多个来源采集数据，转换数据，然后将数据发送到Elasticsearch等存储库。</p>
+<a id="more"></a>
+<h3 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h3><p>Logstash由如下3部分组成：</p>
+<ul>
+<li><p><strong>input：</strong> 用于数据采集</p>
+</li>
+<li><p><strong>filter：</strong> 数据解析/转换</p>
+</li>
+<li><p><strong>output：</strong> 数据输出</p>
+</li>
+</ul>
+<p><img src="/images/logstash/logstash_architecture.png" alt="logstash_architecture.png"></p>
+<h4 id="相关名词"><a href="#相关名词" class="headerlink" title="相关名词"></a>相关名词</h4><p><strong>pipeline：</strong> 一条数据处理流程的逻辑抽象（input-&gt;filter-&gt;output的3阶段处理流程）。</p>
+<p><img src="/images/logstash/pipeline.png" alt="pipeline.png"></p>
+<p><strong>event：</strong> 原始数据在input被转换为event，在output event被转换为目标格式数据。</p>
+<p><img src="/images/logstash/logstash_event.png" alt="logstash_event.png"></p>
+<p>如下的codec.conf配置：</p>
+<pre><code>input {
+    stdin {
+        codec =&gt; line
+    }
+}
+
+output {
+    stdout {
+        codec =&gt;json
+    }
+}
+</code></pre><p>当在标注输入<code>foo\nbar</code>后，input插件将会读取数据，然后通过line codec decode（按行分隔）将分为foo和bar两个event:</p>
+<p><img src="/images/logstash/line_codec_decode.png" alt="line_codec_decode.png"></p>
+<p>当foo和bar两个event，经过json codec encode后最终会输出如下的json内容：</p>
+<p><img src="/images/logstash/json_codec_encode.png" alt="json_codec_encode.png"></p>
+<h3 id="queue"><a href="#queue" class="headerlink" title="queue"></a>queue</h3><p>如下当logstash从input中读取通过codec解析成event后，会将解析后的event放入到Queue中，Batcher负责批量的从queue中取数据，当Batcher中数据到达一定量或一定时间后，将会发送给filter，filter最终发送给output。</p>
+<p><img src="/images/logstash/queue.png" alt="queue.png"></p>
+<p>Queue可以分为以下两种：</p>
+<ul>
+<li><p><strong>In Memory：</strong> 所有的数据都存储在内存中，如果出现进程Crash或者机器宕机，会导致数据丢失</p>
+</li>
+<li><p><strong>Persist Queue In Disk：</strong> 在数据存储在内存中，会备份一份数据在磁盘中，当数据在output处理完后，output会通知queue删除磁盘中的数据。这样就可处理进程Crash等情况，保证数据不丢失，保证数据至少消费一次。</p>
+</li>
+</ul>
+<p>持久队列的相关配置：</p>
+<pre><code>queue.type:persisted    #默认是memory
+queue.max_bytes:4gb     #队列存储最大数据量
+</code></pre><h3 id="thread"><a href="#thread" class="headerlink" title="thread"></a>thread</h3><p>logstash的线程可以分为两种：</p>
+<ul>
+<li><p>input thread</p>
+</li>
+<li><p>pipeline thread</p>
+</li>
+</ul>
+<p><img src="/images/logstash/thread.png" alt="thread.png"></p>
+<p>相关配置：</p>
+<p>pipeline线程数，即filter_output的处理线程数，默认是cpu核数：</p>
+<pre><code>pipeline.worksers (配置文件)| -w (命令行参数)
+</code></pre><p>Batcher一次批量获取的待处理文档数，默认是125，可以根据输出进行调整，越大会占用越多的heap空间，可以通过jvm.options调整：</p>
+<pre><code>pipeline.batch.size (配置文件) | -b (命令行参数)
+</code></pre><p>Batcher等待的时长，单位为ms：</p>
+<pre><code>pipeline.batch.delay (配置文件) | -u (命令行参数)
+</code></pre><h3 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h3><p>logstash设置相关的配置文件（在ls config目录下）：</p>
+<ul>
+<li><p>logstash.yml：logstash相关配置，比如<code>node.name</code>、<code>path.data</code>、<code>pipeline.workers</code>、<code>queue.type</code>等，这其中的配置可以被命令行参数中的相关参数覆盖</p>
+</li>
+<li><p>jvm.options：修改jvm的相关参数，比如修改heap size等</p>
+</li>
+<li><p>pipeline配置文件：定义数据处理流程的文件，以.conf结尾</p>
+</li>
+</ul>
+<h4 id="logstash-yml常用配置项"><a href="#logstash-yml常用配置项" class="headerlink" title="logstash.yml常用配置项"></a>logstash.yml常用配置项</h4><table>
+<thead>
+<tr>
+<th>配置项</th>
+<th style="text-align:left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>node.name</td>
+<td style="text-align:left">节点名称，便于识别</td>
+</tr>
+<tr>
+<td>path.data</td>
+<td style="text-align:left">持久化存储数据的文件夹，默认是logstash home目录下的data</td>
+</tr>
+<tr>
+<td>path.config</td>
+<td style="text-align:left">设定pipeline配置文件的目录（如果指定文件夹，会默认把文件夹下的所有.conf文件按照字母顺序拼接为一个文件）</td>
+</tr>
+<tr>
+<td>path.log</td>
+<td style="text-align:left">设定pipeline日志文件的目录</td>
+</tr>
+<tr>
+<td>pipeline.workers</td>
+<td style="text-align:left">设定pipeline的线程数（filter+output），优化的常用项</td>
+</tr>
+<tr>
+<td>pipeline.batch.size/delay</td>
+<td style="text-align:left">设定批量处理数据的数据和延迟</td>
+</tr>
+<tr>
+<td>queue.type</td>
+<td style="text-align:left">设定队列类型，默认是memory</td>
+</tr>
+<tr>
+<td>queue.max_bytes</td>
+<td style="text-align:left">队列总容量，默认是1g</td>
+</tr>
+</tbody>
+</table>
+<h4 id="pipeline配置"><a href="#pipeline配置" class="headerlink" title="pipeline配置"></a>pipeline配置</h4><p>用于配置input、filter和output插件，框架如下所示：</p>
+<pre><code>input {}
+filter {}
+output {}
+</code></pre><h5 id="配置语法"><a href="#配置语法" class="headerlink" title="配置语法"></a>配置语法</h5><h6 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h6><p>主要有如下的数据类型：</p>
+<p>布尔类型：</p>
+<pre><code>isFailed =&gt; true
+</code></pre><p>数值类型：</p>
+<pre><code>port =&gt; 33
+</code></pre><p>字符串类型：</p>
+<pre><code>name =&gt; &quot;Hello world&quot;
+</code></pre><p>数组：</p>
+<pre><code>users =&gt; [{id =&gt; 1, name =&gt; &quot;bob&quot;}, {id =&gt; 2, name =&gt; &quot;jane&quot;}]
+path =&gt; [&quot;/var/log/messages&quot;, &quot;/var/lg/*.log&quot;]
+</code></pre><p>哈希类型：</p>
+<pre><code>match =&gt; {
+    &quot;field1&quot; =&gt; &quot;value1&quot;,
+    &quot;field1&quot; =&gt; &quot;value2&quot;
+}
+</code></pre><p>注释：</p>
+<pre><code># this is comment
+</code></pre><h6 id="引用logstash-event属性"><a href="#引用logstash-event属性" class="headerlink" title="引用logstash event属性"></a>引用logstash event属性</h6><p>在配置中可以引用logstash event的属性(字段)，主要有如下两种方式：</p>
+<ul>
+<li><p>直接引用字段值：使用<code>[]</code>即可，嵌套字段写多层<code>[]</code>：</p>
+<pre><code>if [request] = ~&quot;index&quot; {}
+if [ua][os] = ~&quot;windows&quot; {}
+</code></pre></li>
+<li><p>在字符串中以sprintf方式引用，使用%{}来实现：</p>
+<pre><code>req =&gt; &quot;request is %{request}&quot;
+ua =&gt; &quot;ua is %{[ua][os]}&quot;
+</code></pre></li>
+</ul>
+<h6 id="条件判断"><a href="#条件判断" class="headerlink" title="条件判断"></a>条件判断</h6><p>支持条件判断语法，从而扩展了配置的多样性，主要格式如下：</p>
+<pre><code>if EXPRESSION {
+    ...
+} else if EXPRESSION {
+    ...
+} else {
+    ...
+}
+</code></pre><h6 id="表达式"><a href="#表达式" class="headerlink" title="表达式"></a>表达式</h6><p>表达式主要包含如下的操作符：</p>
+<ul>
+<li><p><strong>比较：</strong> ==、!=、&lt;、&gt; 、&lt;=、&gt;=</p>
+</li>
+<li><p><strong>正则是否匹配：</strong> =~、!~</p>
+</li>
+<li><p><strong>包含(字符串或者数组)：</strong> in、not in</p>
+</li>
+<li><p><strong>布尔操作符：</strong> and、or、nand、xor、!</p>
+</li>
+<li><p><strong>分组操作符：</strong> ()</p>
+<pre><code>if [action] == &quot;login&quot; {}
+if [loglevel] == &quot;ERROR&quot; and [deployment] == &quot;production&quot; {}
+if [foo] in [foobar] {}
+if [foo] in &quot;foo&quot; {}
+if &quot;hello&quot; in [greeting] {}
+if [foo] in [&quot;hello&quot;, &quot;world&quot;, &quot;foo&quot;] {}
+if !(&quot;foo&quot; in [&quot;hello&quot;, &quot;world&quot;]) {}
+if &quot;failure&quot; not in [tags] {}
+</code></pre></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/23/elasticsearch_07/" rel="next" title="Elasticsearch 数据建模">
+                <i class="fa fa-chevron-left"></i> Elasticsearch 数据建模
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/dva.jpg"
+                alt="heqingliang" />
+            
+              <p class="site-author-name" itemprop="name">heqingliang</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯 看一看世界的繁华 年少的心总有些轻狂 如今你四海为家 曾让你心疼的姑娘 如今已悄然无踪影</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">63</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#架构"><span class="nav-number">1.</span> <span class="nav-text">架构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#相关名词"><span class="nav-number">1.1.</span> <span class="nav-text">相关名词</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#queue"><span class="nav-number">2.</span> <span class="nav-text">queue</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#thread"><span class="nav-number">3.</span> <span class="nav-text">thread</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置文件"><span class="nav-number">4.</span> <span class="nav-text">配置文件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#logstash-yml常用配置项"><span class="nav-number">4.1.</span> <span class="nav-text">logstash.yml常用配置项</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#pipeline配置"><span class="nav-number">4.2.</span> <span class="nav-text">pipeline配置</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#配置语法"><span class="nav-number">4.2.1.</span> <span class="nav-text">配置语法</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#数据类型"><span class="nav-number">4.2.1.1.</span> <span class="nav-text">数据类型</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#引用logstash-event属性"><span class="nav-number">4.2.1.2.</span> <span class="nav-text">引用logstash event属性</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#条件判断"><span class="nav-number">4.2.1.3.</span> <span class="nav-text">条件判断</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#表达式"><span class="nav-number">4.2.1.4.</span> <span class="nav-text">表达式</span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">heqingliang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
