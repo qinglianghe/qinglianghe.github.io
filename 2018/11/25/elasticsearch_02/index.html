@@ -93,7 +93,7 @@
 <meta property="og:image" content="http://yoursite.com/images/elastic/stop.png">
 <meta property="og:image" content="http://yoursite.com/images/elastic/keyword.png">
 <meta property="og:image" content="http://yoursite.com/images/elastic/pattern.png">
-<meta property="og:updated_time" content="2018-12-23T05:33:21.000Z">
+<meta property="og:updated_time" content="2019-01-07T05:18:37.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Elasticsearch 分词">
 <meta name="twitter:description" content="正排索引正排索引记录的是文档Id到文档内容、单词的关联关系。也就是说可以通过Id获取到文档的内容。">
@@ -405,9 +405,9 @@
 <ul>
 <li><p>通过倒排索引获得<code>brown</code>对应的文档ID为1和2</p>
 </li>
-<li><p>通过正排索引查询1和3的完整内容</p>
+<li><p>通过正排索引查询文档id为1和2对应的文档内容</p>
 </li>
-<li><p>返回用户最终结果</p>
+<li><p>将查询的最终结果返回给用户</p>
 </li>
 </ul>
 <h4 id="倒排索引组成"><a href="#倒排索引组成" class="headerlink" title="倒排索引组成"></a>倒排索引组成</h4><p>倒排索引是搜索引擎的核心，主要包含两部分：</p>
@@ -452,13 +452,13 @@
 <td>1</td>
 <td style="text-align:left">1</td>
 <td style="text-align:left">2</td>
-<td style="text-align:left"><10, 14=""></10,></td>
+<td style="text-align:left">(10, 14)</td>
 </tr>
 <tr>
 <td>2</td>
 <td style="text-align:left">1</td>
 <td style="text-align:left">1</td>
-<td style="text-align:left"><6, 10=""></6,></td>
+<td style="text-align:left">(6, 10)</td>
 </tr>
 </tbody>
 </table>
@@ -531,7 +531,7 @@
 <p>新建一个Index，指定需要使用ik分词的字段。如下在创建profile Index时，指定<code>user</code>、<code>title</code>、<code>desc</code>字段的analyzer(分词器)、search_analyzer(搜索词的分词器)为<code>ik_max_word</code>分词器：</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">PUT /profile</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"mappings"</span>: &#123;</span><br><span class="line">    <span class="attr">"person"</span>: &#123;</span><br><span class="line">      <span class="attr">"properties"</span>: &#123;</span><br><span class="line">        <span class="attr">"user"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"text"</span>,</span><br><span class="line">          <span class="attr">"analyzer"</span>: <span class="string">"ik_max_word"</span>,</span><br><span class="line">          <span class="attr">"search_analyzer"</span>: <span class="string">"ik_max_word"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"title"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"text"</span>,</span><br><span class="line">          <span class="attr">"analyzer"</span>: <span class="string">"ik_max_word"</span>,</span><br><span class="line">          <span class="attr">"search_analyzer"</span>: <span class="string">"ik_max_word"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"desc"</span>: &#123;</span><br><span class="line">          <span class="attr">"type"</span>: <span class="string">"text"</span>,</span><br><span class="line">          <span class="attr">"analyzer"</span>: <span class="string">"ik_max_word"</span>,</span><br><span class="line">          <span class="attr">"search_analyzer"</span>: <span class="string">"ik_max_word"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h5 id="自定义分词"><a href="#自定义分词" class="headerlink" title="自定义分词"></a>自定义分词</h5><p>当自带的分词无法满足需求的时候，就需要自定义分词。</p>
-<p>自定义分词就是通过Character Filters、Tokenizer和Token Filter实现。</p>
+<p>自定义分词就是通过自定义Character Filters、Tokenizer和Token Filter实现。</p>
 <h6 id="Character-Filters"><a href="#Character-Filters" class="headerlink" title="Character Filters"></a>Character Filters</h6><p>在Tokenizer之前对原始文本进行处理，比如增加、删除或替换的字符等。</p>
 <p>自带的Character Filters有如下：</p>
 <ul>
