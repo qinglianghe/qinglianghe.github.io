@@ -93,7 +93,7 @@
 <meta property="og:image" content="http://yoursite.com/images/protobuf/string_encode.png">
 <meta property="og:image" content="http://yoursite.com/images/protobuf/repeated_encode.png">
 <meta property="og:image" content="http://yoursite.com/images/protobuf/message_encode.png">
-<meta property="og:updated_time" content="2018-09-16T00:28:34.000Z">
+<meta property="og:updated_time" content="2019-02-14T05:39:18.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="protobuf数据编码">
 <meta name="twitter:description" content="protobuf能够跨平台提供轻量的序列化和反序列化，得益于其平台无关的编码格式，下面分析protobuf的编码格式。">
@@ -366,7 +366,7 @@
 00000020  74 65 73 74 40 71 71 2e  63 6f 6d                 |test@qq.com|
 </code></pre><p>序列化后各个字节表示的结果如下：</p>
 <p><img src="/images/protobuf/repeated_encode.png" alt="repeated_encode.png"></p>
-<h5 id="message"><a href="#message" class="headerlink" title="message"></a>message</h5><p>如下代码，定义以了一个message结构的的address字段：</p>
+<h5 id="message"><a href="#message" class="headerlink" title="message"></a>message</h5><p>如下代码，定义一个message结构的的address字段：</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">syntax = <span class="string">"proto3"</span>;</span><br><span class="line"></span><br><span class="line">message Test &#123;</span><br><span class="line">    message Address &#123;</span><br><span class="line">        <span class="built_in">string</span> country = <span class="number">1</span>;</span><br><span class="line">        <span class="built_in">string</span> city = <span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    Address address = <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>设置字段address的值，把序列化后的结果保存到文件中：</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Test_Address* address = t.mutable_address();</span><br><span class="line">address-&gt;set_country(<span class="string">"China"</span>);</span><br><span class="line">address-&gt;set_city(<span class="string">"GuangZhou"</span>);</span><br></pre></td></tr></table></figure>
