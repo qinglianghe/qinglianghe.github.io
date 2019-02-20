@@ -91,7 +91,7 @@
 <meta property="og:image" content="http://yoursite.com/images/docker/topological_03.png">
 <meta property="og:image" content="http://yoursite.com/images/docker/nginx.png">
 <meta property="og:image" content="http://yoursite.com/images/docker/topological_04.png">
-<meta property="og:updated_time" content="2018-11-14T23:23:01.000Z">
+<meta property="og:updated_time" content="2019-02-19T05:34:49.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Docker的网络">
 <meta name="twitter:description" content="Docker的网络实现了容器和容器外部、不同容器之间通信。">
@@ -310,50 +310,50 @@
 <a id="more"></a>
 <h3 id="network-namespace"><a href="#network-namespace" class="headerlink" title="network namespace"></a>network namespace</h3><p>linux的network namespace是用来隔离网络设备, IP地址, 端口等，network namespace为命名空间中的所有进程提供了全新的网络堆栈。</p>
 <h4 id="创建和删除-network-namespace"><a href="#创建和删除-network-namespace" class="headerlink" title="创建和删除 network namespace"></a>创建和删除 network namespace</h4><p>使用<code>ip netns add NAME</code>可以创建一个network namespace，如下是创建了两个network namespace，分别是test1、test2：</p>
-<pre><code>[heql@ubuntu hello-world]$ sudo ip netns add test1
-[heql@ubuntu hello-world]$ sudo ip netns add test2
+<pre><code>[heql@ubuntu ~]$ sudo ip netns add test1
+[heql@ubuntu ~]$ sudo ip netns add test2
 </code></pre><p>使用<code>ip netns delete NAME</code>即可删除一个network namespace。</p>
 <h4 id="查看-network-namespace"><a href="#查看-network-namespace" class="headerlink" title="查看 network namespace"></a>查看 network namespace</h4><p>使用<code>ip netns list</code>可以查看network namespace：</p>
-<pre><code>[heql@ubuntu hello-world]$ sudo ip netns list
+<pre><code>[heql@ubuntu ~]$ sudo ip netns list
 test2
 test1
-</code></pre><h4 id="查看-network-namespace的IP"><a href="#查看-network-namespace的IP" class="headerlink" title="查看 network namespace的IP"></a>查看 network namespace的IP</h4><pre><code>[heql@ubuntu hello-world]$ sudo ip netns exec test1 ip a
+</code></pre><h4 id="查看-network-namespace的IP"><a href="#查看-network-namespace的IP" class="headerlink" title="查看 network namespace的IP"></a>查看 network namespace的IP</h4><pre><code>[heql@ubuntu ~]$ sudo ip netns exec test1 ip a
 1: lo: &lt;LOOPBACK&gt; mtu 65536 qdisc noop state DOWN group default 
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
 </code></pre><p>从上面的可以看到lo的端口的状态是DOWN，如果想要lo的端口处于UP状态，可以使用如下命令：</p>
-<pre><code>[heql@ubuntu hello-world]$ sudo ip netns exec test1 ip link set dev lo up
-[heql@ubuntu hello-world]$ sudo ip netns exec test1 ip link 
+<pre><code>[heql@ubuntu ~]$ sudo ip netns exec test1 ip link set dev lo up
+[heql@ubuntu ~]$ sudo ip netns exec test1 ip link 
 1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default 
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
 </code></pre><h4 id="Veth"><a href="#Veth" class="headerlink" title="Veth"></a>Veth</h4><p>如果想要两个network namespace之间进行通信，需要使用Veth。</p>
-<h5 id="创建veth"><a href="#创建veth" class="headerlink" title="创建veth"></a>创建veth</h5><pre><code>[heql@ubuntu hello-world]$ sudo ip link add veth-test1 type veth peer name veth-test2
+<h5 id="创建veth"><a href="#创建veth" class="headerlink" title="创建veth"></a>创建veth</h5><pre><code>[heql@ubuntu ~]$ sudo ip link add veth-test1 type veth peer name veth-test2
 </code></pre><p>添加成功后，执行<code>ip link</code>可以看到如下信息：</p>
-<pre><code>[heql@ubuntu hello-world]$ ip link
+<pre><code>[heql@ubuntu ~]$ ip link
 30: veth-test2@veth-test1: &lt;BROADCAST,MULTICAST,M-DOWN&gt; mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
     link/ether 3a:ef:ae:66:3d:42 brd ff:ff:ff:ff:ff:ff
 31: veth-test1@veth-test2: &lt;BROADCAST,MULTICAST,M-DOWN&gt; mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
     link/ether ca:5d:6b:25:ce:02 brd ff:ff:ff:ff:ff:ff
 </code></pre><h5 id="添加veth至network-namespace"><a href="#添加veth至network-namespace" class="headerlink" title="添加veth至network namespace"></a>添加veth至network namespace</h5><p>执行如下命令，可以把veth-test1添加到test1的network namespace：</p>
-<pre><code>[heql@ubuntu hello-world]$ sudo ip link set veth-test1 netns test1
-[heql@ubuntu hello-world]$ sudo ip netns exec test1 ip link
+<pre><code>[heql@ubuntu ~]$ sudo ip link set veth-test1 netns test1
+[heql@ubuntu ~]$ sudo ip netns exec test1 ip link
 1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default 
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
 31: veth-test1@if30: &lt;BROADCAST,MULTICAST&gt; mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
     link/ether ca:5d:6b:25:ce:02 brd ff:ff:ff:ff:ff:ff
 </code></pre><p>同理可以把veth-test2添加到test2的network namespace：</p>
-<pre><code>[heql@ubuntu hello-world]$ sudo ip netns exec test2 ip link
+<pre><code>[heql@ubuntu ~]$ sudo ip netns exec test2 ip link
 1: lo: &lt;LOOPBACK&gt; mtu 65536 qdisc noop state DOWN mode DEFAULT group default 
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
 30: veth-test2@if31: &lt;BROADCAST,MULTICAST&gt; mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
     link/ether 3a:ef:ae:66:3d:42 brd ff:ff:ff:ff:ff:ff
 </code></pre><h5 id="分配IP地址"><a href="#分配IP地址" class="headerlink" title="分配IP地址"></a>分配IP地址</h5><p>首先要启动veth端口：</p>
-<pre><code>[heql@ubuntu hello-world]$ sudo ip netns exec test1 ip link set dev veth-test1 up 
-[heql@ubuntu hello-world]$ sudo ip netns exec test2 ip link set dev veth-test2 up
+<pre><code>[heql@ubuntu ~]$ sudo ip netns exec test1 ip link set dev veth-test1 up 
+[heql@ubuntu ~]$ sudo ip netns exec test2 ip link set dev veth-test2 up
 </code></pre><p>分配IP地址：</p>
-<pre><code>[heql@ubuntu hello-world]$ sudo ip netns exec test1 ip addr add 192.168.1.1/24 dev veth-test1 
-[heql@ubuntu hello-world]$ sudo ip netns exec test2 ip addr add 192.168.1.2/24 dev veth-test2
-[heql@ubuntu hello-world]$ 
-[heql@ubuntu hello-world]$ sudo ip netns exec test1 ip a
+<pre><code>[heql@ubuntu ~]$ sudo ip netns exec test1 ip addr add 192.168.1.1/24 dev veth-test1 
+[heql@ubuntu ~]$ sudo ip netns exec test2 ip addr add 192.168.1.2/24 dev veth-test2
+[heql@ubuntu ~]$ 
+[heql@ubuntu ~]$ sudo ip netns exec test1 ip a
 1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default 
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
     inet 127.0.0.1/8 scope host lo
@@ -366,7 +366,7 @@ test1
     valid_lft forever preferred_lft forever
     inet6 fe80::c85d:6bff:fe25:ce02/64 scope link 
     valid_lft forever preferred_lft forever
-[heql@ubuntu hello-world]$ sudo ip netns exec test2 ip a
+[heql@ubuntu ~]$ sudo ip netns exec test2 ip a
 1: lo: &lt;LOOPBACK&gt; mtu 65536 qdisc noop state DOWN group default 
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
 30: veth-test2@if31: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
@@ -376,13 +376,13 @@ test1
     inet6 fe80::38ef:aeff:fe66:3d42/64 scope link 
     valid_lft forever preferred_lft forever
 </code></pre><h5 id="通信"><a href="#通信" class="headerlink" title="通信"></a>通信</h5><p>上面的配置成功后，network namespace test1和test2就可以正确通信了：</p>
-<pre><code>[heql@ubuntu hello-world]$ sudo ip netns exec test1 ping 192.168.1.2
+<pre><code>[heql@ubuntu ~]$ sudo ip netns exec test1 ping 192.168.1.2
 PING 192.168.1.2 (192.168.1.2) 56(84) bytes of data.
 64 bytes from 192.168.1.2: icmp_seq=1 ttl=64 time=0.637 ms
 64 bytes from 192.168.1.2: icmp_seq=2 ttl=64 time=0.117 ms
 64 bytes from 192.168.1.2: icmp_seq=3 ttl=64 time=0.116 ms
 
-[heql@ubuntu hello-world]$ sudo ip netns exec test2 ping 192.168.1.1
+[heql@ubuntu ~]$ sudo ip netns exec test2 ping 192.168.1.1
 PING 192.168.1.1 (192.168.1.1) 56(84) bytes of data.
 64 bytes from 192.168.1.1: icmp_seq=1 ttl=64 time=0.183 ms
 64 bytes from 192.168.1.1: icmp_seq=2 ttl=64 time=0.106 ms
@@ -397,18 +397,18 @@ rtt min/avg/max/mdev = 0.104/0.131/0.183/0.036
 <li>容器也可以与外部通信，数据包从容器出来，由于容器是桥接到docker0上，所以数据包会发到docker0上，然后在通过NAT转换，实现对外通信。</li>
 </ul>
 <p>如下，创建一个的容器：</p>
-<pre><code>[heql@ubuntu hello-world]$ docker run -d --name test1 busybox /bin/sh -c &quot;while true; do sleep 3600; done&quot;
-[heql@ubuntu hello-world]$ docker ps 
+<pre><code>[heql@ubuntu ~]$ docker run -d --name test1 busybox /bin/sh -c &quot;while true; do sleep 3600; done&quot;
+[heql@ubuntu ~]$ docker ps 
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
 beb73a179c71        busybox             &quot;/bin/sh -c &apos;while t…&quot;   35 seconds ago      Up 32 seconds                           test1
 </code></pre><p>通过下面的命令，可以看到test1的网络连接到bridge网络中：</p>
-<pre><code>[heql@ubuntu hello-world]$ docker network ls
+<pre><code>[heql@ubuntu ~]$ docker network ls
 NETWORK ID          NAME                DRIVER              SCOPE
 be05ef2f2f1d        bridge              bridge              local
 0609e6a3110a        host                host                local
 effb6daa2ce0        none                null                local
 
-[heql@ubuntu hello-world]$ docker network inspect be05ef2f2f1d
+[heql@ubuntu ~]$ docker network inspect be05ef2f2f1d
 &quot;Containers&quot;: {
         &quot;beb73a179c71d64b7bb626f180374453062d1551dc4a2a989edbc81b6385ec64&quot;: {
             &quot;Name&quot;: &quot;test1&quot;,
@@ -419,7 +419,7 @@ effb6daa2ce0        none                null                local
         }
     }
 </code></pre><p>使用<code>ip a</code>命令可以看到，如下两个接口，<code>docker0</code>、<code>veth54c9f49</code>：</p>
-<pre><code>[heql@ubuntu hello-world]$ ip a
+<pre><code>[heql@ubuntu ~]$ ip a
 3: docker0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default 
     link/ether 02:42:36:76:5f:42 brd ff:ff:ff:ff:ff:ff
     inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
@@ -431,7 +431,7 @@ effb6daa2ce0        none                null                local
     inet6 fe80::c050:52ff:fe9d:86dc/64 scope link 
     valid_lft forever preferred_lft forever
 </code></pre><p>进入test1容器，执行<code>ip -a</code>命令:</p>
-<pre><code>[heql@ubuntu hello-world]$ docker exec -it test1 /bin/sh 
+<pre><code>[heql@ubuntu ~]$ docker exec -it test1 /bin/sh 
 / # ip a
 1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue 
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
@@ -442,20 +442,20 @@ effb6daa2ce0        none                null                local
     inet 172.17.0.2/16 brd 172.17.255.255 scope global eth0
     valid_lft forever preferred_lft forever
 </code></pre><p> 执行<code>brctl show</code>命令，可以看到，docker0上有一个<code>veth54c9f49</code>接口：</p>
-<pre><code>[heql@ubuntu hello-world]$ brctl show
+<pre><code>[heql@ubuntu ~]$ brctl show
 bridge name    bridge id        STP enabled    interfaces
 docker0        8000.024236765f42    no        veth54c9f49
 </code></pre><p>也就说，docker0上的<code>veth54c9f49</code>接口和容器test1里面的<code>eth0@if33</code>接口是一对veth，就像上面的network namespace test1和test2，从而实现了容器test1和docker0通信。形成了如下拓扑图：</p>
 <p><img src="/images/docker/topological_01.png" alt="topological_01.png"></p>
 <p>再创建一个容器test2：</p>
-<pre><code>[heql@ubuntu hello-world]$ docker run -d --name test2 busybox /bin/sh -c &quot;while true; do sleep 3600; done&quot;
+<pre><code>[heql@ubuntu ~]$ docker run -d --name test2 busybox /bin/sh -c &quot;while true; do sleep 3600; done&quot;
 01ec580a6477d550f0245ca41b2e3f7c33896f9aeae5491d594ccfb511897676
-[heql@ubuntu hello-world]$ docker ps
+[heql@ubuntu ~]$ docker ps
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
 01ec580a6477        busybox             &quot;/bin/sh -c &apos;while t…&quot;   4 seconds ago       Up 3 seconds                            test2
 beb73a179c71        busybox             &quot;/bin/sh -c &apos;while t…&quot;   39 minutes ago      Up 39 minutes                           test1
 </code></pre><p>可以看到test2的网络连接到bridge网络中：</p>
-<pre><code>[heql@ubuntu hello-world]$ docker network inspect be05ef2f2f1d
+<pre><code>[heql@ubuntu ~]$ docker network inspect be05ef2f2f1d
 &quot;Containers&quot;: {
             &quot;01ec580a6477d550f0245ca41b2e3f7c33896f9aeae5491d594ccfb511897676&quot;: {
                 &quot;Name&quot;: &quot;test2&quot;,
@@ -473,21 +473,21 @@ beb73a179c71        busybox             &quot;/bin/sh -c &apos;while t…&quot; 
             }
         },
 </code></pre><p>使用<code>brctl show</code>命令，可以看到，docker0上有两个接口，<code>veth54c9f49</code>、<code>veth04fe000</code>：</p>
-<pre><code>[heql@ubuntu hello-world]$ brctl show
+<pre><code>[heql@ubuntu ~]$ brctl show
 bridge name    bridge id        STP enabled    interfaces
 docker0        8000.024236765f42    no        veth04fe000
                             veth54c9f49
 </code></pre><p>形成了如下拓扑图：</p>
 <p><img src="/images/docker/topological_02.png" alt="topological_02.png"></p>
 <p>容器test1和test2，可以相互ping通：</p>
-<pre><code>[heql@ubuntu hello-world]$ docker exec -it test1 /bin/sh 
+<pre><code>[heql@ubuntu ~]$ docker exec -it test1 /bin/sh
 / # ping 172.17.0.3
 PING 172.17.0.3 (172.17.0.3): 56 data bytes
 64 bytes from 172.17.0.3: seq=0 ttl=64 time=1.878 ms
 64 bytes from 172.17.0.3: seq=1 ttl=64 time=0.125 ms
 64 bytes from 172.17.0.3: seq=2 ttl=64 time=0.194 ms
 
-[heql@ubuntu hello-world]$ docker exec -it test2 /bin/sh
+[heql@ubuntu ~]$ docker exec -it test2 /bin/sh
 / # ping 172.17.0.2
 PING 172.17.0.2 (172.17.0.2): 56 data bytes
 64 bytes from 172.17.0.2: seq=0 ttl=64 time=0.477 ms
@@ -495,13 +495,13 @@ PING 172.17.0.2 (172.17.0.2): 56 data bytes
 64 bytes from 172.17.0.2: seq=2 ttl=64 time=0.118 ms
 </code></pre><p>在容器test1、test2中，对外网也是可以访问的，这是通过NAT转换实现的。</p>
 <pre><code>[heql@ubuntu ~]$ docker exec -it test1 /bin/sh
-/ # ping www.baidu.com
-PING www.baidu.com (119.75.217.109): 56 data bytes
-64 bytes from 119.75.217.109: seq=0 ttl=127 time=41.350 ms
-64 bytes from 119.75.217.109: seq=1 ttl=127 time=43.619 ms
-64 bytes from 119.75.217.109: seq=2 ttl=127 time=41.302 ms
+/ # ping cn.bing.com
+PING cn.bing.com (202.89.233.101): 56 data bytes
+64 bytes from 202.89.233.101: seq=0 ttl=127 time=74.048 ms
+64 bytes from 202.89.233.101: seq=1 ttl=127 time=73.928 ms
+64 bytes from 202.89.233.101: seq=3 ttl=127 time=74.903 ms
 </code></pre><p><img src="/images/docker/topological_03.png" alt="topological_03.png"></p>
-<h4 id="容器间的LINK"><a href="#容器间的LINK" class="headerlink" title="容器间的LINK"></a>容器间的LINK</h4><p>容器间的LINK，提供了一种在不同的容器间可以通过容器的名字来通信的机制。例如有一个后台的程序，想要访问MySQL的容器的服务，就需要知道MySQL容器的IP地址和端口，但是容器的IP地址是不固定的，这是就可以使用容器间的LINK，使得后台的程序可以直接通过MySQL容器的名字和端口号，直接访问数据库。</p>
+<h4 id="容器间的LINK"><a href="#容器间的LINK" class="headerlink" title="容器间的LINK"></a>容器间的LINK</h4><p>容器间的LINK，提供了一种在不同的容器间可以通过容器的名字来通信的机制。例如有一个后台的程序，想要访问MySQL的容器的服务，就需要知道MySQL容器的IP地址和端口，但是容器的IP地址是不固定的，这时就可以使用容器间的LINK，使得后台的程序可以直接通过MySQL容器的名字和端口号，直接访问数据库。</p>
 <p>启动test1容器：</p>
 <pre><code>[heql@ubuntu ~]$ docker run -d --name=test1 busybox /bin/sh -c &quot;while true; do sleep 3600; done&quot;
 </code></pre><p>启动test2容器，启动的时候指定link到test1容器中：</p>
@@ -516,24 +516,23 @@ PING test1 (172.17.0.2): 56 data bytes
 <pre><code>[heql@ubuntu ~]$ docker exec -it test1 /bin/sh
 / # ping test2
 ping: bad address &apos;test2&apos;
-</code></pre><h4 id="自定义网络"><a href="#自定义网络" class="headerlink" title="自定义网络"></a>自定义网络</h4><pre><code>如下，创建了一个my-bridge的网络，driver使用的是bridge模式：
-
-    ubuntu@docker-node1:~$ docker network create -d bridge my-bridge
+</code></pre><h4 id="自定义网络"><a href="#自定义网络" class="headerlink" title="自定义网络"></a>自定义网络</h4><p>如下，创建了一个my-bridge的网络，driver使用的是bridge模式：</p>
+<pre><code>[heql@ubuntu ~]$ docker network create -d bridge my-bridge
 ba700ffa1e8f645b2c96af09aa58eeddba973afe7356271828ebd56a6ce7b16a
-ubuntu@docker-node1:~$ docker network ls
+[heql@ubuntu ~]$ docker network ls
 NETWORK ID          NAME                DRIVER              SCOPE
 d22bcab1e0eb        bridge              bridge              local
 ff50d198b5dc        docker_gwbridge     bridge              local
 65e22acf0beb        host                host                local
 ba700ffa1e8f        my-bridge           bridge              local
 c305a4b53c3b        none                null                local
-</code></pre><p>在创建容器时，可以指定连接到c的网络：</p>
-<pre><code>ubuntu@docker-node1:~$ docker run -d --name=test1 --network my-bridge busybox sh -c &quot;while true; do sleep 3600; done&quot;
+</code></pre><p>在创建容器时，可以指定连接到的网络：</p>
+<pre><code>[heql@ubuntu ~]$ docker run -d --name=test1 --network my-bridge busybox sh -c &quot;while true; do sleep 3600; done&quot;
 f03bde21fd93473a9c918f83ca9df843836c73631d7c9b3b5c0ec9edf04da138
-ubuntu@docker-node1:~$ docker run -d --name=test2 --network my-bridge busybox sh -c &quot;while true; do sleep 3600; done&quot;
+[heql@ubuntu ~]$ docker run -d --name=test2 --network my-bridge busybox sh -c &quot;while true; do sleep 3600; done&quot;
 7efcdd3343e0531aa0a108c7adb2cc18c8db4074bf4ce02c541ea24f91bf5144
 </code></pre><p>可以看到容器test1、test2，已经连接到了my-bridge:</p>
-<pre><code>ubuntu@docker-node1:~$ docker network inspect my-bridge
+<pre><code>[heql@ubuntu ~]$ docker network inspect my-bridge
  &quot;Containers&quot;: {
         &quot;7efcdd3343e0531aa0a108c7adb2cc18c8db4074bf4ce02c541ea24f91bf5144&quot;: {
             &quot;Name&quot;: &quot;test2&quot;,
@@ -551,19 +550,19 @@ ubuntu@docker-node1:~$ docker run -d --name=test2 --network my-bridge busybox sh
         }
     },
 </code></pre><p>执行命令，可以看到容器test1可以使用test2的IP进行通信：</p>
-<pre><code>ubuntu@docker-node1:~$ docker exec test1 ping 172.19.0.3
+<pre><code>[heql@ubuntu ~]$ docker exec test1 ping 172.19.0.3
 PING 172.19.0.3 (172.19.0.3): 56 data bytes
 64 bytes from 172.19.0.3: seq=0 ttl=64 time=0.165 ms
 64 bytes from 172.19.0.3: seq=1 ttl=64 time=0.205 ms
 64 bytes from 172.19.0.3: seq=2 ttl=64 time=0.202 ms
 </code></pre><p>直接使用test2的名字，也可以进行通信：</p>
-<pre><code>ubuntu@docker-node1:~$ docker exec test1 ping test2
+<pre><code>[heql@ubuntu ~]$ docker exec test1 ping test2
 PING test2 (172.19.0.3): 56 data bytes
 64 bytes from 172.19.0.3: seq=0 ttl=64 time=0.167 ms
 64 bytes from 172.19.0.3: seq=1 ttl=64 time=0.214 ms
 64 bytes from 172.19.0.3: seq=2 ttl=64 time=0.206 ms
 </code></pre><p>反过来，在test2中使用容器test1的名字也是可以通信的：</p>
-<pre><code>ubuntu@docker-node1:~$ docker exec test2 ping test1
+<pre><code>[heql@ubuntu ~]$ docker exec test2 ping test1
 PING test1 (172.19.0.2): 56 data bytes
 64 bytes from 172.19.0.2: seq=0 ttl=64 time=0.297 ms
 64 bytes from 172.19.0.2: seq=1 ttl=64 time=0.250 ms
@@ -589,9 +588,8 @@ a4830d511808        nginx               &quot;nginx -g &apos;daemon of…&quot; 
 / #
 </code></pre><h4 id="host网络"><a href="#host网络" class="headerlink" title="host网络"></a>host网络</h4><p>连接到host网络的容器共享Docker宿主机的网络栈，即容器的网络配置与host宿主机完全一样。</p>
 <p>直接使用Docker host的网络最大的好处就是性能，如果容器对网络传输效率有较高要求，则可以选择host网络。当然不便之处就是牺牲一些灵活性，比如要考虑端口冲突问题，Docker host上已经使用的端口就不能再用了。</p>
-<p>如下，将容器test1连接到none网络，进入容器test1，可以看到容器test1的配置和主机时一样的：</p>
-<pre><code>[heql@ubuntu ~]$ docker run -d --name=test1 --network=hos^Cusybox /bin/sh -c &quot;while true; do sleep 3600; done&quot;
-[heql@ubuntu ~]$ docker run -d --name=test1 --network=host busybox /bin/sh -c &quot;while true; do sleep 3600; done&quot;
+<p>如下，将容器test1连接到host网络，进入容器test1，可以看到容器test1的配置和主机时一样的：</p>
+<pre><code>[heql@ubuntu ~]$ docker run -d --name=test1 --network=host busybox /bin/sh -c &quot;while true; do sleep 3600; done&quot;
 012810607ce59244b9a535f23297d34163e972328af6c263f731011c608d10e2
 [heql@ubuntu ~]$ docker exec -it test1 /bin/sh/ # ip a
 1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue 
@@ -621,7 +619,8 @@ a4830d511808        nginx               &quot;nginx -g &apos;daemon of…&quot; 
 </code></pre><h3 id="多容器的部署"><a href="#多容器的部署" class="headerlink" title="多容器的部署"></a>多容器的部署</h3><p>有如下python程序，使用redis来记录每次访问web页面的次数，在部署时，可以把redis和应用程序部署在不同容器中：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">    flask demo</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"></span><br><span class="line">__author__ = <span class="string">'heqingliang'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask</span><br><span class="line"><span class="keyword">from</span> redis <span class="keyword">import</span> Redis</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line">redis = Redis(host=os.environ.get(<span class="string">'REDIS_HOST'</span>, <span class="string">'127.0.0.1'</span>), port=<span class="number">6379</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/', methods=['GET', 'POST'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">()</span>:</span></span><br><span class="line">    redis.incr(<span class="string">'hits'</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="string">'&lt;h1&gt;Hello Container, I have been seen %s times.&lt;/h1&gt;'</span> % (redis.get(<span class="string">'hits'</span>))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">    app.run(host=<span class="string">"0.0.0.0"</span>, port=<span class="number">5000</span>, debug=<span class="keyword">True</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
 <p>运行redis容器：</p>
-<pre><code>[heql@ubuntu flask-demo]$ docker run -d --name=redis redis 37a3118b732b71d55a5ebc3caec5f28fd5332b53c61fef4383c8c811a70793b4
+<pre><code>[heql@ubuntu flask-demo]$ docker run -d --name=redis redis
+37a3118b732b71d55a5ebc3caec5f28fd5332b53c61fef4383c8c811a70793b4
 </code></pre><p> 如下是app.py程序的Dockerfile:</p>
 <pre><code>FROM python
 LABEL maintainer=&quot;heqingliang_gzus@163.com&quot;
@@ -650,9 +649,9 @@ CMD [&quot;python&quot;, &quot;app.py&quot;]
 <li><p>组成集群的所有主机的主机名不允许重复，因为docker守护进程与consul/etcd/zookeeper通信时，以主机名相互区分</p>
 </li>
 </ul>
-<h4 id="下载etcd"><a href="#下载etcd" class="headerlink" title="下载etcd"></a>下载etcd</h4><pre><code>ubuntu@docker-node2:~$ wget https://github.com/coreos/etcd/releases/download/v3.3.10/etcd-v3.3.10-linux-amd64.tar.gz
-ubuntu@docker-node2:~$ tar xzf etcd-v3.3.10-linux-amd64.tar.gz
-ubuntu@docker-node2:~$ cd etcd-v3.3.10-linux-arm64/
+<h4 id="下载etcd"><a href="#下载etcd" class="headerlink" title="下载etcd"></a>下载etcd</h4><pre><code>[heql@ubuntu ~]$ wget https://github.com/coreos/etcd/releases/download/v3.3.10/etcd-v3.3.10-linux-amd64.tar.gz
+[heql@ubuntu ~]$ tar xzf etcd-v3.3.10-linux-amd64.tar.gz
+[heql@ubuntu ~]$ cd etcd-v3.3.10-linux-arm64/
 </code></pre><h4 id="启动etcd"><a href="#启动etcd" class="headerlink" title="启动etcd"></a>启动etcd</h4><p>在<code>192.168.33.10</code>机器上启动etcd：</p>
 <pre><code>ubuntu@docker-node1:~/etcd-v3.3.10-linux-amd64$ nohup ./etcd --name docker-node1 --initial-advertise-peer-urls http://192.168.33.10:2380 \
 --listen-peer-urls http://192.168.33.10:2380 \
@@ -697,8 +696,8 @@ ubuntu@docker-node2:~/etcd-v3.3.10-linux-amd64$ sudo /usr/bin/dockerd -H tcp://0
 </li>
 </ul>
 <h4 id="创建overlay网络"><a href="#创建overlay网络" class="headerlink" title="创建overlay网络"></a>创建overlay网络</h4><p>在<code>192.168.33.10</code>创建overlay网络：</p>
-<pre><code>ubuntu@docker-node1:~$ docker network create -d overlay demo
-ubuntu@docker-node1:~$ docker network ls
+<pre><code>[heql@ubuntu ~]$ docker network create -d overlay demo
+[heql@ubuntu ~]$ docker network ls
 NETWORK ID          NAME                DRIVER              SCOPE
 70d52172034e        bridge              bridge              local
 88e42f2e0502        demo                overlay             global
@@ -706,7 +705,7 @@ ff50d198b5dc        docker_gwbridge     bridge              local
 65e22acf0beb        host                host                local
 c305a4b53c3b        none                null                local
 </code></pre><p>在<code>192.168.33.11</code>也可以看到<code>192.168.33.10</code>创建的demo网络：</p>
-<pre><code>ubuntu@docker-node2:~$ docker network ls
+<pre><code>[heql@ubuntu ~]$ docker network ls
 NETWORK ID          NAME                DRIVER              SCOPE
 eb0df6a88d4d        bridge              bridge              local
 88e42f2e0502        demo                overlay             global
@@ -714,11 +713,11 @@ eac83f830fb1        docker_gwbridge     bridge              local
 4dce7cd5aa57        host                host                local
 83856f82e646        none                null                local
 </code></pre><h4 id="容器间通信"><a href="#容器间通信" class="headerlink" title="容器间通信"></a>容器间通信</h4><p>在<code>192.168.33.10</code>启动如下容器：</p>
-<pre><code>ubuntu@docker-node1:~$ docker run -d --name test1 --net demo busybox sh -c &quot;while true; do sleep 3600; done&quot;
+<pre><code>[heql@ubuntu ~]$ docker run -d --name test1 --net demo busybox sh -c &quot;while true; do sleep 3600; done&quot;
 </code></pre><p>在<code>192.168.33.11</code>启动如下容器（注意容器的名字不能和<code>192.168.33.10</code>名字一样）：</p>
-<pre><code>ubuntu@docker-node2:~$ docker run -d --name test2 --net demo busybox sh -c &quot;while true; do sleep 3600; done&quot;
+<pre><code>[heql@ubuntu ~]$ docker run -d --name test2 --net demo busybox sh -c &quot;while true; do sleep 3600; done&quot;
 </code></pre><p>查看demo网络中信息，可以看到容器test1、test2已加入到demo网络中：</p>
-<pre><code>ubuntu@docker-node1:~$ docker network inspect demo
+<pre><code>[heql@ubuntu ~]$ docker network inspect demo
  &quot;Containers&quot;: {
         &quot;6693b4f5d73d5b03d57aab98c19cf27de26b8e386740a438268f24d4e499bf1c&quot;: {
             &quot;Name&quot;: &quot;test1&quot;,
@@ -735,29 +734,29 @@ eac83f830fb1        docker_gwbridge     bridge              local
             &quot;IPv6Address&quot;: &quot;&quot;
         }
     },
-</code></pre><p>在<code>192.168.33.10</code>执行如下命令，可以看到可以直接使用容器test2名字通信，可以使用test2的IP：</p>
-<pre><code>ubuntu@docker-node1:~$ docker exec test1 ping test2
+</code></pre><p>在<code>192.168.33.10</code>执行如下命令，可以直接使用容器test2名字通信，也可以使用test2的IP：</p>
+<pre><code>[heql@ubuntu ~]$ docker exec test1 ping test2
 PING test2 (10.0.0.3): 56 data bytes
 64 bytes from 10.0.0.3: seq=0 ttl=64 time=0.581 ms
 64 bytes from 10.0.0.3: seq=1 ttl=64 time=1.130 ms
 64 bytes from 10.0.0.3: seq=2 ttl=64 time=1.371 ms
-</code></pre><p>在<code>192.168.33.11</code>执行如下命令，可以看到可以直接使用容器test1名字通信，可以使用test1的IP：</p>
-<pre><code>ubuntu@docker-node2:~$ docker exec test2 ping test1
+</code></pre><p>在<code>192.168.33.11</code>执行如下命令，可以直接使用容器test1名字通信，也可以使用test1的IP：</p>
+<pre><code>[heql@ubuntu ~]$ docker exec test2 ping test1
 PING test1 (10.0.0.2): 56 data bytes
 64 bytes from 10.0.0.2: seq=0 ttl=64 time=0.566 ms
 64 bytes from 10.0.0.2: seq=1 ttl=64 time=1.291 ms
 64 bytes from 10.0.0.2: seq=2 ttl=64 time=1.100 ms
 </code></pre><h4 id="在overlay网络中部署应用"><a href="#在overlay网络中部署应用" class="headerlink" title="在overlay网络中部署应用"></a>在overlay网络中部署应用</h4><p>如在上面多容器部署的例子，把redis和应用程序的容器部署在同一台机器，现在使用overlay网络把redis和应用程序部署在两台机器上，按照上面的方法，创建好overlay网络。</p>
 <p>在<code>192.168.33.10</code>机器上启动redis：</p>
-<pre><code>ubuntu@docker-node1:~$ docker run -d --name=redis --net demo redis
+<pre><code>[heql@ubuntu ~]$ docker run -d --name=redis --net demo redis
 </code></pre><p>在<code>192.168.33.11</code>机器上启动应用程序：</p>
-<pre><code>ubuntu@docker-node2:~$ docker run -d -p 5000:5000 --name flask-redis --net demo -e REDIS_HOST=redis heqingliang/flask-app
+<pre><code>[heql@ubuntu ~]$ docker run -d -p 5000:5000 --name flask-redis --net demo -e REDIS_HOST=redis heqingliang/flask-app
 </code></pre><p>在<code>192.168.33.11</code>机器，访问<code>127.0.0.1:5000</code>，可以看到如下结果：</p>
-<pre><code>ubuntu@docker-node2:~$ curl 127.0.0.1:5000
+<pre><code>[heql@ubuntu ~]$ curl 127.0.0.1:5000
 &lt;h1&gt;Hello Container, I have been seen b&apos;1&apos; times.&lt;/h1&gt;
-ubuntu@docker-node2:~$ curl 127.0.0.1:5000
+[heql@ubuntu ~]$ curl 127.0.0.1:5000
 &lt;h1&gt;Hello Container, I have been seen b&apos;2&apos; times.&lt;/h1&gt;
-ubuntu@docker-node2:~$ curl 127.0.0.1:5000
+[heql@ubuntu ~]$ curl 127.0.0.1:5000
 &lt;h1&gt;Hello Container, I have been seen b&apos;3&apos; times.&lt;/h1&gt;
 </code></pre>
       

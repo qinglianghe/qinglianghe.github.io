@@ -88,7 +88,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/images/docker/vm_container.png">
 <meta property="og:image" content="http://yoursite.com/images/docker/docker_hub.png">
-<meta property="og:updated_time" content="2018-11-14T23:47:43.000Z">
+<meta property="og:updated_time" content="2019-02-19T00:40:43.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Docker">
 <meta name="twitter:description" content="Docker属于Linux容器的一种封装，提供简单易用的容器使用接口。它是目前最流行的Linux容器解决方案。Docker将应用程序与该程序的依赖，打包在一个文件里面。运行这个文件，就会生成一个虚拟容器。">
@@ -315,7 +315,7 @@
 <p><strong>Docker client：</strong> Docker 命令行工具，是用户使用Docker的主要方式，Docker client与Docker daemon通信并将结果返回给用户，Docker client也可以通过socket或者RESTful api访问远程的Docker daemon。</p>
 <p><strong>Docker image：</strong> 镜像是只读的，镜像中包含有需要运行的文件。镜像用来创建container，一个镜像可以运行多个container。镜像可以通过Dockerfile创建，也可以从Docker hub/registry下载。</p>
 <p><strong>Docker container：</strong> 容器是Docker的运行组件，启动一个镜像就是一个容器，容器是一个隔离环境，多个容器之间不会相互影响，保证容器中的程序运行在一个相对安全的环境中。</p>
-<p><strong>Docker hub/registry：</strong> 共享和管理Docker镜像，用户可以上传或者下载上面的镜像，类似于github.官方地址为<a href="https://registry.hub.docker.com/" target="_blank" rel="noopener">https://registry.hub.docker.com/</a>，也可以搭建自己私有的Docker registry。</p>
+<p><strong>Docker hub/registry：</strong> 共享和管理Docker镜像，用户可以上传或者下载上面的镜像，类似于github。官方地址为<a href="https://registry.hub.docker.com/" target="_blank" rel="noopener">https://registry.hub.docker.com/</a>，也可以搭建自己私有的Docker registry。</p>
 <h3 id="安装-Dcoker"><a href="#安装-Dcoker" class="headerlink" title="安装 Dcoker"></a>安装 Dcoker</h3><p>由于在国内使用官方的镜像仓库安装，会比较慢。在国内可以通过阿里云的镜像仓库安装docker：</p>
 <pre><code>curl -sSL http://acs-public-mirror.oss-cn-hangzhou.aliyuncs.com/docker-engine/internet | sh -
 </code></pre><p>为了避免每次使用docker，都需要用sudo命令，可以把当前用户添加到docker的用户组中，最后重启SHELL即可：</p>
