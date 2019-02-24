@@ -88,7 +88,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/images/docker/docker_swarm_mode_arch.png">
 <meta property="og:image" content="http://yoursite.com/images/docker/service_task_container.png">
-<meta property="og:updated_time" content="2018-12-12T17:33:08.000Z">
+<meta property="og:updated_time" content="2019-02-20T05:59:52.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Docker Swarm">
 <meta name="twitter:description" content="Swarm是Docker官方提供的一款集群管理工具，其主要作用是把若干台Docker主机抽象为一个整体，并且通过一个入口统一管理这些Docker主机上的各种Docker资源。Swarm和Kubernetes比较类似，具有的功能也较kubernetes更少一些。">
@@ -472,7 +472,7 @@ so3ajlroy35j  demo.5  busybox:latest  swarm-manager  Running        Running 57 s
 CONTAINER ID        IMAGE                                                                             COMMAND                  CREATED             STATUS              PORTS               NAMES
 ee77dc7037b3        busybox@sha256:2a03a6059f21e150ae84b0973863609494aad70f0a80eaeb64bddd8d92465812   &quot;sh -c &apos;while true...&quot;   2 minutes ago       Up 2 minutes                            demo.3.7l49mkwuhoymkxq5yr72qaa8z
 c036b5ad902d        busybox@sha256:2a03a6059f21e150ae84b0973863609494aad70f0a80eaeb64bddd8d92465812   &quot;sh -c &apos;while true...&quot;   2 minutes ago       Up 2 minutes                            demo.4.ho68t3g7sf2pk7cp4bt8l9q5y
-</code></pre><p>如果把swarm-worker2节点上其中一个容器删除，Swarm Manager会选择集群中其它可用的节点，载再创建一个服务，使实际运行的Docker容器数仍然保持与预期的5个一致：</p>
+</code></pre><p>如果把swarm-worker2节点上其中一个容器删除，Swarm Manager会选择集群中其它可用的节点，再创建一个服务，使实际运行的Docker容器数仍然保持与预期的5个一致：</p>
 <pre><code>ubuntu@swarm-manager:~$ docker service ls
 ID            NAME  MODE        REPLICAS  IMAGE
 qbju4in1fqq5  demo  replicated  4/5       busybox:latest
@@ -516,13 +516,13 @@ td7e95h7jhwmraziiy7f8p8u3
 ubuntu@swarm-manager:~/flask-redis$ docker service ps redis
 ID            NAME     IMAGE         NODE           DESIRED STATE  CURRENT STATE           ERROR  PORTS
 6ol4i4fv1u92  redis.1  redis:latest  swarm-manager  Running        Running 16 seconds ago
-</code></pre><p>创建flask web服务，可以看到falsk-web服务运行在worker1节点：</p>
+</code></pre><p>创建web服务，可以看到falsk-web服务运行在worker1节点：</p>
 <pre><code>ubuntu@swarm-manager:~/flask-redis$ docker service create --name flask-web -p 5000:5000 --network demo --env REDIS_HOST=redis heqingliang/flaskredis_web
 
 ubuntu@swarm-manager:~/flask-redis$ docker service ps flask-web
 ID            NAME         IMAGE                       NODE           DESIRED STATE  CURRENT STATE               ERROR  PORTS
 cjh5ku96wtj9  flask-web.1  heqingliang/flaskredis_web  swarm-worker1  Running        Running about a minute ago
-</code></pre><p>访问flask-web服务， 虽然falsk-web服务运行在swarm-worker1节点，但是访问任意一个节点的5000端口都可以，其他节点会转发到swarm-worker1节点：</p>
+</code></pre><p>访问flask-web服务， 虽然falsk-web服务运行在swarm-worker1节点，但是访问集群中的任意一个节点的5000端口都可以，其他节点会转发到swarm-worker1节点：</p>
 <pre><code>ubuntu@swarm-manager:~/flask-redis$ curl 192.168.33.11:5000
 &lt;h1&gt;Hello Container, I have been seen b&apos;1&apos; times.&lt;/h1&gt;
 ubuntu@swarm-manager:~/flask-redis$ curl 192.168.33.11:5000
