@@ -87,7 +87,7 @@
 <meta property="og:description" content="Elasticsearch查询主要有两种形式：URI Search、Request Body Search。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/images/elastic/query_filter.png">
-<meta property="og:updated_time" content="2019-01-09T18:20:14.000Z">
+<meta property="og:updated_time" content="2019-01-10T04:18:37.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Elasticsearch 查询">
 <meta name="twitter:description" content="Elasticsearch查询主要有两种形式：URI Search、Request Body Search。">
@@ -535,7 +535,7 @@ GET /test_search_index/_search?q=username:alfd~2
 </ul>
 <h6 id="constant-score-query"><a href="#constant-score-query" class="headerlink" title="constant_score query"></a>constant_score query</h6><p>constant_score query将其内部的查询结果文档得分都设定为1或者boost的值，多用于结合bool查询实现自定义得分。</p>
 <p>如下查询返回的结果中的<code>_score</code>将会设置为<code>1.0</code>：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">GET test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"constant_score"</span>: &#123;</span><br><span class="line">      <span class="attr">"filter"</span>: &#123;</span><br><span class="line">        <span class="attr">"match"</span>: &#123;</span><br><span class="line">          <span class="attr">"username"</span>: <span class="string">"alfred"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">GET /test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"constant_score"</span>: &#123;</span><br><span class="line">      <span class="attr">"filter"</span>: &#123;</span><br><span class="line">        <span class="attr">"match"</span>: &#123;</span><br><span class="line">          <span class="attr">"username"</span>: <span class="string">"alfred"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h6 id="bool-query"><a href="#bool-query" class="headerlink" title="bool query"></a>bool query</h6><p>bool query由一个或多个bool子句组成，主要包含以下4个：</p>
 <table>
 <thead>
@@ -597,7 +597,7 @@ GET /test_search_index/_search?q=username:alfd~2
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /test_search_index/_count</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"query"</span>: &#123;</span><br><span class="line">    <span class="attr">"match"</span>: &#123;</span><br><span class="line">      <span class="attr">"username"</span>: <span class="string">"alfred"</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h5 id="source-filtering"><a href="#source-filtering" class="headerlink" title="source filtering"></a>source filtering</h5><p>过滤返回结果中_source的字段，节省网络开销。</p>
 <p>可以在URL参数_source中指定返回的字段：</p>
-<pre><code>GET test_search_index/_search?_source=username
+<pre><code>GET /test_search_index/_search?_source=username
 </code></pre><p>禁止返回_source：</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">GET /test_search_index/_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"_source"</span>: <span class="literal">false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>返回部分字段：</p>
