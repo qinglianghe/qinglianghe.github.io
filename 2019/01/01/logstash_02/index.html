@@ -86,7 +86,7 @@
 <meta property="og:site_name" content="heqingliang&#39;s Blog">
 <meta property="og:description" content="input 插件input插件用于指定数据输入源，一个pipeline可以有多个input插件，常用的input插件主要包括：stdin、file、kafka等。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-01-07T05:02:12.000Z">
+<meta property="og:updated_time" content="2019-02-25T23:56:10.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Logstash 插件">
 <meta name="twitter:description" content="input 插件input插件用于指定数据输入源，一个pipeline可以有多个input插件，常用的input插件主要包括：stdin、file、kafka等。">
@@ -303,13 +303,13 @@
 <a id="more"></a>
 <h4 id="stdin"><a href="#stdin" class="headerlink" title="stdin"></a>stdin</h4><p>最简单的输入，从标准输入读取数据，通用配置为：</p>
 <ul>
-<li><p>codec类型为codec</p>
+<li><p><strong>codec：</strong> 类型为codec</p>
 </li>
-<li><p>type类型为string，自定义该事件的类型，可用于后续判断</p>
+<li><p><strong>type：</strong> 类型为string，自定义该事件的类型，可用于后续判断</p>
 </li>
-<li><p>tags类型为array，自定义该事件的tag，可用于后续判断</p>
+<li><p><strong>tags：</strong> 类型为array，自定义该事件的tag，可用于后续判断</p>
 </li>
-<li><p>add_field类型为hash，为该事件添加字段</p>
+<li><p><strong>add_field：</strong> 类型为hash，为该事件添加字段</p>
 </li>
 </ul>
 <p>有如下的配置：</p>
@@ -772,7 +772,7 @@ output {
             &quot;SERVICE&quot; =&gt; &quot;[a-z0-9]{10,11}&quot;
         }
     }
-</code></pre><p>如果输入数据<code>abc123456</code>，匹配将会失败，输入如下内容：</p>
+</code></pre><p>如果输入数据<code>abc1234567 123</code>，输出如下内容：</p>
 <pre><code>{
     &quot;@version&quot; =&gt; &quot;1&quot;,
      &quot;message&quot; =&gt; [

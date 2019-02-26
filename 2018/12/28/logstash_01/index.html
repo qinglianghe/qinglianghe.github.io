@@ -93,7 +93,7 @@
 <meta property="og:image" content="http://yoursite.com/images/logstash/json_codec_encode.png">
 <meta property="og:image" content="http://yoursite.com/images/logstash/queue.png">
 <meta property="og:image" content="http://yoursite.com/images/logstash/thread.png">
-<meta property="og:updated_time" content="2019-01-07T04:10:47.000Z">
+<meta property="og:updated_time" content="2019-02-25T22:56:50.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Logstash">
 <meta name="twitter:description" content="Logstash是开源的服务器端数据处理管道，能够同时从多个来源采集数据，转换数据，然后将数据发送到Elasticsearch等存储库。">
@@ -339,7 +339,7 @@ output {
 <p><img src="/images/logstash/line_codec_decode.png" alt="line_codec_decode.png"></p>
 <p>当foo和bar两个event，经过json codec encode后最终会输出如下的json内容：</p>
 <p><img src="/images/logstash/json_codec_encode.png" alt="json_codec_encode.png"></p>
-<h3 id="queue"><a href="#queue" class="headerlink" title="queue"></a>queue</h3><p>如下当logstash从input中读取通过codec解析成event后，会将解析后的event放入到Queue中，Batcher负责批量的从queue中取数据，当Batcher中数据到达一定量或一定时间后，将会发送给filter，filter最终发送给output。</p>
+<h3 id="queue"><a href="#queue" class="headerlink" title="queue"></a>queue</h3><p>如下图，logstash从input中读取通过codec解析成event后，会将解析后的event放入到Queue中，Batcher负责批量的从queue中取数据，当Batcher中数据到达一定量或一定时间后，将会发送给filter，filter最终发送给output。</p>
 <p><img src="/images/logstash/queue.png" alt="queue.png"></p>
 <p>Queue可以分为以下两种：</p>
 <ul>
@@ -366,7 +366,7 @@ queue.max_bytes:4gb     #队列存储最大数据量
 <pre><code>pipeline.batch.size (配置文件) | -b (命令行参数)
 </code></pre><p>Batcher等待的时长，单位为ms：</p>
 <pre><code>pipeline.batch.delay (配置文件) | -u (命令行参数)
-</code></pre><h3 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h3><p>logstash设置相关的配置文件（在ls config目录下）：</p>
+</code></pre><h3 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h3><p>logstash设置相关的配置文件（在config目录下）：</p>
 <ul>
 <li><p>logstash.yml：logstash相关配置，比如<code>node.name</code>、<code>path.data</code>、<code>pipeline.workers</code>、<code>queue.type</code>等，这其中的配置可以被命令行参数中的相关参数覆盖</p>
 </li>
